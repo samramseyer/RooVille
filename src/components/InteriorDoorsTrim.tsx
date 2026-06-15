@@ -1,6 +1,8 @@
 import type { DoorStyleId, WindowStyleId } from '../data/interiorTrimStyles'
 import { getWindowFrameRadius, isPortholeWindow } from '../data/interiorTrimStyles'
+import type { TrimProfileId } from '../types'
 import type { WindowViewId } from '../data/interiorWindowView'
+import { OpeningCasing } from './InteriorTrimProfiles'
 import { adjustColor } from './toca/tocaShading'
 import { WindowViewScene } from './InteriorWindowViews'
 
@@ -15,6 +17,7 @@ function WindowPaneCore({
   windowStyleId,
   frameColor,
   clipId,
+  casingProfile = 'standard',
 }: {
   x: number
   y: number
@@ -24,6 +27,7 @@ function WindowPaneCore({
   windowStyleId: WindowStyleId
   frameColor: string
   clipId: string
+  casingProfile?: TrimProfileId
 }) {
   const porthole = isPortholeWindow(windowStyleId)
   const inset = porthole ? 5 : windowStyleId === 'wide' ? 5 : 4
@@ -37,6 +41,17 @@ function WindowPaneCore({
 
   return (
     <>
+      {!porthole && (
+        <OpeningCasing
+          profile={casingProfile}
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          trimColor={frameColor}
+          rx={frameRx}
+        />
+      )}
       <defs>
         <clipPath id={clipId}>
           {porthole ? (
@@ -88,6 +103,7 @@ function BayWindow({
   view,
   frameColor,
   clipPrefix,
+  casingProfile = 'standard',
 }: {
   x: number
   y: number
@@ -96,6 +112,7 @@ function BayWindow({
   view: WindowViewId
   frameColor: string
   clipPrefix: string
+  casingProfile?: TrimProfileId
 }) {
   const wingW = Math.max(width * 0.34, 14)
   const wingH = height * 0.9
@@ -154,6 +171,7 @@ function BayWindow({
         windowStyleId="classic"
         frameColor={frameColor}
         clipId={`${clipPrefix}-center`}
+        casingProfile={casingProfile}
       />
     </g>
   )
@@ -168,6 +186,7 @@ export function InteriorWindow({
   windowStyleId,
   frameColor,
   clipId,
+  casingProfile = 'standard',
 }: {
   x: number
   y: number
@@ -177,6 +196,7 @@ export function InteriorWindow({
   windowStyleId: WindowStyleId
   frameColor: string
   clipId: string
+  casingProfile?: TrimProfileId
 }) {
   if (windowStyleId === 'bay') {
     return (
@@ -188,6 +208,7 @@ export function InteriorWindow({
         view={view}
         frameColor={frameColor}
         clipPrefix={clipId}
+        casingProfile={casingProfile}
       />
     )
   }
@@ -202,6 +223,7 @@ export function InteriorWindow({
       windowStyleId={windowStyleId}
       frameColor={frameColor}
       clipId={clipId}
+      casingProfile={casingProfile}
     />
   )
 }
@@ -289,6 +311,7 @@ export function InteriorDoor({
   height,
   doorStyleId,
   trimColor,
+  casingProfile = 'standard',
 }: {
   x: number
   y: number
@@ -296,12 +319,23 @@ export function InteriorDoor({
   height: number
   doorStyleId: DoorStyleId
   trimColor: string
+  casingProfile?: TrimProfileId
 }) {
   const dark = adjustColor(trimColor, -22)
   const light = adjustColor(trimColor, 12)
+  const doorRx = doorStyleId === 'barn' ? 4 : 6
 
   return (
     <g>
+      <OpeningCasing
+        profile={casingProfile}
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        trimColor={trimColor}
+        rx={doorRx}
+      />
       {doorStyleId === 'sliding' ? (
         <rect x={x} y={y} width={width} height={height} rx={4} fill="none" stroke={trimColor} strokeWidth={2.5} />
       ) : (
@@ -383,9 +417,11 @@ export function InteriorDoor({
 export function WindowStylePreviewSwatch({
   windowStyleId,
   frameColor,
+  casingProfile = 'standard',
 }: {
   windowStyleId: WindowStyleId
   frameColor: string
+  casingProfile?: TrimProfileId
 }) {
   const isBay = windowStyleId === 'bay'
   return (
@@ -400,6 +436,7 @@ export function WindowStylePreviewSwatch({
         windowStyleId={windowStyleId}
         frameColor={frameColor}
         clipId={`preview-win-${windowStyleId}`}
+        casingProfile={casingProfile}
       />
     </svg>
   )
@@ -408,9 +445,11 @@ export function WindowStylePreviewSwatch({
 export function DoorStylePreviewSwatch({
   doorStyleId,
   trimColor,
+  casingProfile = 'standard',
 }: {
   doorStyleId: DoorStyleId
   trimColor: string
+  casingProfile?: TrimProfileId
 }) {
   const isSliding = doorStyleId === 'sliding'
   return (
@@ -423,6 +462,7 @@ export function DoorStylePreviewSwatch({
         height={24}
         doorStyleId={doorStyleId}
         trimColor={trimColor}
+        casingProfile={casingProfile}
       />
     </svg>
   )

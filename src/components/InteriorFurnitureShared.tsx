@@ -31,11 +31,25 @@ export const C = {
   charcoal: '#424242',
 }
 
-export function FurnSvg({ children, viewBox }: { children: ReactNode; viewBox: string }) {
+export function FurnSvg({
+  children,
+  viewBox,
+  stretch = false,
+}: {
+  children: ReactNode
+  viewBox: string
+  stretch?: boolean
+}) {
   const shadePrefix = `${useId().replace(/:/g, '')}-`
   return (
     <ShadePrefixProvider prefix={shadePrefix}>
-      <svg viewBox={viewBox} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <svg
+        viewBox={viewBox}
+        width="100%"
+        height="100%"
+        preserveAspectRatio={stretch ? 'none' : 'xMidYMid meet'}
+        aria-hidden="true"
+      >
         <TocaShadeDefs />
         {children}
       </svg>

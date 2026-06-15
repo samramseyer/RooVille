@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { BuildingDef, DoorStyleId, GameState, InteriorItem, InteriorOpening, PlacedItem, WindowStyleId } from '../types'
 import type { FurnitureDef } from '../data/interiorFurniture'
-import { getFurniture, isWallFurniture } from '../data/interiorFurniture'
+import { getFurniture, getFurnitureDimensions, isResizableFurniture, isWallFurniture, clampFurnitureDimensions } from '../data/interiorFurniture'
 import { getInteriorTheme } from '../data/enterableBuildings'
 import {
   clampDoorOpening,
@@ -15,7 +15,8 @@ import { resolveInteriorStyle } from '../data/interiorStyles'
 import { resolveWindowView, type MapSize } from '../data/interiorWindowView'
 import { playDeleteSound, playPlaceSound, playRotateSound } from '../audio/sounds'
 import { AvatarSprite } from './AvatarSprite'
-import { InteriorFurnitureArt, InteriorRoomBackground } from './InteriorFurnitureArt'
+import { InteriorFurnitureItemView } from './InteriorFurnitureItemView'
+import { InteriorRoomBackground } from './InteriorFurnitureArt'
 import { InteriorOpeningView } from './InteriorOpeningView'
 import { InteriorPalette } from './InteriorPalette'
 
@@ -26,7 +27,7 @@ const DEFAULT_AVATAR_INTERIOR = { x: 290, y: 340 }
 const AVATAR_RADIUS = 28
 
 type PlacementMode = 'window' | 'door' | null
-type DragMode = 'avatar' | 'furniture' | 'opening' | 'resize-opening' | null
+type DragMode = 'avatar' | 'furniture' | 'opening' | 'resize-opening' | 'resize-furniture' | null
 
 function clampFurniturePosition(
   x: number,
@@ -114,6 +115,7 @@ export function BuildingInterior({
   const trimColor = interiorStyle.trimColor ?? '#C4956A'
   const windowStyleId = interiorStyle.windowStyleId ?? 'classic'
   const doorStyleId = interiorStyle.doorStyleId ?? 'panel'
+  const casingTrimProfile = interiorStyle.casingTrimProfileId ?? 'standard'
 
   const persistInterior = useCallback(
     (patch: Partial<PlacedItem>) => {
@@ -294,12 +296,14 @@ export function BuildingInterior({
       pointerMoved.current = true
       const furniture = interiorItems.find((item) => item.id === draggingFurnitureId.current)
       const def = furniture ? getFurniture(furniture.furnitureId) : null
+      if (!furniture || !def) return
+      const size = getFurnitureDimensions(furniture, def)
       const pos = clampFurniturePosition(
         coords.x - dragOffset.current.x,
         coords.y - dragOffset.current.y,
-        def?.width ?? 50,
-        def?.height ?? 50,
-        furniture?.furnitureId,
+        size.width,
+        size.height,
+        furniture.furnitureId,
       )
       persistInterior({
         interior: interiorItems.map((item) =>
@@ -355,6 +359,31 @@ export function BuildingInterior({
               height: snap.height + dh,
             })
       updateOpening(opening.id, next)
+      return
+    }
+
+    if (dragMode === 'resize-furniture' && draggingFurnitureId.current) {
+      pointerMoved.current = true
+      const furniture = interiorItems.find((item) => item.id === draggingFurnitureId.current)
+      const def = furniture ? getFurniture(furniture.furnitureId) : null
+      if (!furniture || !def) return
+      const snap = resizeSnapshot.current
+      const dw = coords.x - snap.pointerX
+      const dh = coords.y - snap.pointerY
+      const next = clampFurnitureDimensions(
+        furniture.furnitureId,
+        snap.x,
+        snap.y,
+        snap.width + dw,
+        snap.height + dh,
+      )
+      persistInterior({
+        interior: interiorItems.map((item) =>
+          item.id === furniture.id
+            ? { ...item, x: next.x, y: next.y, width: next.width, height: next.height }
+            : item,
+        ),
+      })
     }
   }
 
@@ -425,6 +454,29 @@ export function BuildingInterior({
     draggingOpeningId.current = opening.id
     setSelectedOpeningId(opening.id)
     setDragMode('resize-opening')
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  const startFurnitureResize = (e: React.PointerEvent, item: InteriorItem) => {
+    e.stopPropagation()
+    const def = getFurniture(item.furnitureId)
+    if (!def) return
+    const coords = getCoords(e.clientX, e.clientY)
+    if (!coords) return
+    const size = getFurnitureDimensions(item, def)
+    resizeSnapshot.current = {
+      x: item.x,
+      y: item.y,
+      width: size.width,
+      height: size.height,
+      pointerX: coords.x,
+      pointerY: coords.y,
+    }
+    dragStart.current = { x: e.clientX, y: e.clientY }
+    pointerMoved.current = false
+    draggingFurnitureId.current = item.id
+    setSelectedInteriorId(item.id)
+    setDragMode('resize-furniture')
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
@@ -536,7 +588,11 @@ export function BuildingInterior({
         <div className="interior-room-container">
           {selectedInterior && selectedInteriorDef && (
             <div className="item-toolbar interior-toolbar">
-              <span>Moving: {selectedInteriorDef.name}</span>
+              <span>
+                {isResizableFurniture(selectedInterior.furnitureId)
+                  ? `Moving: ${selectedInteriorDef.name} — drag corner to resize`
+                  : `Moving: ${selectedInteriorDef.name}`}
+              </span>
               <button type="button" className="btn btn-small" onClick={() => rotateFurniture(selectedInterior.id, -90)}>
                 ↺
               </button>
@@ -591,6 +647,7 @@ export function BuildingInterior({
                 defaultDoorStyleId={doorStyleId}
                 trimColor={trimColor}
                 windowView={windowView}
+                casingProfile={casingTrimProfile}
                 selected={opening.id === selectedOpeningId}
                 onPointerDown={(e) => startOpeningDrag(e, opening)}
                 onResizePointerDown={(e) => startOpeningResize(e, opening)}
@@ -609,26 +666,17 @@ export function BuildingInterior({
               .map((item) => {
                 const def = getFurniture(item.furnitureId)
                 if (!def) return null
-                const isSelected = item.id === selectedInteriorId
                 return (
-                  <div
+                  <InteriorFurnitureItemView
                     key={item.id}
-                    className={`interior-furniture${isSelected ? ' selected' : ''}${item.furnitureId === 'rug' ? ' is-rug' : ''}${isWallFurniture(item.furnitureId) ? ' is-wall' : ''}`}
-                    style={{
-                      left: `${(item.x / ROOM_WIDTH) * 100}%`,
-                      top: `${(item.y / ROOM_HEIGHT) * 100}%`,
-                      width: `${(def.width / ROOM_WIDTH) * 100}%`,
-                      height: `${(def.height / ROOM_HEIGHT) * 100}%`,
-                      transform: `rotate(${item.rotation}deg)`,
-                    }}
+                    item={item}
+                    def={def}
+                    selected={item.id === selectedInteriorId}
                     onPointerDown={(e) => startFurnitureDrag(e, item)}
+                    onResizePointerDown={(e) => startFurnitureResize(e, item)}
                     onPointerMove={handlePointerMove}
                     onPointerUp={finishFurniturePointer}
-                    onPointerCancel={finishFurniturePointer}
-                  >
-                    <InteriorFurnitureArt id={item.furnitureId} />
-                    {isSelected && <div className="selection-ring" />}
-                  </div>
+                  />
                 )
               })}
 

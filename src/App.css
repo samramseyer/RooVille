@@ -1513,6 +1513,7 @@ button {
   cursor: grab;
   z-index: 2;
   touch-action: none;
+  overflow: visible;
 }
 
 .interior-opening--door {

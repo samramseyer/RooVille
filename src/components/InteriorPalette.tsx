@@ -14,6 +14,7 @@ import {
 import {
   DOOR_STYLES,
   TRIM_COLORS,
+  TRIM_PROFILES,
   WINDOW_STYLES,
 } from '../data/interiorTrimStyles'
 import { WINDOW_VIEW_OPTIONS, type WindowViewId } from '../data/interiorWindowView'
@@ -21,6 +22,7 @@ import type { InteriorStyle, InteriorOpening, WindowViewSetting, WindowStyleId, 
 import { DoorStylePreviewSwatch, WindowStylePreviewSwatch } from './InteriorDoorsTrim'
 import { FloorPreviewSwatch } from './InteriorFloorPatterns'
 import { InteriorFurnitureArt } from './InteriorFurnitureArt'
+import { TrimProfilePreviewSwatch } from './InteriorTrimProfiles'
 import { WindowViewPreviewSwatch } from './InteriorWindowViews'
 import { WallpaperPreviewSwatch } from './InteriorWallpaperPatterns'
 
@@ -65,6 +67,8 @@ export function InteriorPalette({
 }: InteriorPaletteProps) {
   const [tab, setTab] = useState<PaletteTab>('furniture')
   const trimColor = style.trimColor ?? '#C4956A'
+  const baseTrimProfile = style.baseTrimProfileId ?? 'standard'
+  const casingTrimProfile = style.casingTrimProfileId ?? 'standard'
   const defaultWindowStyle = style.windowStyleId ?? 'classic'
   const defaultDoorStyle = style.doorStyleId ?? 'panel'
   const activeWindowStyle =
@@ -380,7 +384,11 @@ export function InteriorPalette({
                   onClick={() => onSelectWindowStyle(option.id)}
                   title={option.name}
                 >
-                  <WindowStylePreviewSwatch windowStyleId={option.id} frameColor={trimColor} />
+                  <WindowStylePreviewSwatch
+                    windowStyleId={option.id}
+                    frameColor={trimColor}
+                    casingProfile={casingTrimProfile}
+                  />
                   <span>{option.emoji}</span>
                 </button>
               ))}
@@ -408,7 +416,11 @@ export function InteriorPalette({
                   onClick={() => onSelectDoorStyle(option.id)}
                   title={option.name}
                 >
-                  <DoorStylePreviewSwatch doorStyleId={option.id} trimColor={trimColor} />
+                  <DoorStylePreviewSwatch
+                    doorStyleId={option.id}
+                    trimColor={trimColor}
+                    casingProfile={casingTrimProfile}
+                  />
                   <span>{option.emoji}</span>
                 </button>
               ))}
@@ -442,7 +454,45 @@ export function InteriorPalette({
 
       {tab === 'trim' && (
         <>
-          <p className="palette-hint">Pick frame and trim colours for windows and doors.</p>
+          <p className="palette-hint">Choose trim profiles, colours, and casing for windows and doors.</p>
+
+          <section className="interior-style-section">
+            <h4 className="interior-style-heading">Base trim</h4>
+            <p className="interior-style-note">Baseboard along the wall and floor line.</p>
+            <div className="interior-wallpaper-grid">
+              {TRIM_PROFILES.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={`interior-wallpaper-btn${baseTrimProfile === option.id ? ' selected' : ''}`}
+                  onClick={() => onStyleChange({ baseTrimProfileId: option.id })}
+                  title={option.name}
+                >
+                  <TrimProfilePreviewSwatch profile={option.id} kind="base" trimColor={trimColor} />
+                  <span>{option.emoji}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="interior-style-section">
+            <h4 className="interior-style-heading">Window &amp; door casing</h4>
+            <p className="interior-style-note">Outer frame moulding around openings.</p>
+            <div className="interior-wallpaper-grid">
+              {TRIM_PROFILES.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={`interior-wallpaper-btn${casingTrimProfile === option.id ? ' selected' : ''}`}
+                  onClick={() => onStyleChange({ casingTrimProfileId: option.id })}
+                  title={option.name}
+                >
+                  <TrimProfilePreviewSwatch profile={option.id} kind="casing" trimColor={trimColor} />
+                  <span>{option.emoji}</span>
+                </button>
+              ))}
+            </div>
+          </section>
 
           <section className="interior-style-section">
             <h4 className="interior-style-heading">Trim colour</h4>

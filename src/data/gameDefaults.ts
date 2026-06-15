@@ -2,6 +2,7 @@ import type { GameState, InteriorItem, PlacedItem } from '../types'
 import { DEFAULT_AVATAR } from './avatarOptions'
 import { getBuilding } from './buildings'
 import { getInteriorTheme } from './enterableBuildings'
+import { clampInteriorFurnitureItem, getFurniture } from './interiorFurniture'
 import { sanitizeInteriorStyle } from './interiorStyles'
 import { sanitizeInteriorOpenings } from './interiorOpenings'
 
@@ -17,13 +18,28 @@ export const INITIAL_GAME_STATE: GameState = {
 
 function sanitizeInterior(raw: unknown): InteriorItem[] {
   if (!Array.isArray(raw)) return []
-  return raw.filter(
-    (item): item is InteriorItem =>
-      !!item &&
-      typeof item === 'object' &&
-      typeof (item as InteriorItem).id === 'string' &&
-      typeof (item as InteriorItem).furnitureId === 'string',
-  )
+  return raw
+    .filter(
+      (item): item is InteriorItem =>
+        !!item &&
+        typeof item === 'object' &&
+        typeof (item as InteriorItem).id === 'string' &&
+        typeof (item as InteriorItem).furnitureId === 'string',
+    )
+    .map((item) => {
+      const def = getFurniture(item.furnitureId)
+      if (!def) return item
+      const normalized: InteriorItem = {
+        id: item.id,
+        furnitureId: item.furnitureId,
+        x: typeof item.x === 'number' ? item.x : 0,
+        y: typeof item.y === 'number' ? item.y : 0,
+        rotation: typeof item.rotation === 'number' ? item.rotation : 0,
+        width: typeof item.width === 'number' ? item.width : undefined,
+        height: typeof item.height === 'number' ? item.height : undefined,
+      }
+      return clampInteriorFurnitureItem(normalized, def)
+    })
 }
 
 function sanitizeItems(raw: unknown): PlacedItem[] {

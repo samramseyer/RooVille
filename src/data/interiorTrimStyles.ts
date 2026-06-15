@@ -1,4 +1,4 @@
-import type { DoorStyleId, InteriorStyle, WindowStyleId } from '../types'
+import type { DoorStyleId, InteriorStyle, TrimProfileId, WindowStyleId } from '../types'
 import type { InteriorTheme } from './enterableBuildings'
 import { sanitizeOpeningScale } from './interiorOpenings'
 
@@ -35,6 +35,12 @@ export const DOOR_STYLES: StyleOption<DoorStyleId>[] = [
   { id: 'coastal', name: 'Coastal', emoji: '🏖️' },
   { id: 'barn', name: 'Barn', emoji: '🌾' },
   { id: 'hatch', name: 'Hatch', emoji: '⚓' },
+]
+
+export const TRIM_PROFILES: StyleOption<TrimProfileId>[] = [
+  { id: 'standard', name: 'Standard', emoji: '📏' },
+  { id: 'decorative', name: 'Decorative', emoji: '✨' },
+  { id: 'rustic', name: 'Rustic', emoji: '🪵' },
 ]
 
 export const TRIM_COLORS: PaintOption[] = [
@@ -78,6 +84,11 @@ export function sanitizeDoorStyleId(raw: unknown, theme: InteriorTheme): DoorSty
   return THEME_DOOR_DEFAULTS[theme]
 }
 
+export function sanitizeTrimProfileId(raw: unknown): TrimProfileId {
+  if (TRIM_PROFILES.some((p) => p.id === raw)) return raw as TrimProfileId
+  return 'standard'
+}
+
 export function sanitizeTrimColor(raw: unknown, theme: InteriorTheme): string {
   if (typeof raw === 'string' && TRIM_COLORS.some((c) => c.color === raw)) return raw
   if (typeof raw === 'string' && /^#[0-9A-Fa-f]{6}$/.test(raw)) return raw
@@ -87,11 +98,22 @@ export function sanitizeTrimColor(raw: unknown, theme: InteriorTheme): string {
 export function resolveTrimStyleFields(
   style: Partial<InteriorStyle> | undefined,
   theme: InteriorTheme,
-): Pick<InteriorStyle, 'windowStyleId' | 'doorStyleId' | 'trimColor' | 'windowScale' | 'doorScale'> {
+): Pick<
+  InteriorStyle,
+  | 'windowStyleId'
+  | 'doorStyleId'
+  | 'trimColor'
+  | 'baseTrimProfileId'
+  | 'casingTrimProfileId'
+  | 'windowScale'
+  | 'doorScale'
+> {
   return {
     windowStyleId: sanitizeWindowStyleId(style?.windowStyleId, theme),
     doorStyleId: sanitizeDoorStyleId(style?.doorStyleId, theme),
     trimColor: sanitizeTrimColor(style?.trimColor, theme),
+    baseTrimProfileId: sanitizeTrimProfileId(style?.baseTrimProfileId),
+    casingTrimProfileId: sanitizeTrimProfileId(style?.casingTrimProfileId),
     windowScale: sanitizeOpeningScale(style?.windowScale, 1),
     doorScale: sanitizeOpeningScale(style?.doorScale, 1),
   }

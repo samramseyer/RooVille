@@ -38,6 +38,7 @@ import {
   WoodLegs,
   adjustColor,
 } from './InteriorFurnitureShared'
+import { BaseTrimMolding } from './InteriorTrimProfiles'
 import { WallpaperPatternDefs } from './InteriorWallpaperPatterns'
 
 function SofaArt() {
@@ -240,9 +241,29 @@ function BookshelfArt() {
   )
 }
 
+function FlatScreenTvArt() {
+  return (
+    <FurnSvg viewBox="0 0 100 58" stretch>
+      {/* Wall mount bracket */}
+      <rect x={42} y={52} width={16} height={4} rx={1} fill={C.metal} stroke={S} strokeWidth={1.2} />
+      <rect x={46} y={54} width={8} height={3} rx={1} fill={adjustColor(C.metal, -15)} stroke={S} strokeWidth={1} />
+      {/* Ultra-thin bezel */}
+      <rect x={2} y={2} width={96} height={48} rx={3} fill={C.charcoal} stroke={S} strokeWidth={2} />
+      {/* Screen */}
+      <rect x={5} y={5} width={90} height={42} rx={2} fill={C.ocean} stroke={S} strokeWidth={1.5} />
+      <rect x={5} y={28} width={90} height={19} rx={1} fill={C.oceanDark} opacity={0.55} />
+      <path d="M 8 30 Q 50 22 92 30" fill="none" stroke={C.cream} strokeWidth={1.5} opacity={0.55} />
+      <circle cx={82} cy={14} r={5} fill={C.wattle} opacity={0.85} stroke={S} strokeWidth={1} />
+      <rect x={8} y={8} width={22} height={12} rx={2} fill="#FFFFFF" opacity={0.18} />
+      {/* Power LED */}
+      <circle cx={92} cy={50} r={1.5} fill="#4CAF50" opacity={0.9} />
+    </FurnSvg>
+  )
+}
+
 function TvArt() {
   return (
-    <FurnSvg viewBox="0 0 65 45">
+    <FurnSvg viewBox="0 0 65 45" stretch>
       <GroundShadow cx={32} cy={43} rx={26} ry={3} />
       <ShadedRect x={4} y={4} width={57} height={34} rx={7} fill={C.corrugated} depth={5} strokeWidth={SW} />
       {/* Screen — ocean scene */}
@@ -344,6 +365,8 @@ export function InteriorFurnitureArt({ id, emoji }: { id: string; emoji?: string
       return <ShelfArt />
     case 'tv':
       return <TvArt />
+    case 'flat-screen-tv':
+      return <FlatScreenTvArt />
     case 'fridge':
       return <FridgeArt />
     case 'stove':
@@ -393,6 +416,7 @@ export function InteriorRoomBackground({
   const floorBase = getFloorColor(style, style.floorTypeId)
   const floorDark = adjustColor(floorBase, -18)
   const trim = style.trimColor ?? '#C4956A'
+  const baseTrimProfile = style.baseTrimProfileId ?? 'standard'
   const useWallpaper = style.wallpaperId !== 'none'
   const useFloorPattern = style.floorTypeId !== 'paint'
   const showPerspectivePlanks =
@@ -444,8 +468,7 @@ export function InteriorRoomBackground({
             opacity={0.35}
           />
         ))}
-      <line x1={0} y1={200} x2={640} y2={200} stroke={trim} strokeWidth={6} />
-      <rect x={0} y={200} width={640} height={8} fill="#000000" opacity={0.06} />
+      <BaseTrimMolding profile={baseTrimProfile} trimColor={trim} />
       {theme === 'boat' && (
         <>
           <rect x={0} y={0} width={640} height={16} fill={trim} />

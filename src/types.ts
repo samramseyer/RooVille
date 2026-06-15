@@ -27,6 +27,10 @@ export interface InteriorItem {
   x: number
   y: number
   rotation: number
+  /** Custom width when placed (resizable items like TVs). */
+  width?: number
+  /** Custom height when placed (resizable items like TVs). */
+  height?: number
 }
 
 export interface InteriorOpening {
@@ -62,6 +66,7 @@ export type DoorStyleId =
   | 'hatch'
   | 'sliding'
 export type OpeningScaleId = 'small' | 'medium' | 'large'
+export type TrimProfileId = 'standard' | 'decorative' | 'rustic'
 
 export interface InteriorStyle {
   wallColor: string
@@ -74,6 +79,10 @@ export interface InteriorStyle {
   windowStyleId?: WindowStyleId
   doorStyleId?: DoorStyleId
   trimColor?: string
+  /** Baseboard profile along the wall/floor line. */
+  baseTrimProfileId?: TrimProfileId
+  /** Window and door casing profile. */
+  casingTrimProfileId?: TrimProfileId
   /** Window size multiplier (0.55–1.55). Defaults to 1. */
   windowScale?: number
   /** Door size multiplier (0.55–1.55). Defaults to 1. */

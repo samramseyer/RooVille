@@ -1,8 +1,9 @@
-import type { DoorStyleId, InteriorOpening, WindowStyleId } from '../types'
+import type { DoorStyleId, InteriorOpening, TrimProfileId, WindowStyleId } from '../types'
 import type { WindowViewId } from '../data/interiorWindowView'
 import { getOpeningDoorStyle, getOpeningWindowStyle } from '../data/interiorOpenings'
 import type { InteriorTheme } from '../data/enterableBuildings'
 import { InteriorDoor, InteriorWindow } from './InteriorDoorsTrim'
+import { OPENING_CASE_INSET } from './InteriorTrimProfiles'
 
 interface InteriorOpeningViewProps {
   opening: InteriorOpening
@@ -11,6 +12,7 @@ interface InteriorOpeningViewProps {
   defaultDoorStyleId: DoorStyleId
   trimColor: string
   windowView: WindowViewId
+  casingProfile?: TrimProfileId
   selected: boolean
   onPointerDown: (e: React.PointerEvent) => void
   onResizePointerDown: (e: React.PointerEvent) => void
@@ -25,6 +27,7 @@ export function InteriorOpeningView({
   defaultDoorStyleId,
   trimColor,
   windowView,
+  casingProfile = 'standard',
   selected,
   onPointerDown,
   onResizePointerDown,
@@ -34,6 +37,7 @@ export function InteriorOpeningView({
   const { kind, width, height } = opening
   const windowStyleId = getOpeningWindowStyle(opening, defaultWindowStyleId, theme)
   const doorStyleId = getOpeningDoorStyle(opening, defaultDoorStyleId, theme)
+  const caseInset = OPENING_CASE_INSET
 
   return (
     <div
@@ -43,13 +47,25 @@ export function InteriorOpeningView({
         top: `${(opening.y / 480) * 100}%`,
         width: `${(width / 640) * 100}%`,
         height: `${(height / 480) * 100}%`,
+        overflow: 'visible',
       }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      <svg viewBox={`0 0 ${width} ${height}`} width="100%" height="100%" aria-hidden="true">
+      <svg
+        viewBox={`${-caseInset} ${-caseInset} ${width + caseInset * 2} ${height + caseInset * 2}`}
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          left: `${(-caseInset / width) * 100}%`,
+          top: `${(-caseInset / height) * 100}%`,
+          width: `${((width + caseInset * 2) / width) * 100}%`,
+          height: `${((height + caseInset * 2) / height) * 100}%`,
+          overflow: 'visible',
+        }}
+      >
         {kind === 'window' ? (
           <InteriorWindow
             x={0}
@@ -60,6 +76,7 @@ export function InteriorOpeningView({
             windowStyleId={windowStyleId}
             frameColor={trimColor}
             clipId={`opening-win-${opening.id}`}
+            casingProfile={casingProfile}
           />
         ) : (
           <InteriorDoor
@@ -69,6 +86,7 @@ export function InteriorOpeningView({
             height={height}
             doorStyleId={doorStyleId}
             trimColor={trimColor}
+            casingProfile={casingProfile}
           />
         )}
       </svg>
