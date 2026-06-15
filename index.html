@@ -10,6 +10,24 @@
     <div id="root">
       <p style="padding: 2rem; font-family: system-ui, sans-serif; color: #2c3e50">Loading RooVille…</p>
     </div>
+    <script>
+      window.setTimeout(function () {
+        var root = document.getElementById('root')
+        if (!root || root.dataset.booted === '1') return
+        var text = root.textContent || ''
+        if (text.indexOf('Loading RooVille') === -1) return
+        root.innerHTML =
+          '<div style="padding:2rem;font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;line-height:1.5;color:#2c3e50">' +
+          '<h1 style="color:#20b2aa;margin-top:0">RooVille needs the dev server</h1>' +
+          '<p>This app is built with <strong>Vite</strong>. Opening <code>index.html</code> with Live Server or by double-clicking the file will not work.</p>' +
+          '<p><strong>To run the game:</strong></p>' +
+          '<ol><li>Open a terminal in the RooVille folder</li>' +
+          '<li>Run <code style="background:#f0f4f8;padding:2px 6px;border-radius:4px">npm run dev</code></li>' +
+          '<li>Open the URL shown (usually <code style="background:#f0f4f8;padding:2px 6px;border-radius:4px">http://localhost:5173</code>)</li></ol>' +
+          '<p style="color:#5d6d7e;font-size:0.9rem">If you already ran <code>npm run dev</code>, check the terminal for the port — it may be 5174 or 5175 if 5173 is in use.</p>' +
+          '</div>'
+      }, 3500)
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

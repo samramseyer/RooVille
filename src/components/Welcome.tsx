@@ -1,16 +1,29 @@
 import { CoastalTownBackground } from './CoastalTownBackground'
+import { SoundToggle } from './SoundToggle'
 
 interface WelcomeProps {
   onStart: () => void
   onContinue: () => void
   hasSave: boolean
   savedPlayerName?: string
+  soundEnabled: boolean
+  onToggleSound: () => void
 }
 
-export function Welcome({ onStart, onContinue, hasSave, savedPlayerName }: WelcomeProps) {
+export function Welcome({
+  onStart,
+  onContinue,
+  hasSave,
+  savedPlayerName,
+  soundEnabled,
+  onToggleSound,
+}: WelcomeProps) {
   return (
     <div className="welcome">
       <CoastalTownBackground />
+      <div className="welcome-sound">
+        <SoundToggle enabled={soundEnabled} onToggle={onToggleSound} compact />
+      </div>
       <div className="welcome-card">
         <div className="welcome-mascot" aria-hidden="true">
           🦘

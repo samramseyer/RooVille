@@ -5,10 +5,12 @@ import { AvatarCreator } from './components/AvatarCreator'
 import { CoastalWorld } from './components/CoastalWorld'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { useGameSave } from './hooks/useGameSave'
+import { useSoundToggle } from './hooks/useSoundToggle'
 import './App.css'
 
 function App() {
   const { gameState, updateGameState, resetGame, hasSave, lastSavedAt, saveNow, saveFlash } = useGameSave()
+  const { soundEnabled, toggleSound } = useSoundToggle(gameState, updateGameState)
   const [screen, setScreen] = useState<Screen>(() =>
     hasSave ? 'play' : 'welcome',
   )
@@ -22,6 +24,8 @@ function App() {
           onContinue={() => setScreen('play')}
           hasSave={hasSave}
           savedPlayerName={hasSave ? gameState.avatar.name : undefined}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
         />
       )}
 
@@ -46,6 +50,7 @@ function App() {
           lastSavedAt={lastSavedAt}
           saveFlash={saveFlash}
           onSaveNow={saveNow}
+          toggleSound={toggleSound}
         />
       )}
       </div>

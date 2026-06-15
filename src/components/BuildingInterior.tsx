@@ -9,8 +9,7 @@ import {
   clampWindowOpening,
   DEFAULT_NEW_DOOR,
   DEFAULT_NEW_WINDOW,
-  getDefaultOpenings,
-  resolveInteriorOpenings,
+  resolveStoredOpenings,
 } from '../data/interiorOpenings'
 import { ensureLivingRoomExitDoor } from '../data/interiorExitDoor'
 import { resolveInteriorStyle } from '../data/interiorStyles'
@@ -36,8 +35,9 @@ import { AvatarSprite } from './AvatarSprite'
 import { InteriorFurnitureItemView } from './InteriorFurnitureItemView'
 import { InteriorRoomBackground } from './InteriorFurnitureArt'
 import { InteriorOpeningView } from './InteriorOpeningView'
-import { InteriorPalette } from './InteriorPalette'
+import { InteriorPalette, type PaletteTab } from './InteriorPalette'
 import { InteriorRoomNav } from './InteriorRoomNav'
+import { SoundToggle } from './SoundToggle'
 
 const ROOM_WIDTH = 640
 const ROOM_HEIGHT = 480
@@ -62,6 +62,7 @@ interface BuildingInteriorProps {
   mapSize: MapSize
   onUpdate: (updater: (prev: GameState) => GameState) => void
   onExit: () => void
+  toggleSound: () => void
 }
 
 export function BuildingInterior({
@@ -71,6 +72,7 @@ export function BuildingInterior({
   mapSize,
   onUpdate,
   onExit,
+  toggleSound,
 }: BuildingInteriorProps) {
   const theme = getInteriorTheme(building)
   const layout = getBuildingInteriorLayout(building.id)
@@ -79,6 +81,7 @@ export function BuildingInterior({
   const [selectedInteriorId, setSelectedInteriorId] = useState<string | null>(null)
   const [selectedOpeningId, setSelectedOpeningId] = useState<string | null>(null)
   const [placementMode, setPlacementMode] = useState<PlacementMode>(null)
+  const [paletteTab, setPaletteTab] = useState<PaletteTab | null>(null)
   const [dragMode, setDragMode] = useState<DragMode>(null)
 
   const liveItem = gameState.items.find((i) => i.id === placedItem.id) ?? placedItem
@@ -105,9 +108,7 @@ export function BuildingInterior({
     : resolveInteriorStyle(liveItem.interiorStyle, theme)
   const interiorOpeningsRaw = layout
     ? resolveRoomOpenings(liveItem, layout, currentRoomId, theme, interiorStyle)
-    : liveItem.interiorOpenings === undefined || liveItem.interiorOpenings.length === 0
-      ? getDefaultOpenings(theme, interiorStyle)
-      : resolveInteriorOpenings(theme, interiorStyle, liveItem.interiorOpenings)
+    : resolveStoredOpenings(theme, interiorStyle, liveItem.interiorOpenings)
   const interiorOpenings: InteriorOpening[] =
     !layout || currentRoomId === layout.defaultRoomId
       ? ensureLivingRoomExitDoor(interiorOpeningsRaw, theme, interiorStyle)
@@ -438,6 +439,12 @@ export function BuildingInterior({
     e.stopPropagation()
     const coords = getCoords(e.clientX, e.clientY)
     if (!coords) return
+
+    if (placementMode === 'window' || placementMode === 'door') {
+      placeOpening(placementMode, coords.x, coords.y)
+      return
+    }
+
     dragOffset.current = { x: coords.x - opening.x, y: coords.y - opening.y }
     dragStart.current = { x: e.clientX, y: e.clientY }
     pointerMoved.current = false
@@ -551,6 +558,8 @@ export function BuildingInterior({
   const switchRoom = (link: RoomNavLink) => {
     if (!layout) return
 
+    let nextSpawn = link.spawnPosition
+
     onUpdate((prev) => {
       const item = prev.items.find((entry) => entry.id === placedItem.id)
       if (!item) return prev
@@ -565,13 +574,10 @@ export function BuildingInterior({
       }
 
       const targetState = savedRooms[link.targetRoomId]
-      const spawn =
+      nextSpawn =
         targetState?.interiorAvatarPosition ??
         getRoomDef(layout, link.targetRoomId)?.defaultAvatar ??
         link.spawnPosition
-
-      setCurrentRoomId(link.targetRoomId)
-      setAvatarPosition(spawn)
 
       return {
         ...prev,
@@ -587,6 +593,8 @@ export function BuildingInterior({
       }
     })
 
+    setCurrentRoomId(link.targetRoomId)
+    setAvatarPosition(nextSpawn)
     clearSelection()
     if (soundOn) playPlaceSound()
   }
@@ -620,6 +628,9 @@ export function BuildingInterior({
               )}
             </span>
           </div>
+        </div>
+        <div className="interior-header-actions">
+          <SoundToggle enabled={soundOn} onToggle={toggleSound} compact />
         </div>
         {selectedFurniture && !selectedInteriorId && !selectedOpeningId && (
           <div className="placement-hint interior-placement-hint">
@@ -655,17 +666,22 @@ export function BuildingInterior({
           onSelectDoorStyle={applyDoorStyleChoice}
           selectedFurnitureId={selectedFurniture?.id ?? null}
           placementMode={placementMode}
+          activeTab={paletteTab}
           onStartPlaceWindow={() => {
             setPlacementMode('window')
+            setPaletteTab('openings')
             setSelectedFurniture(null)
             setSelectedInteriorId(null)
+            setSelectedOpeningId(null)
           }}
           onStartPlaceDoor={() => {
             setPlacementMode('door')
+            setPaletteTab('openings')
             setSelectedFurniture(null)
             setSelectedInteriorId(null)
+            setSelectedOpeningId(null)
           }}
-          editMode={selectedInteriorId !== null || selectedOpeningId !== null}
+          editMode={(selectedInteriorId !== null || selectedOpeningId !== null) && !placementMode}
         />
 
         <div className="interior-room-container">

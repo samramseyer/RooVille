@@ -300,37 +300,6 @@ export function CoastalHomeToca() {
   )
 }
 
-/** Aussie lighthouse — white & red bands like the east coast */
-export function LighthouseToca() {
-  return (
-    <TocaWrap>
-      <TocaShadow cx={35} cy={96} rx={22} />
-      <rect x={24} y={30} width={22} height={58} rx={8} fill={TOCA.white} stroke={TOCA.stroke} strokeWidth={TOCA.strokeWidth} />
-      <rect x={44} y={32} width={4} height={54} rx={2} fill="#000000" opacity={0.08} />
-      {[34, 48, 62].map((y, i) => (
-        <rect
-          key={y}
-          x={24}
-          y={y}
-          width={22}
-          height={10}
-          rx={2}
-          fill={i % 2 === 0 ? TOCA.tinRed : TOCA.white}
-          stroke={TOCA.stroke}
-          strokeWidth={1.5}
-        />
-      ))}
-      <ellipse cx={35} cy={28} rx={16} ry={12} fill={TOCA.corrugated} stroke={TOCA.stroke} strokeWidth={2} />
-      <circle cx={35} cy={22} r={8} fill={TOCA.wattle} stroke={TOCA.stroke} strokeWidth={2} />
-      <circle cx={35} cy={22} r={13} fill={TOCA.wattle} opacity={0.2} />
-      <TocaRoundWindow cx={35} cy={44} r={5} />
-      <ellipse cx={35} cy={90} rx={24} ry={6} fill={TOCA.sand} stroke={TOCA.stroke} strokeWidth={2} />
-      {/* Rocky AU coast base */}
-      <ellipse cx={35} cy={93} rx={18} ry={4} fill="#9E8060" opacity={0.5} />
-    </TocaWrap>
-  )
-}
-
 /** Queenslander stilt house over the water */
 export function StiltHouseToca() {
   return (
@@ -459,31 +428,4 @@ export function BigBoathouseToca() {
       <TinyKangaroo x={88} y={58} />
     </TocaWrap>
   )
-}
-
-export function getTocaHouseArt(id: string): ReactNode | null {
-  switch (id) {
-    case 'beach-shack':
-      return <BeachShackToca />
-    case 'coastal-home':
-      return <CoastalHomeToca />
-    case 'lighthouse':
-      return <LighthouseToca />
-    case 'stilt-house':
-      return <StiltHouseToca />
-    case 'surf-shop':
-      return <SurfShopToca />
-    case 'fish-chips':
-      return <FishChipsToca />
-    case 'ice-cream':
-      return <IceCreamToca />
-    case 'cafe':
-      return <CafeToca />
-    case 'small-boathouse':
-      return <SmallBoathouseToca />
-    case 'big-boathouse':
-      return <BigBoathouseToca />
-    default:
-      return null
-  }
 }

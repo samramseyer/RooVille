@@ -12,15 +12,24 @@ export const CATEGORY_LABELS: Record<BuildingCategory, string> = {
 }
 
 export const BUILDINGS: BuildingDef[] = [
-  { id: 'beach-shack', name: 'Beach Shack', category: 'houses', emoji: '🏖️', width: 110, height: 95 },
-  { id: 'coastal-home', name: 'Coastal Home', category: 'houses', emoji: '🏡', width: 125, height: 110 },
-  { id: 'lighthouse', name: 'Lighthouse', category: 'houses', emoji: '🗼', width: 85, height: 140 },
-  { id: 'stilt-house', name: 'Stilt House', category: 'houses', emoji: '🏘️', width: 120, height: 125 },
+  { id: 'beach-shack', name: 'Heritage Cottage', category: 'houses', emoji: '🏛️', width: 115, height: 112 },
+  { id: 'coastal-home', name: 'Grand Manor', category: 'houses', emoji: '🏠', width: 135, height: 128 },
+  { id: 'lighthouse', name: 'Lighthouse', category: 'houses', emoji: '🗼', width: 110, height: 145 },
+  { id: 'stilt-house', name: 'Waterfront Villa', category: 'houses', emoji: '🏡', width: 125, height: 122 },
+  { id: 'beach-cabin', name: 'Beach Cabin', category: 'houses', emoji: '🏖️', width: 130, height: 118 },
+  { id: 'painted-lady', name: 'Painted Lady', category: 'houses', emoji: '🏘️', width: 145, height: 132 },
+  { id: 'pink-beach-house', name: 'Pink Beach House', category: 'houses', emoji: '🩷', width: 115, height: 112 },
+  { id: 'red-beach-house', name: 'Red Beach House', category: 'houses', emoji: '❤️', width: 125, height: 108 },
+  { id: 'orange-beach-house', name: 'Orange Beach House', category: 'houses', emoji: '🧡', width: 118, height: 112 },
+  { id: 'blue-beach-house', name: 'Blue Beach House', category: 'houses', emoji: '💙', width: 110, height: 118 },
 
   { id: 'surf-shop', name: 'Surf Shop', category: 'businesses', emoji: '🏄', width: 85, height: 75 },
   { id: 'fish-chips', name: 'Fish & Chips', category: 'businesses', emoji: '🐟', width: 80, height: 70 },
   { id: 'ice-cream', name: 'Ice Cream', category: 'businesses', emoji: '🍦', width: 65, height: 65 },
   { id: 'cafe', name: 'Beach Café', category: 'businesses', emoji: '☕', width: 80, height: 75 },
+  { id: 'five-star-hotel', name: 'Five Star Hotel', category: 'businesses', emoji: '🏨', width: 95, height: 165 },
+  { id: 'skyline-tower', name: 'Skyline Tower', category: 'businesses', emoji: '🏙️', width: 90, height: 155 },
+  { id: 'luxury-resort', name: 'Luxury Resort', category: 'businesses', emoji: '🌴', width: 150, height: 115 },
 
   { id: 'pier', name: 'Boardwalk', category: 'docks', emoji: '🪵', width: 120, height: 50 },
   { id: 'raised-pier', name: 'Raised Pier', category: 'docks', emoji: '🛟', width: 120, height: 50 },

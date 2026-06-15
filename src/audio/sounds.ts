@@ -1,4 +1,14 @@
 let audioCtx: AudioContext | null = null
+let soundEnabled = true
+
+export function setSoundEnabled(enabled: boolean): void {
+  soundEnabled = enabled
+  if (!enabled) stopWaveAmbience()
+}
+
+export function isSoundEnabled(): boolean {
+  return soundEnabled
+}
 
 function getCtx(): AudioContext | null {
   if (typeof window === 'undefined') return null
@@ -19,6 +29,7 @@ function tone(
   volume = 0.08,
   startFreq?: number,
 ): void {
+  if (!soundEnabled) return
   const ctx = getCtx()
   if (!ctx) return
 
@@ -56,6 +67,7 @@ export function playQuestCompleteSound(): void {
 }
 
 export function playSeagullSound(): void {
+  if (!soundEnabled) return
   const ctx = getCtx()
   if (!ctx) return
   const osc = ctx.createOscillator()
@@ -76,6 +88,7 @@ let waveNode: OscillatorNode | null = null
 let waveGain: GainNode | null = null
 
 export function startWaveAmbience(): void {
+  if (!soundEnabled) return
   const ctx = getCtx()
   if (!ctx || waveNode) return
 

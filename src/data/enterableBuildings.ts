@@ -1,5 +1,6 @@
 import type { BuildingCategory, BuildingDef, PlacedItem } from '../types'
 import { getBuilding } from './buildings'
+import { getPlacedDisplayPosition, getPlacedDisplaySize } from './buildingDisplay'
 
 const ENTERABLE_CATEGORIES: BuildingCategory[] = ['houses', 'businesses', 'boats', 'boathouses']
 
@@ -16,13 +17,14 @@ export function getInteriorTheme(building: BuildingDef): InteriorTheme {
 }
 
 export function getBuildingBounds(item: PlacedItem, building: BuildingDef) {
+  const display = getPlacedDisplayPosition(item, building)
   return {
-    left: item.x,
-    top: item.y,
-    right: item.x + building.width,
-    bottom: item.y + building.height,
-    centerX: item.x + building.width / 2,
-    centerY: item.y + building.height / 2,
+    left: display.left,
+    top: display.top,
+    right: display.left + display.width,
+    bottom: display.top + display.height,
+    centerX: display.left + display.width / 2,
+    centerY: display.top + display.height / 2,
   }
 }
 
@@ -35,7 +37,7 @@ export function isAvatarNearBuilding(
   const bounds = getBuildingBounds(item, building)
   const avatarCenterX = avatarPosition.x + 30
   const avatarCenterY = avatarPosition.y + 30
-  const reach = Math.max(building.width, building.height) / 2 + padding
+  const reach = Math.max(getPlacedDisplaySize(building, item.scale).width, getPlacedDisplaySize(building, item.scale).height) / 2 + padding
   return Math.hypot(avatarCenterX - bounds.centerX, avatarCenterY - bounds.centerY) <= reach
 }
 
@@ -64,8 +66,9 @@ export function findNearbyEnterable(
 }
 
 export function getExitAvatarPosition(item: PlacedItem, building: BuildingDef) {
+  const display = getPlacedDisplayPosition(item, building)
   return {
-    x: item.x + building.width / 2 - 30,
-    y: item.y + building.height + 8,
+    x: display.left + display.width / 2 - 30,
+    y: display.top + display.height + 8,
   }
 }

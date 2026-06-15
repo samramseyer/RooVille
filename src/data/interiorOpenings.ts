@@ -188,6 +188,21 @@ export function resolveInteriorOpenings(
   return saved.map(clampOpening)
 }
 
+/** Saved list when undefined uses defaults; empty array means user cleared the room. */
+export function resolveStoredOpenings(
+  theme: InteriorTheme,
+  style: InteriorStyle,
+  saved: InteriorOpening[] | undefined,
+): InteriorOpening[] {
+  if (saved === undefined) {
+    return getDefaultOpenings(theme, style)
+  }
+  if (saved.length === 0) {
+    return []
+  }
+  return saved.map(clampOpening)
+}
+
 export function sanitizeInteriorOpenings(
   raw: unknown,
   theme: InteriorTheme = 'home',

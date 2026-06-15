@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FurnitureCategory, FurnitureDef } from '../data/interiorFurniture'
 import { FURNITURE_CATEGORIES, getFurniture, getFurnitureByCategory } from '../data/interiorFurniture'
 import {
@@ -32,7 +32,7 @@ import { TrimProfilePreviewSwatch } from './InteriorTrimProfiles'
 import { WindowViewPreviewSwatch } from './InteriorWindowViews'
 import { WallpaperPreviewSwatch } from './InteriorWallpaperPatterns'
 
-type PaletteTab = 'furniture' | 'walls' | 'openings' | 'trim'
+export type PaletteTab = 'furniture' | 'walls' | 'openings' | 'trim'
 
 interface InteriorPaletteProps {
   style: InteriorStyle
@@ -47,6 +47,8 @@ interface InteriorPaletteProps {
   onStartPlaceWindow?: () => void
   onStartPlaceDoor?: () => void
   editMode?: boolean
+  /** Switches to this tab when set (e.g. when starting window placement). */
+  activeTab?: PaletteTab | null
 }
 
 const WINDOW_VIEW_LABELS: Record<WindowViewId, string> = {
@@ -70,8 +72,13 @@ export function InteriorPalette({
   onStartPlaceWindow,
   onStartPlaceDoor,
   editMode,
+  activeTab,
 }: InteriorPaletteProps) {
   const [tab, setTab] = useState<PaletteTab>('furniture')
+
+  useEffect(() => {
+    if (activeTab) setTab(activeTab)
+  }, [activeTab])
   const [furnitureCategory, setFurnitureCategory] = useState<FurnitureCategory>('furniture')
   const categoryItems = getFurnitureByCategory(furnitureCategory)
   const selectedFurnitureDef = selectedFurnitureId ? getFurniture(selectedFurnitureId) : undefined

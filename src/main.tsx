@@ -26,6 +26,7 @@ if (!rootEl) {
   showBootError('Page root element is missing.')
 } else {
   try {
+    rootEl.dataset.booted = '1'
     createRoot(rootEl).render(
       <StrictMode>
         <App />

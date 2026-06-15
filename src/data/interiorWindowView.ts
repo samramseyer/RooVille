@@ -1,5 +1,6 @@
 import type { BuildingDef, PlacedItem, WindowViewSetting } from '../types'
 import { getBuilding } from './buildings'
+import { getPlacedCenter } from './buildingDisplay'
 
 export type WindowViewId = Exclude<WindowViewSetting, 'auto'>
 
@@ -24,10 +25,7 @@ const LAND_TOP_MAX = 0.58
 const BEACH_TOP_MAX = 0.7
 
 function buildingCenter(item: PlacedItem, building: BuildingDef) {
-  return {
-    x: item.x + building.width / 2,
-    y: item.y + building.height / 2,
-  }
+  return getPlacedCenter(item, building)
 }
 
 function hasNearbyDock(

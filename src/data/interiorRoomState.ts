@@ -90,11 +90,13 @@ export function resolveRoomOpenings(
   const raw = getRawRoomState(item, roomId, layout.defaultRoomId)
 
   let openings =
-    raw.interiorOpenings === undefined || raw.interiorOpenings.length === 0
+    raw.interiorOpenings === undefined
       ? roomDef
         ? getRoomDefaultOpenings(roomDef)
         : []
-      : resolveInteriorOpenings(theme, style, raw.interiorOpenings)
+      : raw.interiorOpenings.length === 0
+        ? []
+        : resolveInteriorOpenings(theme, style, raw.interiorOpenings)
 
   if (roomId === layout.defaultRoomId) {
     openings = ensureLivingRoomExitDoor(openings, theme, style)

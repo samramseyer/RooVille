@@ -1,14 +1,21 @@
 import type { ReactNode } from 'react'
-import { getTocaHouseArt } from './TocaHouseArt'
+import { getTocaHouseArt } from './getTocaHouseArt'
+import { getTocaSkyscraperArt } from './TocaSkyscraperArt'
 import { getTocaDockArt } from './TocaDockArt'
 import { getTocaNatureArt } from './TocaNatureArt'
 import { getTocaRoadArt } from './TocaRoadArt'
 
 const TOCA_VIEWBOXES: Record<string, string> = {
-  'beach-shack': '0 0 100 95',
-  'coastal-home': '0 0 100 98',
-  lighthouse: '0 0 70 100',
-  'stilt-house': '0 0 100 98',
+  'beach-shack': '0 0 90 105',
+  'coastal-home': '0 0 100 120',
+  lighthouse: '0 0 100 118',
+  'stilt-house': '0 0 100 112',
+  'beach-cabin': '0 0 110 118',
+  'painted-lady': '0 0 120 122',
+  'pink-beach-house': '0 0 90 112',
+  'red-beach-house': '0 0 90 110',
+  'orange-beach-house': '0 0 90 112',
+  'blue-beach-house': '0 0 90 114',
   'ice-cream': '0 0 70 80',
   'small-boathouse': '0 0 75 75',
   'big-boathouse': '0 0 100 88',
@@ -30,10 +37,19 @@ const TOCA_VIEWBOXES: Record<string, string> = {
   'road-corner': '0 0 48 48',
   'road-cross': '0 0 48 48',
   'road-end': '0 0 48 48',
+  'five-star-hotel': '0 0 95 165',
+  'skyline-tower': '0 0 90 155',
+  'luxury-resort': '0 0 150 115',
 }
 
 export function getTocaArt(id: string, rotation = 0): ReactNode | null {
-  return getTocaHouseArt(id) ?? getTocaDockArt(id, rotation) ?? getTocaRoadArt(id) ?? getTocaNatureArt(id)
+  return (
+    getTocaHouseArt(id) ??
+    getTocaSkyscraperArt(id) ??
+    getTocaDockArt(id, rotation) ??
+    getTocaRoadArt(id) ??
+    getTocaNatureArt(id)
+  )
 }
 
 export function getTocaViewBox(id: string): string {

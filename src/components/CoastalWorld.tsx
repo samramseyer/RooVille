@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { BuildingDef, GameState, PlacedItem } from '../types'
 import { getBuilding } from '../data/buildings'
+import { getPlacedDisplayPosition, itemPositionFromDisplay } from '../data/buildingDisplay'
 import { isRoadBuilding, snapRoadPlacementFromCenter, snapRoadPosition } from '../data/roads'
 import { QUESTS } from '../data/quests'
 import {
@@ -16,16 +17,20 @@ import {
 } from '../audio/sounds'
 import type { TimePhase } from '../hooks/useDayNight'
 import { useDayNightCycle } from '../hooks/useDayNight'
+import { useLocalWeather } from '../hooks/useLocalWeather'
 import { CoastalMapTerrain } from './CoastalMapTerrain'
+import { MapWeatherEffects } from './MapWeatherEffects'
 import { AvatarSprite } from './AvatarSprite'
 import { BuildingArt } from './BuildingArt'
 import { BuildingInterior } from './BuildingInterior'
 import { BuildingPalette } from './BuildingPalette'
 import { ItemEditPanel } from './ItemEditPanel'
 import { SidePanel } from './SidePanel'
+import { SoundToggle } from './SoundToggle'
 import { checkQuest } from './QuestPanel'
 import {
   findNearbyEnterable,
+  getBuildingBounds,
   getExitAvatarPosition,
   isEnterableBuilding,
 } from '../data/enterableBuildings'
@@ -38,6 +43,7 @@ interface CoastalWorldProps {
   lastSavedAt: Date | null
   saveFlash: boolean
   onSaveNow: () => void
+  toggleSound: () => void
 }
 
 type DragMode = 'avatar' | 'item' | null
@@ -68,23 +74,30 @@ function PlacedBuildingView({
   const building = getBuilding(item.buildingId)
   if (!building) return null
   const isRoad = building.category === 'roads'
+  const display = getPlacedDisplayPosition(item, building)
 
   return (
     <div
-      className={`placed-building${isRoad ? ' placed-road' : ''}${isSelected ? ' selected' : ''}`}
+      className={`placed-building placed-building--${building.category}${isRoad ? ' placed-road' : ''}${isSelected ? ' selected' : ''}`}
       style={{
-        left: item.x,
-        top: item.y,
-        transform: `rotate(${item.rotation}deg) scale(${item.scale})`,
-        transformOrigin: 'center center',
-        width: building.width,
-        height: building.height,
+        left: display.left,
+        top: display.top,
+        transform: `rotate(${item.rotation}deg)`,
+        transformOrigin: 'center bottom',
+        width: display.width,
+        height: display.height,
       }}
       role="button"
       tabIndex={0}
       aria-label={`${building.name}, tap to edit`}
     >
-      <BuildingArt id={item.buildingId} rotation={item.rotation} width={building.width} height={building.height} />
+      <BuildingArt
+        id={item.buildingId}
+        rotation={item.rotation}
+        width={display.width}
+        height={display.height}
+        variant="placed"
+      />
       {isSelected && (
         <>
           <div className="selection-ring" />
@@ -120,6 +133,7 @@ export function CoastalWorld({
   lastSavedAt,
   saveFlash,
   onSaveNow,
+  toggleSound,
 }: CoastalWorldProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [mapSize, setMapSize] = useState({ width: 800, height: 520 })
@@ -132,7 +146,8 @@ export function CoastalWorld({
   const dragStart = useRef({ x: 0, y: 0 })
   const pointerMoved = useRef(false)
   const draggingItemId = useRef<string | null>(null)
-  const { phase, paused, setPhaseManual, resumeCycle } = useDayNightCycle()
+  const { phase, localTimeLabel } = useDayNightCycle()
+  const weather = useLocalWeather()
 
   const soundOn = gameState.soundEnabled
 
@@ -167,16 +182,20 @@ export function CoastalWorld({
 
   useEffect(() => {
     const dayFactor = phase === 'day' ? 1 : phase === 'sunset' || phase === 'dawn' ? 0.5 : 0.2
-    setWaveVolume(dayFactor)
-  }, [phase])
+    const weatherFactor =
+      weather.kind === 'storm' ? 1.35 : weather.kind === 'windy' ? 1.2 : weather.kind === 'rain' ? 0.85 : 1
+    setWaveVolume(dayFactor * weatherFactor)
+  }, [phase, weather.kind])
 
   useEffect(() => {
     if (!soundOn) return
     const timer = setInterval(() => {
+      if (phase === 'night') return
+      if (weather.kind === 'rain' || weather.kind === 'storm' || weather.kind === 'snow') return
       if (phase === 'day' || phase === 'dawn') playSeagullSound()
     }, 25000)
     return () => clearInterval(timer)
-  }, [soundOn, phase])
+  }, [soundOn, phase, weather.kind])
 
   useEffect(() => {
     const newlyCompleted = QUESTS.filter(
@@ -279,8 +298,13 @@ export function CoastalWorld({
         ...prev,
         items: prev.items.map((item) => {
           if (item.id !== draggingItemId.current) return item
-          let nextX = coords.x - dragOffset.current.x
-          let nextY = coords.y - dragOffset.current.y
+          const building = getBuilding(item.buildingId)
+          if (!building) return item
+          const nextDisplayLeft = coords.x - dragOffset.current.x
+          const nextDisplayTop = coords.y - dragOffset.current.y
+          const nextPos = itemPositionFromDisplay(nextDisplayLeft, nextDisplayTop, building, item.scale)
+          let nextX = nextPos.x
+          let nextY = nextPos.y
           if (isRoadBuilding(item.buildingId)) {
             const snapped = snapRoadPosition(nextX, nextY)
             nextX = snapped.x
@@ -314,7 +338,9 @@ export function CoastalWorld({
     const coords = getCoords(e.clientX, e.clientY)
     if (!coords) return
 
-    dragOffset.current = { x: coords.x - item.x, y: coords.y - item.y }
+    const building = getBuilding(item.buildingId)
+    const display = building ? getPlacedDisplayPosition(item, building) : { left: item.x, top: item.y }
+    dragOffset.current = { x: coords.x - display.left, y: coords.y - display.top }
     dragStart.current = { x: e.clientX, y: e.clientY }
     pointerMoved.current = false
     draggingItemId.current = item.id
@@ -394,19 +420,6 @@ export function CoastalWorld({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [selectedItemId, soundOn, onUpdate])
 
-  const toggleSound = () => {
-    onUpdate((prev) => {
-      const next = !prev.soundEnabled
-      if (next) {
-        resumeAudio()
-        startWaveAmbience()
-      } else {
-        stopWaveAmbience()
-      }
-      return { ...prev, soundEnabled: next }
-    })
-  }
-
   const selectedItem = gameState.items.find((i) => i.id === selectedItemId)
   const selectedDef = selectedItem ? getBuilding(selectedItem.buildingId) : null
   const activeInteriorItem = gameState.activeInteriorId
@@ -451,6 +464,7 @@ export function CoastalWorld({
         mapSize={mapSize}
         onUpdate={onUpdate}
         onExit={exitInterior}
+        toggleSound={toggleSound}
       />
     )
   }
@@ -463,26 +477,14 @@ export function CoastalWorld({
           <span className="player-name">👋 {gameState.avatar.name}</span>
         </div>
         <div className="world-header-actions">
-          <button type="button" className="btn btn-ghost btn-small" onClick={toggleSound}>
-            {soundOn ? '🔊 Sound on' : '🔇 Sound off'}
-          </button>
+          <SoundToggle enabled={soundOn} onToggle={toggleSound} />
           <div className="time-controls">
-            <button
-              type="button"
-              className="btn btn-ghost btn-small"
-              onClick={() => {
-                const phases: TimePhase[] = ['day', 'sunset', 'night', 'dawn']
-                const idx = phases.indexOf(phase)
-                setPhaseManual(phases[(idx + 1) % phases.length])
-              }}
-            >
-              {PHASE_LABELS[phase]}
-            </button>
-            {paused && (
-              <button type="button" className="btn btn-ghost btn-small" onClick={resumeCycle}>
-                Auto cycle
-              </button>
-            )}
+            <span className="local-time-display btn btn-ghost btn-small" aria-live="polite">
+              {weather.loading ? '🌤️ …' : `${weather.emoji} ${weather.label}`}
+              {weather.temperature ? ` · ${weather.temperature}` : ''}
+              {' · '}
+              {PHASE_LABELS[phase]} · {localTimeLabel}
+            </span>
           </div>
           <button type="button" className="btn btn-ghost" onClick={onEditAvatar}>
             Edit Avatar
@@ -576,15 +578,16 @@ export function CoastalWorld({
 
           <div
             ref={mapRef}
-            className={`coastal-map coastal-map--${phase}${selectedBuilding && !selectedItemId ? ' placing-mode' : ''}`}
+            className={`coastal-map coastal-map--${phase} coastal-map--wx-${weather.kind}${selectedBuilding && !selectedItemId ? ' placing-mode' : ''}`}
             data-phase={phase}
+            data-weather={weather.kind}
             onPointerDown={handleMapPointerDown}
             onPointerMove={handleMapPointerMove}
             onPointerUp={stopDrag}
             onPointerCancel={stopDrag}
           >
-            <CoastalMapTerrain phase={phase} />
-            <div className="map-sun" aria-hidden="true" />
+            <CoastalMapTerrain phase={phase} weather={weather.kind} />
+            <MapWeatherEffects weather={weather.kind} />
             <div className="map-moon" aria-hidden="true" />
             <div className="map-stars" aria-hidden="true" />
 
@@ -607,19 +610,22 @@ export function CoastalWorld({
               <span className="avatar-name-tag">{gameState.avatar.name}</span>
             </div>
 
-            {nearbyEnterable && (
+            {nearbyEnterable && (() => {
+              const bounds = getBuildingBounds(nearbyEnterable.item, nearbyEnterable.building)
+              return (
               <button
                 type="button"
                 className="enter-building-btn"
                 style={{
-                  left: nearbyEnterable.item.x + nearbyEnterable.building.width / 2,
-                  top: nearbyEnterable.item.y - 12,
+                  left: bounds.centerX,
+                  top: bounds.top - 12,
                 }}
                 onClick={() => enterBuilding(nearbyEnterable.item.id)}
               >
                 🚪 Enter {nearbyEnterable.building.name}
               </button>
-            )}
+              )
+            })()}
           </div>
         </div>
 

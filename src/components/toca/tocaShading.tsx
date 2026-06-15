@@ -175,10 +175,10 @@ export function GroundShadow({
   ry?: number
 }) {
   return (
-    <>
+    <g className="toca-ground-shadow" aria-hidden="true">
       <ellipse cx={cx} cy={cy + 2} rx={rx * 1.08} ry={ry + 2} fill={SHADE.groundShadowSoft} />
       <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={SHADE.groundShadow} />
-    </>
+    </g>
   )
 }
 

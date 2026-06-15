@@ -124,6 +124,39 @@ button {
   overflow: hidden;
 }
 
+.welcome-sound {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+}
+
+.sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sound-toggle__icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.sound-toggle__label {
+  font-weight: 700;
+}
+
+.sound-toggle--muted {
+  opacity: 0.85;
+}
+
+.interior-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
 .welcome-scene {
   position: absolute;
   inset: 0;
@@ -470,6 +503,12 @@ button {
   gap: 0.25rem;
 }
 
+.local-time-display {
+  cursor: default;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 /* Touch-friendly */
 .coastal-map,
 .placed-building,
@@ -480,8 +519,21 @@ button {
 }
 
 .placed-building svg {
-  filter: drop-shadow(3px 5px 0 rgba(78, 52, 46, 0.2)) drop-shadow(0 10px 18px rgba(78, 52, 46, 0.1));
+  filter: none;
   pointer-events: none;
+}
+
+.placed-building .toca-ground-shadow {
+  display: none;
+}
+
+.placed-building .beach-sand-base {
+  display: none;
+}
+
+.building-art--placed {
+  width: 100%;
+  height: 100%;
 }
 
 .building-preview svg {
@@ -521,18 +573,8 @@ button {
   background: linear-gradient(180deg, #FF8C42 0%, #FF6B6B 40%, #C44569 100%);
 }
 
-.coastal-map--sunset .map-sun {
-  top: 45%;
-  background: #FF6347;
-  box-shadow: 0 0 60px rgba(255, 99, 71, 0.8);
-}
-
 .coastal-map--night .map-sky {
   background: linear-gradient(180deg, #0B1D3A 0%, #1a3a5c 100%);
-}
-
-.coastal-map--night .map-sun {
-  opacity: 0;
 }
 
 .coastal-map--night .map-moon,
@@ -550,11 +592,6 @@ button {
 
 .coastal-map--dawn .map-sky {
   background: linear-gradient(180deg, #FFB347 0%, #FFCCBC 50%, #87CEEB 100%);
-}
-
-.coastal-map--dawn .map-sun {
-  top: 55%;
-  background: #FFD700;
 }
 
 /* Quest panel */
@@ -1137,6 +1174,133 @@ button {
   z-index: 0;
 }
 
+.map-terrain--day {
+  filter: saturate(1.05) brightness(1.02);
+}
+
+.map-terrain--night {
+  filter: saturate(0.8) brightness(0.9);
+}
+
+.map-terrain--sunset {
+  filter: saturate(1.1) brightness(0.98);
+}
+
+.map-terrain--dawn {
+  filter: saturate(1.06) brightness(1.03);
+}
+
+.map-terrain--day,
+.map-terrain--night,
+.map-terrain--sunset,
+.map-terrain--dawn {
+  /* Phase + weather filters applied inline on the SVG */
+}
+
+/* Live weather overlay */
+.map-weather {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+}
+
+.weather-fog {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(220, 228, 236, 0.55) 0%, rgba(200, 210, 220, 0.35) 45%, rgba(180, 195, 210, 0.2) 100%);
+}
+
+.weather-rain-drop {
+  position: absolute;
+  top: -12%;
+  width: 1.5px;
+  height: 18px;
+  background: linear-gradient(180deg, transparent, rgba(174, 214, 241, 0.85));
+  border-radius: 1px;
+  animation: weather-rain-fall linear infinite;
+  transform: rotate(12deg);
+}
+
+.weather-rain-drop--heavy {
+  width: 2px;
+  height: 24px;
+  opacity: 0.9;
+}
+
+@keyframes weather-rain-fall {
+  0% { transform: translateY(-10%) rotate(12deg); }
+  100% { transform: translateY(115vh) rotate(12deg); }
+}
+
+.weather-snow-flake {
+  position: absolute;
+  top: -5%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
+  animation: weather-snow-fall linear infinite;
+}
+
+@keyframes weather-snow-fall {
+  0% { transform: translateY(-5%) translateX(0); }
+  100% { transform: translateY(110vh) translateX(24px); }
+}
+
+.weather-wind-streak {
+  position: absolute;
+  left: -20%;
+  width: 35%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: weather-wind-sweep linear infinite;
+}
+
+@keyframes weather-wind-sweep {
+  0% { transform: translateX(0); opacity: 0; }
+  15% { opacity: 0.7; }
+  100% { transform: translateX(420%); opacity: 0; }
+}
+
+.weather-storm-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.08);
+  animation: weather-storm-flash 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes weather-storm-flash {
+  0%, 92%, 100% { opacity: 0; }
+  93% { opacity: 1; }
+  94% { opacity: 0; }
+  96% { opacity: 0.85; }
+  97% { opacity: 0; }
+}
+
+.coastal-map--wx-windy .terrain-wave-1,
+.coastal-map--wx-storm .terrain-wave-1 {
+  animation-duration: 3s;
+}
+
+.coastal-map--wx-windy .terrain-wave-2,
+.coastal-map--wx-storm .terrain-wave-2 {
+  animation-duration: 4s;
+}
+
+.coastal-map--wx-windy .terrain-wave-3,
+.coastal-map--wx-storm .terrain-wave-3 {
+  animation-duration: 5s;
+}
+
+.coastal-map--wx-windy .terrain-cloud--fast,
+.coastal-map--wx-storm .terrain-cloud--fast {
+  animation-duration: 28s;
+}
+
 .terrain-wave {
   transform-box: fill-box;
   transform-origin: center;
@@ -1161,21 +1325,78 @@ button {
   50% { transform: translateX(18px); }
 }
 
+.terrain-cloud {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.terrain-cloud--slow {
+  animation: terrain-cloud-drift 90s linear infinite;
+}
+
+.terrain-cloud--mid {
+  animation: terrain-cloud-drift 65s linear infinite reverse;
+}
+
+.terrain-cloud--fast {
+  animation: terrain-cloud-drift 45s linear infinite;
+  animation-delay: -12s;
+}
+
+@keyframes terrain-cloud-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(80px); }
+}
+
+.terrain-birds {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0.85;
+}
+
+.terrain-birds--a {
+  animation: terrain-bird-glide 38s ease-in-out infinite;
+}
+
+.terrain-birds--b {
+  animation: terrain-bird-glide 52s ease-in-out infinite reverse;
+  animation-delay: -8s;
+}
+
+.terrain-birds--c {
+  animation: terrain-bird-glide 44s ease-in-out infinite;
+  animation-delay: -20s;
+}
+
+.terrain-birds--d {
+  animation: terrain-bird-glide 60s ease-in-out infinite reverse;
+  animation-delay: -15s;
+}
+
+.terrain-birds--e {
+  animation: terrain-bird-glide 48s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+@keyframes terrain-bird-glide {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(45px, -8px);
+  }
+  50% {
+    transform: translate(90px, 4px);
+  }
+  75% {
+    transform: translate(130px, -5px);
+  }
+}
+
 .map-sky {
   position: absolute;
   inset: 0 0 45%;
   background: linear-gradient(180deg, #6ec6ff 0%, var(--sky) 100%);
-}
-
-.map-sun {
-  position: absolute;
-  top: 8%;
-  right: 12%;
-  width: 70px;
-  height: 70px;
-  background: var(--sun);
-  border-radius: 50%;
-  box-shadow: 0 0 40px rgba(255, 217, 61, 0.6);
 }
 
 .map-ocean {
@@ -1241,6 +1462,7 @@ button {
 .placed-road {
   z-index: 2;
   transform-origin: center center;
+  align-items: center;
 }
 
 .placed-road.selected {
@@ -1265,11 +1487,12 @@ button {
 .placed-building {
   position: absolute;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   cursor: grab;
   z-index: 5;
   transition: filter 0.15s;
+  overflow: visible;
 }
 
 .placed-building:active {
