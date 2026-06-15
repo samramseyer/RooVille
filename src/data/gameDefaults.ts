@@ -1,5 +1,5 @@
 import type { GameState, InteriorItem, InteriorRoomState, PlacedItem } from '../types'
-import { DEFAULT_AVATAR } from './avatarOptions'
+import { DEFAULT_AVATAR, sanitizeAvatarName } from './avatarOptions'
 import { getBuilding } from './buildings'
 import { getInteriorTheme } from './enterableBuildings'
 import { getBuildingInteriorLayout } from './interiorLayouts'
@@ -125,7 +125,11 @@ export function migrateSave(raw: Partial<GameState>): GameState {
   return {
     ...INITIAL_GAME_STATE,
     ...raw,
-    avatar: { ...DEFAULT_AVATAR, ...raw.avatar },
+    avatar: {
+      ...DEFAULT_AVATAR,
+      ...raw.avatar,
+      name: sanitizeAvatarName(raw.avatar?.name),
+    },
     items,
     avatarPosition: raw.avatarPosition ?? INITIAL_GAME_STATE.avatarPosition,
     completedQuests: Array.isArray(raw.completedQuests) ? raw.completedQuests : [],

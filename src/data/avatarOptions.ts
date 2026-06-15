@@ -78,3 +78,9 @@ export const DEFAULT_AVATAR: Avatar = {
   pet: 'none',
   vehicle: 'none',
 }
+
+export function sanitizeAvatarName(raw: unknown): string {
+  if (typeof raw !== 'string') return DEFAULT_AVATAR.name
+  const trimmed = raw.trim().slice(0, 20)
+  return trimmed || DEFAULT_AVATAR.name
+}

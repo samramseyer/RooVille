@@ -14,6 +14,7 @@ interface InteriorOpeningViewProps {
   windowView: WindowViewId
   casingProfile?: TrimProfileId
   selected: boolean
+  exitReady?: boolean
   onPointerDown: (e: React.PointerEvent) => void
   onResizePointerDown: (e: React.PointerEvent) => void
   onPointerMove?: (e: React.PointerEvent) => void
@@ -29,6 +30,7 @@ export function InteriorOpeningView({
   windowView,
   casingProfile = 'standard',
   selected,
+  exitReady = false,
   onPointerDown,
   onResizePointerDown,
   onPointerMove,
@@ -41,7 +43,7 @@ export function InteriorOpeningView({
 
   return (
     <div
-      className={`interior-opening interior-opening--${kind}${selected ? ' selected' : ''}`}
+      className={`interior-opening interior-opening--${kind}${selected ? ' selected' : ''}${exitReady ? ' interior-opening--exit-ready' : ''}`}
       style={{
         left: `${(opening.x / 640) * 100}%`,
         top: `${(opening.y / 480) * 100}%`,

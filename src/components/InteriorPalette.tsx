@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FurnitureCategory, FurnitureDef } from '../data/interiorFurniture'
-import { FURNITURE_CATEGORIES, getFurniture, getFurnitureByCategory, supportsTrimZonePlacement, supportsWallPlacement } from '../data/interiorFurniture'
+import { FURNITURE_CATEGORIES, getFurniture, getFurnitureByCategory } from '../data/interiorFurniture'
 import {
   CABINET_COLORS,
   COUNTERTOP_MATERIALS,
@@ -77,17 +77,11 @@ export function InteriorPalette({
   const selectedFurnitureDef = selectedFurnitureId ? getFurniture(selectedFurnitureId) : undefined
   const placementHint = editMode
     ? 'Tap Done below to finish moving furniture.'
-    : furnitureCategory === 'countertops'
-      ? 'Tap along the trim line, wall, or floor to place countertops!'
-      : furnitureCategory === 'bathroom-accessories'
-        ? 'Tap the wall or floor to place bathroom fixtures and accessories!'
-        : selectedFurnitureDef
-        ? supportsTrimZonePlacement(selectedFurnitureDef.id)
-          ? 'Tap the trim line to cover baseboards, or the wall/floor for other spots!'
-          : supportsWallPlacement(selectedFurnitureDef.id)
-            ? 'Tap the wall or floor to place it!'
-            : 'Tap the floor to place it!'
-        : 'Pick an item, then tap the room to place it!'
+    : selectedFurnitureDef
+      ? furnitureCategory === 'patio'
+        ? 'Tap anywhere to build your patio — deck, balcony, or backyard!'
+        : 'Tap anywhere in the room — homes, shops, boats, and boathouses!'
+      : 'Pick an item, then tap the room to place it!'
   const trimColor = style.trimColor ?? '#C4956A'
   const baseTrimProfile = style.baseTrimProfileId ?? 'standard'
   const casingTrimProfile = style.casingTrimProfileId ?? 'standard'
@@ -418,9 +412,9 @@ export function InteriorPalette({
               : selectedOpening?.kind === 'door'
                 ? 'Pick a style below for this door, or tap ＋ Door to add another.'
                 : placementMode === 'window'
-                  ? 'Tap the wall to place a new window.'
+                  ? 'Tap anywhere in the room to place a new window.'
                   : placementMode === 'door'
-                    ? 'Tap the floor to place a new door.'
+                    ? 'Tap anywhere in the room to place a new door.'
                     : 'Tap a window or door to restyle it, or tap ＋ to add more.'}
           </p>
 

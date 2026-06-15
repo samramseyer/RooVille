@@ -1,7 +1,7 @@
 import type { InteriorItem } from '../types'
 import type { CountertopMaterial } from '../data/interiorCabinetStyles'
 import type { FurnitureDef } from '../data/interiorFurniture'
-import { getFurnitureDimensions, isResizableFurniture, isWallBaseMounted, isWallMounted } from '../data/interiorFurniture'
+import { getFurnitureDimensions, isFloorLayerFurniture, isResizableFurniture } from '../data/interiorFurniture'
 import { InteriorFurnitureArt } from './InteriorFurnitureArt'
 
 const ROOM_WIDTH = 640
@@ -33,15 +33,18 @@ export function InteriorFurnitureItemView({
   const { width, height } = getFurnitureDimensions(item, def)
   const resizable = isResizableFurniture(item.furnitureId)
 
+  const depthLayer = isFloorLayerFurniture(item.furnitureId) ? 1 : 2 + Math.round(item.y)
+
   return (
     <div
-      className={`interior-furniture${selected ? ' selected' : ''}${item.furnitureId === 'rug' ? ' is-rug' : ''}${isWallMounted(item.furnitureId, item.y, height) ? ' is-wall' : ''}${isWallBaseMounted(item.furnitureId, item.y, height) ? ' is-wall-base' : ''}${resizable ? ' is-resizable' : ''}`}
+      className={`interior-furniture${selected ? ' selected' : ''}${isFloorLayerFurniture(item.furnitureId) ? ' is-rug' : ''}${resizable ? ' is-resizable' : ''}`}
       style={{
         left: `${(item.x / ROOM_WIDTH) * 100}%`,
         top: `${(item.y / ROOM_HEIGHT) * 100}%`,
         width: `${(width / ROOM_WIDTH) * 100}%`,
         height: `${(height / ROOM_HEIGHT) * 100}%`,
         transform: `rotate(${item.rotation}deg)`,
+        zIndex: selected ? 1000 + depthLayer : depthLayer,
       }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}

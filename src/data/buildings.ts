@@ -4,6 +4,7 @@ export const CATEGORY_LABELS: Record<BuildingCategory, string> = {
   houses: '🏠 Houses',
   businesses: '🏪 Businesses',
   docks: '🪵 Docks',
+  roads: '🛤️ Roads',
   boats: '⛵ Boats',
   boathouses: '🛖 Boathouses',
   zoos: '🦘 Zoos',
@@ -25,6 +26,11 @@ export const BUILDINGS: BuildingDef[] = [
   { id: 'raised-pier', name: 'Raised Pier', category: 'docks', emoji: '🛟', width: 120, height: 50 },
   { id: 'marina', name: 'Marina', category: 'docks', emoji: '⚓', width: 110, height: 60 },
   { id: 'jetty', name: 'Jetty', category: 'docks', emoji: '🌊', width: 100, height: 45 },
+
+  { id: 'road-straight', name: 'Straight Road', category: 'roads', emoji: '🛣️', width: 48, height: 48 },
+  { id: 'road-corner', name: 'Road Corner', category: 'roads', emoji: '↪️', width: 48, height: 48 },
+  { id: 'road-cross', name: 'Intersection', category: 'roads', emoji: '✛', width: 48, height: 48 },
+  { id: 'road-end', name: 'Road End', category: 'roads', emoji: '⛔', width: 48, height: 48 },
 
   { id: 'sailboat', name: 'Sailboat', category: 'boats', emoji: '⛵', width: 70, height: 80 },
   { id: 'fishing-boat', name: 'Fishing Boat', category: 'boats', emoji: '🚤', width: 75, height: 55 },

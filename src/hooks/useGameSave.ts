@@ -18,21 +18,34 @@ export { INITIAL_GAME_STATE }
 
 export function useGameSave() {
   const [gameState, setGameState] = useState<GameState>(() => loadState() ?? INITIAL_GAME_STATE)
+  const [hasSave, setHasSave] = useState(() => loadState() !== null)
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(() => (loadState() ? new Date() : null))
+  const [saveFlash, setSaveFlash] = useState(false)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState))
+    setLastSavedAt(new Date())
+    setHasSave(true)
   }, [gameState])
 
   const updateGameState = useCallback((updater: (prev: GameState) => GameState) => {
     setGameState(updater)
   }, [])
 
+  const saveNow = useCallback(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState))
+    setLastSavedAt(new Date())
+    setHasSave(true)
+    setSaveFlash(true)
+    window.setTimeout(() => setSaveFlash(false), 2000)
+  }, [gameState])
+
   const resetGame = useCallback(() => {
     setGameState(INITIAL_GAME_STATE)
     localStorage.removeItem(STORAGE_KEY)
+    setHasSave(false)
+    setLastSavedAt(null)
   }, [])
 
-  const hasSave = loadState() !== null
-
-  return { gameState, updateGameState, resetGame, hasSave }
+  return { gameState, updateGameState, resetGame, hasSave, lastSavedAt, saveNow, saveFlash }
 }

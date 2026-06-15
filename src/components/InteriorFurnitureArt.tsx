@@ -1,3 +1,4 @@
+import { LighthouseLanternDeckBackground } from './InteriorLighthouseLanternArt'
 import type { InteriorRoomVariant } from '../data/interiorLayouts'
 import type { InteriorTheme } from '../data/enterableBuildings'
 import type { WindowViewId } from '../data/interiorWindowView'
@@ -32,6 +33,32 @@ import {
   TowelHookArt,
   TowelRackArt,
 } from './InteriorBathroomAccessoriesArt'
+import {
+  PatioBarCartArt,
+  PatioBenchArt,
+  PatioBirdBathArt,
+  PatioChairArt,
+  PatioCoolerArt,
+  PatioDiningTableArt,
+  PatioFirePitArt,
+  PatioFountainArt,
+  PatioGrillArt,
+  PatioHammockArt,
+  PatioLanternArt,
+  PatioLoungeArt,
+  PatioOttomanArt,
+  PatioPergolaArt,
+  PatioPlanterArt,
+  PatioPlanterTallArt,
+  PatioRugArt,
+  PatioSideTableArt,
+  PatioSofaArt,
+  PatioStringLightsArt,
+  PatioSwingArt,
+  PatioTikiTorchArt,
+  PatioUmbrellaArt,
+  PatioWindChimesArt,
+} from './InteriorPatioArt'
 import { FloorPatternDefs } from './InteriorFloorPatterns'
 import {
   BenchArt,
@@ -626,6 +653,54 @@ function renderInteriorFurnitureArt(id: string, emoji?: string) {
       return <BathShelfArt />
     case 'soap-dispenser':
       return <SoapDispenserArt />
+    case 'patio-dining-table':
+      return <PatioDiningTableArt />
+    case 'patio-chair':
+      return <PatioChairArt />
+    case 'patio-lounge':
+      return <PatioLoungeArt />
+    case 'patio-sofa':
+      return <PatioSofaArt />
+    case 'patio-ottoman':
+      return <PatioOttomanArt />
+    case 'patio-bench':
+      return <PatioBenchArt />
+    case 'patio-swing':
+      return <PatioSwingArt />
+    case 'patio-hammock':
+      return <PatioHammockArt />
+    case 'patio-side-table':
+      return <PatioSideTableArt />
+    case 'patio-umbrella':
+      return <PatioUmbrellaArt />
+    case 'patio-pergola':
+      return <PatioPergolaArt />
+    case 'patio-fire-pit':
+      return <PatioFirePitArt />
+    case 'patio-grill':
+      return <PatioGrillArt />
+    case 'patio-cooler':
+      return <PatioCoolerArt />
+    case 'patio-bar-cart':
+      return <PatioBarCartArt />
+    case 'patio-planter':
+      return <PatioPlanterArt />
+    case 'patio-planter-tall':
+      return <PatioPlanterTallArt />
+    case 'patio-fountain':
+      return <PatioFountainArt />
+    case 'patio-bird-bath':
+      return <PatioBirdBathArt />
+    case 'patio-rug':
+      return <PatioRugArt />
+    case 'patio-string-lights':
+      return <PatioStringLightsArt />
+    case 'patio-lantern':
+      return <PatioLanternArt />
+    case 'patio-tiki-torch':
+      return <PatioTikiTorchArt />
+    case 'patio-wind-chimes':
+      return <PatioWindChimesArt />
     default:
       return (
         <FurnSvg viewBox="0 0 40 40">
@@ -651,6 +726,10 @@ export function InteriorRoomBackground({
   windowView?: WindowViewId
   variant?: InteriorRoomVariant
 }) {
+  if (variant === 'lantern-deck') {
+    return <LighthouseLanternDeckBackground style={style} />
+  }
+
   if (variant === 'balcony') {
     return <BalconyRoomBackground style={style} />
   }

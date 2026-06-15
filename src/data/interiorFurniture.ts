@@ -1,9 +1,9 @@
 import type { InteriorItem } from '../types'
-import { ROOM_HEIGHT, ROOM_WIDTH, WALL_BOTTOM } from './interiorOpenings'
+import { ROOM_HEIGHT, ROOM_WIDTH } from './interiorOpenings'
 
 export type FurniturePlacement = 'floor' | 'wall' | 'both'
 
-export type FurnitureCategory = 'furniture' | 'kitchen-cabinets' | 'appliances' | 'bathroom-accessories' | 'countertops'
+export type FurnitureCategory = 'furniture' | 'kitchen-cabinets' | 'appliances' | 'bathroom-accessories' | 'patio' | 'countertops'
 
 export interface FurnitureCategoryDef {
   id: FurnitureCategory
@@ -17,83 +17,12 @@ export const FURNITURE_CATEGORIES: FurnitureCategoryDef[] = [
   { id: 'countertops', name: 'Countertops', emoji: '🪨' },
   { id: 'appliances', name: 'Appliances', emoji: '🍳' },
   { id: 'bathroom-accessories', name: 'Bathroom', emoji: '🛁' },
+  { id: 'patio', name: 'Patio', emoji: '🌴' },
 ]
-
-const FLOOR_TOP = WALL_BOTTOM
 
 const SIZE_LIMITS: Record<string, { minW: number; minH: number; maxW: number; maxH: number }> = {
   tv: { minW: 44, minH: 32, maxW: 160, maxH: 110 },
   'flat-screen-tv': { minW: 56, minH: 28, maxW: 240, maxH: 150 },
-}
-
-/** How far decorative base trim extends above the wall/floor line. */
-export const TRIM_COVER_HEIGHT = 16
-
-const WALL_BASE_TAP_MIN = FLOOR_TOP - 55
-const WALL_BASE_TAP_MAX = FLOOR_TOP + 40
-
-export type PlacementZone = 'wall' | 'wall-base' | 'floor'
-
-function isKitchenIsland(id: string): boolean {
-  return id.startsWith('kitchen-island')
-}
-
-export function supportsWallBasePlacement(furnitureId: string): boolean {
-  const def = getFurniture(furnitureId)
-  if (!def || def.placement === 'floor' || def.placement === 'wall') return false
-  if (isKitchenIsland(furnitureId)) return false
-  return (
-    def.category === 'kitchen-cabinets' ||
-    def.category === 'appliances' ||
-    def.category === 'countertops'
-  )
-}
-
-function isInWallBaseBand(y: number, height: number): boolean {
-  return y + height > FLOOR_TOP - TRIM_COVER_HEIGHT && y < FLOOR_TOP + 12
-}
-
-function resolvePlacementZone(
-  def: FurnitureDef | undefined,
-  y: number,
-  height: number,
-  tapY?: number,
-): PlacementZone {
-  if (!def || def.placement === 'floor') return 'floor'
-  if (def.placement === 'wall') return 'wall'
-
-  if (supportsWallBasePlacement(def.id)) {
-    const probe =
-      tapY ??
-      (isInWallBaseBand(y, height) ? FLOOR_TOP - TRIM_COVER_HEIGHT + height / 2 : y + height / 2)
-    if (probe >= WALL_BASE_TAP_MIN && probe <= WALL_BASE_TAP_MAX) return 'wall-base'
-    if (probe < FLOOR_TOP) return 'wall'
-    return 'floor'
-  }
-
-  if (tapY !== undefined ? tapY < FLOOR_TOP : y + height / 2 < FLOOR_TOP) return 'wall'
-  return 'floor'
-}
-
-export function isWallBaseMounted(furnitureId: string, y: number, height: number): boolean {
-  const def = getFurniture(furnitureId)
-  if (!def) return false
-  return resolvePlacementZone(def, y, height) === 'wall-base'
-}
-
-export function isWallMounted(furnitureId: string, y: number, height: number): boolean {
-  const def = getFurniture(furnitureId)
-  if (!def) return false
-  return resolvePlacementZone(def, y, height) === 'wall'
-}
-
-export function supportsWallPlacement(furnitureId: string): boolean {
-  const placement = getFurniture(furnitureId)?.placement
-  return placement === 'wall' || placement === 'both'
-}
-
-export function supportsTrimZonePlacement(furnitureId: string): boolean {
-  return supportsWallBasePlacement(furnitureId)
 }
 
 export function clampFurniturePosition(
@@ -101,31 +30,13 @@ export function clampFurniturePosition(
   y: number,
   width: number,
   height: number,
-  furnitureId: string,
-  tapY?: number,
+  _furnitureId?: string,
+  _tapY?: number,
 ) {
-  const clampedX = Math.max(0, Math.min(ROOM_WIDTH - width, x))
-  const def = getFurniture(furnitureId)
-  const zone = resolvePlacementZone(def, y, height, tapY)
-
-  if (zone === 'wall') {
-    return {
-      x: clampedX,
-      y: Math.max(0, Math.min(FLOOR_TOP - height, y)),
-    }
-  }
-
-  if (zone === 'wall-base') {
-    const snapY = FLOOR_TOP - TRIM_COVER_HEIGHT
-    const yMin = Math.max(0, FLOOR_TOP - height + 4)
-    const yMax = FLOOR_TOP + 8
-    const clampedY = tapY !== undefined ? snapY : Math.max(yMin, Math.min(yMax, y))
-    return { x: clampedX, y: clampedY }
-  }
-
+  // Same bounds for every interior theme: home, shop, boat, and multi-room boathouses.
   return {
-    x: clampedX,
-    y: Math.max(FLOOR_TOP, Math.min(ROOM_HEIGHT - height, y)),
+    x: Math.max(0, Math.min(ROOM_WIDTH - width, x)),
+    y: Math.max(0, Math.min(ROOM_HEIGHT - height, y)),
   }
 }
 
@@ -260,6 +171,30 @@ export const INTERIOR_FURNITURE: FurnitureDef[] = [
   { id: 'laundry-hamper', name: 'Laundry Hamper', emoji: '🧺', width: 38, height: 48, category: 'bathroom-accessories', placement: 'floor' },
   { id: 'bath-shelf', name: 'Bath Shelf', emoji: '🧴', width: 42, height: 22, category: 'bathroom-accessories', placement: 'wall' },
   { id: 'soap-dispenser', name: 'Soap Dispenser', emoji: '🧼', width: 22, height: 32, category: 'bathroom-accessories', placement: 'floor' },
+  { id: 'patio-dining-table', name: 'Patio Table', emoji: '🪑', width: 88, height: 58, category: 'patio' },
+  { id: 'patio-chair', name: 'Adirondack Chair', emoji: '🪑', width: 44, height: 48, category: 'patio' },
+  { id: 'patio-lounge', name: 'Chaise Lounge', emoji: '🏖️', width: 62, height: 38, category: 'patio' },
+  { id: 'patio-sofa', name: 'Outdoor Sofa', emoji: '🛋️', width: 95, height: 52, category: 'patio' },
+  { id: 'patio-ottoman', name: 'Outdoor Ottoman', emoji: '🟫', width: 42, height: 32, category: 'patio' },
+  { id: 'patio-bench', name: 'Garden Bench', emoji: '🪵', width: 78, height: 42, category: 'patio' },
+  { id: 'patio-swing', name: 'Porch Swing', emoji: '🪢', width: 75, height: 55, category: 'patio' },
+  { id: 'patio-hammock', name: 'Hammock', emoji: '🏝️', width: 110, height: 42, category: 'patio' },
+  { id: 'patio-side-table', name: 'Side Table', emoji: '🪵', width: 38, height: 38, category: 'patio' },
+  { id: 'patio-umbrella', name: 'Patio Umbrella', emoji: '⛱️', width: 72, height: 65, category: 'patio' },
+  { id: 'patio-pergola', name: 'Pergola', emoji: '🌿', width: 120, height: 72, category: 'patio' },
+  { id: 'patio-fire-pit', name: 'Fire Pit', emoji: '🔥', width: 55, height: 42, category: 'patio' },
+  { id: 'patio-grill', name: 'BBQ Grill', emoji: '🍖', width: 52, height: 55, category: 'patio' },
+  { id: 'patio-cooler', name: 'Cooler', emoji: '🧊', width: 48, height: 38, category: 'patio' },
+  { id: 'patio-bar-cart', name: 'Bar Cart', emoji: '🍹', width: 45, height: 52, category: 'patio' },
+  { id: 'patio-planter', name: 'Planter Box', emoji: '🪴', width: 48, height: 38, category: 'patio' },
+  { id: 'patio-planter-tall', name: 'Tall Planter', emoji: '🌿', width: 32, height: 55, category: 'patio' },
+  { id: 'patio-fountain', name: 'Fountain', emoji: '⛲', width: 48, height: 58, category: 'patio' },
+  { id: 'patio-bird-bath', name: 'Bird Bath', emoji: '🐦', width: 38, height: 48, category: 'patio' },
+  { id: 'patio-rug', name: 'Outdoor Rug', emoji: '🟫', width: 100, height: 58, category: 'patio' },
+  { id: 'patio-string-lights', name: 'String Lights', emoji: '✨', width: 90, height: 18, category: 'patio', placement: 'wall' },
+  { id: 'patio-lantern', name: 'Lantern', emoji: '🏮', width: 28, height: 42, category: 'patio' },
+  { id: 'patio-tiki-torch', name: 'Tiki Torch', emoji: '🔥', width: 22, height: 55, category: 'patio' },
+  { id: 'patio-wind-chimes', name: 'Wind Chimes', emoji: '🎐', width: 24, height: 38, category: 'patio', placement: 'wall' },
 ]
 
 export function getFurnitureByCategory(category: FurnitureCategory): FurnitureDef[] {
@@ -270,13 +205,13 @@ export function getFurniture(id: string): FurnitureDef | undefined {
   return INTERIOR_FURNITURE.find((f) => f.id === id)
 }
 
-export function isWallFurniture(id: string): boolean {
-  const placement = getFurniture(id)?.placement
-  return placement === 'wall'
-}
-
 export function isResizableFurniture(id: string): boolean {
   return getFurniture(id)?.resizable === true
+}
+
+/** Rugs and outdoor mats render beneath other furniture. */
+export function isFloorLayerFurniture(id: string): boolean {
+  return id === 'rug' || id === 'patio-rug'
 }
 
 export function getFurnitureDimensions(

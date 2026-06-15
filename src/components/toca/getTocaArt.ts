@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { getTocaHouseArt } from './TocaHouseArt'
 import { getTocaDockArt } from './TocaDockArt'
 import { getTocaNatureArt } from './TocaNatureArt'
+import { getTocaRoadArt } from './TocaRoadArt'
 
 const TOCA_VIEWBOXES: Record<string, string> = {
   'beach-shack': '0 0 100 95',
@@ -25,10 +26,14 @@ const TOCA_VIEWBOXES: Record<string, string> = {
   bbq: '0 0 48 48',
   umbrella: '0 0 52 58',
   shells: '0 0 38 32',
+  'road-straight': '0 0 48 48',
+  'road-corner': '0 0 48 48',
+  'road-cross': '0 0 48 48',
+  'road-end': '0 0 48 48',
 }
 
 export function getTocaArt(id: string, rotation = 0): ReactNode | null {
-  return getTocaHouseArt(id) ?? getTocaDockArt(id, rotation) ?? getTocaNatureArt(id)
+  return getTocaHouseArt(id) ?? getTocaDockArt(id, rotation) ?? getTocaRoadArt(id) ?? getTocaNatureArt(id)
 }
 
 export function getTocaViewBox(id: string): string {

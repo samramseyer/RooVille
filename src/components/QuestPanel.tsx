@@ -10,7 +10,7 @@ export function QuestPanel({ items, completedQuests }: QuestPanelProps) {
   const activeQuests = QUESTS.filter((q) => !completedQuests.includes(q.id))
 
   return (
-    <aside className="quest-panel">
+    <div className="quest-panel">
       <h3 className="quest-title">Adventures</h3>
       <p className="quest-subtitle">Complete quests to grow your town!</p>
 
@@ -52,7 +52,7 @@ export function QuestPanel({ items, completedQuests }: QuestPanelProps) {
           <p>All adventures complete! You&apos;re a coastal champion!</p>
         </div>
       )}
-    </aside>
+    </div>
   )
 }
 

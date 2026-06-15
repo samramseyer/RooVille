@@ -48,6 +48,83 @@ function OceanScene({ x, y, width, height }: SceneProps) {
   )
 }
 
+function MiniSailboat({ cx, cy, scale = 1 }: { cx: number; cy: number; scale?: number }) {
+  return (
+    <g transform={`translate(${cx}, ${cy}) scale(${scale})`}>
+      <path d="M -18 6 Q 0 14 18 6 L 14 2 L -14 2 Z" fill="#3498DB" stroke={S} strokeWidth={1.2} />
+      <line x1={0} y1={2} x2={0} y2={-22} stroke="#5D4037" strokeWidth={2} />
+      <path d="M 0 -20 L 16 -8 L 0 -2 Z" fill="#FFFFFF" stroke={S} strokeWidth={1} />
+      <path d="M 0 -18 L -12 -6 L 0 -2 Z" fill="#E8F4F8" stroke={S} strokeWidth={0.8} />
+    </g>
+  )
+}
+
+function MiniFishingBoat({ cx, cy, scale = 1 }: { cx: number; cy: number; scale?: number }) {
+  return (
+    <g transform={`translate(${cx}, ${cy}) scale(${scale})`}>
+      <path d="M -16 5 Q 0 12 16 5 L 12 0 L -12 0 Z" fill="#2980B9" stroke={S} strokeWidth={1.2} />
+      <rect x={-5} y={-8} width={10} height={8} fill="#E67E22" stroke={S} strokeWidth={0.8} />
+      <line x1={0} y1={-8} x2={0} y2={-16} stroke="#5D4037" strokeWidth={1.5} />
+    </g>
+  )
+}
+
+function MiniYacht({ cx, cy, scale = 1 }: { cx: number; cy: number; scale?: number }) {
+  return (
+    <g transform={`translate(${cx}, ${cy}) scale(${scale})`}>
+      <path d="M -22 8 Q 0 16 22 8 L 18 3 L -18 3 Z" fill="#FFFFFF" stroke={S} strokeWidth={1.2} />
+      <rect x={-8} y={-4} width={16} height={7} rx={2} fill="#E8E0D4" stroke={S} strokeWidth={0.8} />
+      <line x1={0} y1={-4} x2={0} y2={-18} stroke="#5D4037" strokeWidth={1.8} />
+    </g>
+  )
+}
+
+/** Wide ocean panorama with boats — for lighthouse lantern deck window wall. */
+export function OceanPanoramaWithBoats({ x, y, width, height }: SceneProps) {
+  const skyId = `lh-pano-sky-${x}-${y}`
+  const horizon = y + height * 0.42
+  return (
+    <>
+      <defs>
+        <linearGradient id={skyId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#5EB3FF" />
+          <stop offset="45%" stopColor="#87CEEB" />
+          <stop offset="100%" stopColor="#B8E8F4" />
+        </linearGradient>
+        <linearGradient id={`${skyId}-sea`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#48D1CC" />
+          <stop offset="100%" stopColor="#0077B6" />
+        </linearGradient>
+      </defs>
+      <rect x={x} y={y} width={width} height={horizon - y} fill={`url(#${skyId})`} />
+      <ellipse cx={x + width * 0.78} cy={y + height * 0.14} rx={height * 0.09} ry={height * 0.09} fill="#FFD54F" opacity={0.95} />
+      <ellipse cx={x + width * 0.18} cy={y + height * 0.2} rx={width * 0.08} ry={height * 0.04} fill="#FFFFFF" opacity={0.75} />
+      <ellipse cx={x + width * 0.42} cy={y + height * 0.12} rx={width * 0.06} ry={height * 0.03} fill="#FFFFFF" opacity={0.6} />
+      <rect x={x} y={horizon} width={width} height={height - (horizon - y)} fill={`url(#${skyId}-sea)`} />
+      <path
+        d={`M ${x} ${horizon + 8} Q ${x + width * 0.2} ${horizon + 2} ${x + width * 0.4} ${horizon + 7} T ${x + width * 0.8} ${horizon + 5} T ${x + width} ${horizon + 9}`}
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth={2}
+        opacity={0.45}
+      />
+      <path
+        d={`M ${x} ${horizon + height * 0.28} Q ${x + width * 0.35} ${horizon + height * 0.22} ${x + width * 0.7} ${horizon + height * 0.27} T ${x + width} ${horizon + height * 0.25}`}
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth={1.5}
+        opacity={0.3}
+      />
+      <MiniSailboat cx={x + width * 0.22} cy={horizon + height * 0.32} scale={1.35} />
+      <MiniYacht cx={x + width * 0.52} cy={horizon + height * 0.38} scale={1.2} />
+      <MiniFishingBoat cx={x + width * 0.76} cy={horizon + height * 0.3} scale={1.15} />
+      <MiniSailboat cx={x + width * 0.88} cy={horizon + height * 0.42} scale={0.85} />
+      <ellipse cx={x + width * 0.62} cy={horizon + height * 0.48} rx={14} ry={4} fill="#FFFFFF" opacity={0.2} />
+      <ellipse cx={x + width * 0.3} cy={horizon + height * 0.44} rx={10} ry={3} fill="#FFFFFF" opacity={0.18} />
+    </>
+  )
+}
+
 function BeachScene({ x, y, width, height }: SceneProps) {
   const skyId = `win-sky-b-${x}-${y}`
   const sandTop = y + height * 0.58

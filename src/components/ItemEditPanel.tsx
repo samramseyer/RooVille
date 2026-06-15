@@ -42,7 +42,11 @@ export function ItemEditPanel({
       </div>
 
       <p className="item-edit-hint">
-        {onEnter ? 'Drag your avatar nearby, or go inside to decorate!' : 'Drag it on the map to move it'}
+        {building.category === 'roads'
+          ? 'Tap ↺ Turn left / Turn right ↻ to rotate, then drag to reposition on the grid.'
+          : onEnter
+            ? 'Drag your avatar nearby, or go inside to decorate!'
+            : 'Drag it on the map to move it'}
       </p>
 
       <div className="item-edit-actions">

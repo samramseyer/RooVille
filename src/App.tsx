@@ -8,7 +8,7 @@ import { useGameSave } from './hooks/useGameSave'
 import './App.css'
 
 function App() {
-  const { gameState, updateGameState, resetGame, hasSave } = useGameSave()
+  const { gameState, updateGameState, resetGame, hasSave, lastSavedAt, saveNow, saveFlash } = useGameSave()
   const [screen, setScreen] = useState<Screen>(() =>
     hasSave ? 'play' : 'welcome',
   )
@@ -21,6 +21,7 @@ function App() {
           onStart={() => setScreen('avatar')}
           onContinue={() => setScreen('play')}
           hasSave={hasSave}
+          savedPlayerName={hasSave ? gameState.avatar.name : undefined}
         />
       )}
 
@@ -42,6 +43,9 @@ function App() {
             resetGame()
             setScreen('avatar')
           }}
+          lastSavedAt={lastSavedAt}
+          saveFlash={saveFlash}
+          onSaveNow={saveNow}
         />
       )}
       </div>

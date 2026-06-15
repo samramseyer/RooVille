@@ -38,6 +38,12 @@ export const QUESTS: QuestDef[] = [
     description: 'Build a boathouse and dock it with a boat',
     hint: 'One boathouse plus any boat nearby',
   },
+  {
+    id: 'town-planner',
+    title: 'Town Planner',
+    description: 'Pave 8 road tiles to connect your buildings',
+    hint: 'Open the Roads menu and snap tiles together on the grass',
+  },
 ]
 
 function countByCategory(items: PlacedItem[], category: string): number {
@@ -67,6 +73,8 @@ export function checkQuest(questId: string, items: PlacedItem[]): boolean {
       return countByCategory(items, 'decor') >= 5
     case 'boathouse-bay':
       return countByCategory(items, 'boathouses') >= 1 && countByCategory(items, 'boats') >= 1
+    case 'town-planner':
+      return countByCategory(items, 'roads') >= 8
     default:
       return false
   }
@@ -98,6 +106,8 @@ export function getQuestProgress(questId: string, items: PlacedItem[]): { curren
         ),
         target: 2,
       }
+    case 'town-planner':
+      return { current: Math.min(countByCategory(items, 'roads'), 8), target: 8 }
     default:
       return { current: 0, target: 1 }
   }

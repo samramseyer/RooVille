@@ -7,6 +7,7 @@ export type BuildingCategory =
   | 'houses'
   | 'businesses'
   | 'docks'
+  | 'roads'
   | 'boats'
   | 'boathouses'
   | 'zoos'

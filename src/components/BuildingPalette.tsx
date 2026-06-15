@@ -13,6 +13,7 @@ const CATEGORIES: BuildingCategory[] = [
   'houses',
   'businesses',
   'docks',
+  'roads',
   'boats',
   'boathouses',
   'zoos',
@@ -29,7 +30,9 @@ export function BuildingPalette({ onSelectBuilding, selectedBuildingId, editMode
       <p className="palette-hint">
         {editMode
           ? 'Tap Done in the edit panel below, or tap empty map to finish editing.'
-          : 'Pick something, then tap the map to place it!'}
+          : activeCategory === 'roads'
+            ? 'Roads snap to a grid — rotate before placing, or tap a road to turn it after!'
+            : 'Pick something, then tap the map to place it!'}
       </p>
 
       <nav className="category-tabs">

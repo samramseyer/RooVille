@@ -125,7 +125,7 @@ export function clampWindowOpening(o: Pick<InteriorOpening, 'x' | 'y' | 'width' 
   const width = Math.max(MIN_OPENING.window.width, Math.min(MAX_OPENING.window.width, o.width))
   const height = Math.max(MIN_OPENING.window.height, Math.min(MAX_OPENING.window.height, o.height))
   const x = Math.max(0, Math.min(ROOM_WIDTH - width, o.x))
-  const y = Math.max(0, Math.min(WALL_BOTTOM - height, o.y))
+  const y = Math.max(0, Math.min(ROOM_HEIGHT - height, o.y))
   return { x, y, width, height }
 }
 
@@ -133,9 +133,7 @@ export function clampDoorOpening(o: Pick<InteriorOpening, 'x' | 'y' | 'width' | 
   const width = Math.max(MIN_OPENING.door.width, Math.min(MAX_OPENING.door.width, o.width))
   const height = Math.max(MIN_OPENING.door.height, Math.min(MAX_OPENING.door.height, o.height))
   const x = Math.max(0, Math.min(ROOM_WIDTH - width, o.x))
-  const minY = WALL_BOTTOM - 20
-  const maxY = ROOM_HEIGHT - height - 4
-  const y = Math.max(minY, Math.min(maxY, o.y))
+  const y = Math.max(0, Math.min(ROOM_HEIGHT - height, o.y))
   return { x, y, width, height }
 }
 

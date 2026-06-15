@@ -4,9 +4,10 @@ interface WelcomeProps {
   onStart: () => void
   onContinue: () => void
   hasSave: boolean
+  savedPlayerName?: string
 }
 
-export function Welcome({ onStart, onContinue, hasSave }: WelcomeProps) {
+export function Welcome({ onStart, onContinue, hasSave, savedPlayerName }: WelcomeProps) {
   return (
     <div className="welcome">
       <CoastalTownBackground />
@@ -28,9 +29,12 @@ export function Welcome({ onStart, onContinue, hasSave }: WelcomeProps) {
             Create Your Avatar
           </button>
           {hasSave && (
-            <button type="button" className="btn btn-secondary" onClick={onContinue}>
-              Continue Your Town
-            </button>
+            <>
+              <button type="button" className="btn btn-secondary" onClick={onContinue}>
+                Continue as {savedPlayerName ?? 'Explorer'}
+              </button>
+              <p className="welcome-save-note">Your town is saved on this device — pick up where you left off.</p>
+            </>
           )}
         </div>
       </div>

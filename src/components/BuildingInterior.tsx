@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { BuildingDef, DoorStyleId, GameState, InteriorItem, InteriorOpening, InteriorRoomState, PlacedItem, WindowStyleId } from '../types'
 import type { FurnitureDef } from '../data/interiorFurniture'
-import { getFurniture, getFurnitureDimensions, isResizableFurniture, clampFurnitureDimensions, clampFurniturePosition, supportsTrimZonePlacement, supportsWallPlacement } from '../data/interiorFurniture'
+import { getFurniture, getFurnitureDimensions, isFloorLayerFurniture, isResizableFurniture, clampFurnitureDimensions, clampFurniturePosition } from '../data/interiorFurniture'
 import { getInteriorTheme } from '../data/enterableBuildings'
 import {
   clampDoorOpening,
@@ -12,7 +12,7 @@ import {
   resolveInteriorOpenings,
 } from '../data/interiorOpenings'
 import { resolveInteriorStyle } from '../data/interiorStyles'
-import { getBuildingInteriorLayout, getFloorLabel, getRoomDef, type RoomNavLink } from '../data/interiorLayouts'
+import { getBuildingInteriorLayout, getRoomDef, getRoomFloorLabel, type RoomNavLink } from '../data/interiorLayouts'
 import {
   getRawRoomState,
   patchRoomState,
@@ -22,6 +22,12 @@ import {
   resolveRoomInteriorStyle,
   resolveRoomOpenings,
 } from '../data/interiorRoomState'
+import {
+  getTownExitDoor,
+  isAvatarNearExitDoor,
+  isLivingAreaRoom,
+  isTownExitDoor,
+} from '../data/interiorExitDoor'
 import { resolveWindowView, type MapSize } from '../data/interiorWindowView'
 import { playDeleteSound, playPlaceSound, playRotateSound } from '../audio/sounds'
 import { AvatarSprite } from './AvatarSprite'
@@ -167,7 +173,6 @@ export function BuildingInterior({
       selectedFurniture.width,
       selectedFurniture.height,
       selectedFurniture.id,
-      y,
     )
     const newItem: InteriorItem = {
       id: crypto.randomUUID(),
@@ -429,7 +434,12 @@ export function BuildingInterior({
     dragStart.current = { x: e.clientX, y: e.clientY }
     pointerMoved.current = false
     draggingOpeningId.current = opening.id
-    setSelectedOpeningId(opening.id)
+    const exitDoorTap =
+      isTownExitDoor(opening, layout ?? null, currentRoomId) &&
+      isAvatarNearExitDoor(avatarPosition, opening)
+    if (!exitDoorTap) {
+      setSelectedOpeningId(opening.id)
+    }
     setSelectedInteriorId(null)
     setSelectedFurniture(null)
     setPlacementMode(null)
@@ -489,7 +499,16 @@ export function BuildingInterior({
 
   const finishOpeningPointer = () => {
     if (!pointerMoved.current && draggingOpeningId.current) {
-      setSelectedOpeningId(draggingOpeningId.current)
+      const opening = interiorOpenings.find((item) => item.id === draggingOpeningId.current)
+      if (
+        opening &&
+        isTownExitDoor(opening, layout ?? null, currentRoomId) &&
+        isAvatarNearExitDoor(avatarPosition, opening)
+      ) {
+        onExit()
+      } else {
+        setSelectedOpeningId(draggingOpeningId.current)
+      }
     }
     stopDrag()
   }
@@ -568,6 +587,11 @@ export function BuildingInterior({
   const selectedInteriorDef = selectedInterior ? getFurniture(selectedInterior.furnitureId) : null
   const selectedOpening = interiorOpenings.find((item) => item.id === selectedOpeningId)
   const isPlacing = !!selectedFurniture || !!placementMode
+  const townExitDoor = getTownExitDoor(interiorOpenings)
+  const nearTownExitDoor =
+    townExitDoor !== null &&
+    isLivingAreaRoom(layout ?? null, currentRoomId) &&
+    isAvatarNearExitDoor(avatarPosition, townExitDoor)
 
   return (
     <div className="building-interior">
@@ -581,7 +605,7 @@ export function BuildingInterior({
             <span className="interior-subtitle">
               {roomDef ? (
                 <>
-                  {roomDef.emoji} {roomDef.name} · {getFloorLabel(roomDef.floor)}
+                  {roomDef.emoji} {roomDef.name} · {getRoomFloorLabel(roomDef)}
                 </>
               ) : (
                 <>Inside with {gameState.avatar.name}</>
@@ -591,12 +615,7 @@ export function BuildingInterior({
         </div>
         {selectedFurniture && !selectedInteriorId && !selectedOpeningId && (
           <div className="placement-hint interior-placement-hint">
-            Placing: {selectedFurniture.name} — tap the{' '}
-            {supportsTrimZonePlacement(selectedFurniture.id)
-              ? 'trim line, wall, or floor'
-              : supportsWallPlacement(selectedFurniture.id)
-                ? 'wall or floor'
-                : 'floor'}
+            Placing: {selectedFurniture.name} — tap anywhere in the room (homes, shops, boats & boathouses)
             <button type="button" className="btn btn-ghost btn-small" onClick={() => setSelectedFurniture(null)}>
               Cancel
             </button>
@@ -604,7 +623,7 @@ export function BuildingInterior({
         )}
         {placementMode && (
           <div className="placement-hint interior-placement-hint">
-            Tap the {placementMode === 'window' ? 'wall' : 'floor'} to place a {placementMode}
+            Tap anywhere in the room to place a {placementMode}
             <button type="button" className="btn btn-ghost btn-small" onClick={() => setPlacementMode(null)}>
               Cancel
             </button>
@@ -680,7 +699,7 @@ export function BuildingInterior({
 
           <div
             ref={roomRef}
-            className={`interior-room interior-room--${theme}${roomDef ? ` interior-room--${roomDef.floor}` : ''}${isPlacing && !selectedInteriorId && !selectedOpeningId ? ' placing-mode' : ''}`}
+            className={`interior-room interior-room--${theme}${roomDef ? ` interior-room--${roomDef.variant === 'lantern-deck' ? 'lantern-deck' : roomDef.floor}` : ''}${isPlacing && !selectedInteriorId && !selectedOpeningId ? ' placing-mode' : ''}`}
             onPointerDown={handleRoomPointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={stopDrag}
@@ -713,6 +732,9 @@ export function BuildingInterior({
                 windowView={windowView}
                 casingProfile={casingTrimProfile}
                 selected={opening.id === selectedOpeningId}
+                exitReady={
+                  isTownExitDoor(opening, layout ?? null, currentRoomId) && nearTownExitDoor
+                }
                 onPointerDown={(e) => startOpeningDrag(e, opening)}
                 onResizePointerDown={(e) => startOpeningResize(e, opening)}
                 onPointerMove={handlePointerMove}
@@ -720,12 +742,27 @@ export function BuildingInterior({
               />
             ))}
 
+            {nearTownExitDoor && townExitDoor && (
+              <button
+                type="button"
+                className="exit-building-btn"
+                style={{
+                  left: `${((townExitDoor.x + townExitDoor.width / 2) / ROOM_WIDTH) * 100}%`,
+                  top: `${(townExitDoor.y / ROOM_HEIGHT) * 100}%`,
+                }}
+                onClick={onExit}
+              >
+                🚪 Exit to town
+              </button>
+            )}
+
             {interiorItems
               .slice()
               .sort((a, b) => {
-                const aRug = a.furnitureId === 'rug' ? 0 : 1
-                const bRug = b.furnitureId === 'rug' ? 0 : 1
-                return aRug - bRug
+                const aFloor = isFloorLayerFurniture(a.furnitureId) ? 0 : 1
+                const bFloor = isFloorLayerFurniture(b.furnitureId) ? 0 : 1
+                if (aFloor !== bFloor) return aFloor - bFloor
+                return a.y - b.y
               })
               .map((item) => {
                 const def = getFurniture(item.furnitureId)

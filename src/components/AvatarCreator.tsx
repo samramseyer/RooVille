@@ -6,6 +6,7 @@ import {
   HATS,
   OUTFIT_COLORS,
   PETS,
+  sanitizeAvatarName,
   SKIN_TONES,
   VEHICLES,
 } from '../data/avatarOptions'
@@ -103,7 +104,7 @@ export function AvatarCreator({ avatar, onChange, onDone, onBack }: AvatarCreato
               className="name-input"
               value={avatar.name}
               maxLength={20}
-              onChange={(e) => patch({ name: e.target.value || 'Explorer' })}
+              onChange={(e) => patch({ name: sanitizeAvatarName(e.target.value) })}
               placeholder="Enter your name"
             />
           </label>

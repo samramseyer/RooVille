@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { BuildingDef, GameState, PlacedItem } from '../types'
 import { getBuilding } from '../data/buildings'
+import { isRoadBuilding, snapRoadPlacementFromCenter, snapRoadPosition } from '../data/roads'
 import { QUESTS } from '../data/quests'
 import {
   playDeleteSound,
@@ -15,12 +16,14 @@ import {
 } from '../audio/sounds'
 import type { TimePhase } from '../hooks/useDayNight'
 import { useDayNightCycle } from '../hooks/useDayNight'
+import { CoastalMapTerrain } from './CoastalMapTerrain'
 import { AvatarSprite } from './AvatarSprite'
 import { BuildingArt } from './BuildingArt'
 import { BuildingInterior } from './BuildingInterior'
 import { BuildingPalette } from './BuildingPalette'
 import { ItemEditPanel } from './ItemEditPanel'
-import { checkQuest, QuestPanel } from './QuestPanel'
+import { SidePanel } from './SidePanel'
+import { checkQuest } from './QuestPanel'
 import {
   findNearbyEnterable,
   getExitAvatarPosition,
@@ -32,11 +35,22 @@ interface CoastalWorldProps {
   onUpdate: (updater: (prev: GameState) => GameState) => void
   onEditAvatar: () => void
   onReset: () => void
+  lastSavedAt: Date | null
+  saveFlash: boolean
+  onSaveNow: () => void
 }
 
 type DragMode = 'avatar' | 'item' | null
 
 const DRAG_THRESHOLD = 8
+
+function roadRotationLabel(rotation: number): string {
+  const r = ((rotation % 360) + 360) % 360
+  if (r === 0) return '→ east–west'
+  if (r === 90) return '↓ north–south'
+  if (r === 180) return '← east–west'
+  return '↑ north–south'
+}
 
 function PlacedBuildingView({
   item,
@@ -53,14 +67,16 @@ function PlacedBuildingView({
 }) {
   const building = getBuilding(item.buildingId)
   if (!building) return null
+  const isRoad = building.category === 'roads'
 
   return (
     <div
-      className={`placed-building${isSelected ? ' selected' : ''}`}
+      className={`placed-building${isRoad ? ' placed-road' : ''}${isSelected ? ' selected' : ''}`}
       style={{
         left: item.x,
         top: item.y,
         transform: `rotate(${item.rotation}deg) scale(${item.scale})`,
+        transformOrigin: 'center center',
         width: building.width,
         height: building.height,
       }}
@@ -72,7 +88,7 @@ function PlacedBuildingView({
       {isSelected && (
         <>
           <div className="selection-ring" />
-          <div className="item-float-controls" onPointerDown={(e) => e.stopPropagation()}>
+          <div className={`item-float-controls${isRoad ? ' item-float-controls-road' : ''}`} onPointerDown={(e) => e.stopPropagation()}>
             <button type="button" className="float-btn" onClick={onRotateLeft} aria-label="Turn left">
               ↺
             </button>
@@ -96,10 +112,19 @@ const PHASE_LABELS: Record<TimePhase, string> = {
   dawn: '🌄 Dawn',
 }
 
-export function CoastalWorld({ gameState, onUpdate, onEditAvatar, onReset }: CoastalWorldProps) {
+export function CoastalWorld({
+  gameState,
+  onUpdate,
+  onEditAvatar,
+  onReset,
+  lastSavedAt,
+  saveFlash,
+  onSaveNow,
+}: CoastalWorldProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [mapSize, setMapSize] = useState({ width: 800, height: 520 })
   const [selectedBuilding, setSelectedBuilding] = useState<BuildingDef | null>(null)
+  const [placementRotation, setPlacementRotation] = useState(0)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [dragMode, setDragMode] = useState<DragMode>(null)
   const [celebration, setCelebration] = useState<string | null>(null)
@@ -185,20 +210,29 @@ export function CoastalWorld({ gameState, onUpdate, onEditAvatar, onReset }: Coa
   const placeBuilding = useCallback(
     (x: number, y: number) => {
       if (!selectedBuilding) return
+      const placement =
+        selectedBuilding.category === 'roads'
+          ? snapRoadPlacementFromCenter(x, y, selectedBuilding.width, selectedBuilding.height)
+          : { x: x - selectedBuilding.width / 2, y: y - selectedBuilding.height / 2 }
       const newItem: PlacedItem = {
         id: crypto.randomUUID(),
         buildingId: selectedBuilding.id,
-        x: x - selectedBuilding.width / 2,
-        y: y - selectedBuilding.height / 2,
-        rotation: 0,
+        x: placement.x,
+        y: placement.y,
+        rotation: selectedBuilding.category === 'roads' ? placementRotation : 0,
         scale: 1,
       }
       onUpdate((prev) => ({ ...prev, items: [...prev.items, newItem] }))
       selectItem(newItem.id)
       if (soundOn) playPlaceSound()
     },
-    [selectedBuilding, onUpdate, soundOn],
+    [selectedBuilding, placementRotation, onUpdate, soundOn],
   )
+
+  const rotatePlacement = (delta: number) => {
+    setPlacementRotation((prev) => (prev + delta + 360) % 360)
+    if (soundOn) playRotateSound()
+  }
 
   const stopDrag = () => {
     setDragMode(null)
@@ -243,11 +277,17 @@ export function CoastalWorld({ gameState, onUpdate, onEditAvatar, onReset }: Coa
       pointerMoved.current = true
       onUpdate((prev) => ({
         ...prev,
-        items: prev.items.map((item) =>
-          item.id === draggingItemId.current
-            ? { ...item, x: coords.x - dragOffset.current.x, y: coords.y - dragOffset.current.y }
-            : item,
-        ),
+        items: prev.items.map((item) => {
+          if (item.id !== draggingItemId.current) return item
+          let nextX = coords.x - dragOffset.current.x
+          let nextY = coords.y - dragOffset.current.y
+          if (isRoadBuilding(item.buildingId)) {
+            const snapped = snapRoadPosition(nextX, nextY)
+            nextX = snapped.x
+            nextY = snapped.y
+          }
+          return { ...item, x: nextX, y: nextY }
+        }),
       }))
     }
   }
@@ -378,6 +418,30 @@ export function CoastalWorld({ gameState, onUpdate, onEditAvatar, onReset }: Coa
       ? findNearbyEnterable(gameState.avatarPosition, gameState.items)
       : null
 
+  const roadItems = gameState.items.filter((item) => isRoadBuilding(item.buildingId))
+  const structureItems = gameState.items.filter((item) => !isRoadBuilding(item.buildingId))
+
+  const renderPlacedItem = (item: PlacedItem) => (
+    <div
+      key={item.id}
+      onPointerDown={(e) => {
+        startItemPointer(e, item)
+        setDragMode('item')
+      }}
+      onPointerMove={handleMapPointerMove}
+      onPointerUp={finishItemPointer}
+      onPointerCancel={finishItemPointer}
+    >
+      <PlacedBuildingView
+        item={item}
+        isSelected={item.id === selectedItemId}
+        onRotateLeft={() => rotateItem(item.id, -90)}
+        onRotateRight={() => rotateItem(item.id, 90)}
+        onDelete={() => deleteItem(item.id)}
+      />
+    </div>
+  )
+
   if (activeInteriorItem && activeInteriorDef) {
     return (
       <BuildingInterior
@@ -442,6 +506,7 @@ export function CoastalWorld({ gameState, onUpdate, onEditAvatar, onReset }: Coa
           <BuildingPalette
             onSelectBuilding={(b) => {
               setSelectedBuilding(b)
+              setPlacementRotation(0)
               setSelectedItemId(null)
             }}
             selectedBuildingId={selectedBuilding?.id ?? null}
@@ -464,7 +529,21 @@ export function CoastalWorld({ gameState, onUpdate, onEditAvatar, onReset }: Coa
         <div className="map-container">
           {selectedBuilding && !selectedItemId && (
             <div className="placement-hint">
-              Placing: {selectedBuilding.name} — tap the map!
+              Placing: {selectedBuilding.name}
+              {selectedBuilding.category === 'roads' && (
+                <span className="placement-rotation-label"> ({roadRotationLabel(placementRotation)})</span>
+              )}
+              {' '}— tap the map!
+              {selectedBuilding.category === 'roads' && (
+                <>
+                  <button type="button" className="btn btn-small" onClick={() => rotatePlacement(-90)}>
+                    ↺ Rotate
+                  </button>
+                  <button type="button" className="btn btn-small" onClick={() => rotatePlacement(90)}>
+                    Rotate ↻
+                  </button>
+                </>
+              )}
               <button
                 type="button"
                 className="btn btn-ghost btn-small"
@@ -477,7 +556,12 @@ export function CoastalWorld({ gameState, onUpdate, onEditAvatar, onReset }: Coa
 
           {selectedItem && selectedDef && (
             <div className="item-toolbar">
-              <span>Editing: {selectedDef.name}</span>
+              <span>
+                Editing: {selectedDef.name}
+                {selectedDef.category === 'roads' && (
+                  <span className="placement-rotation-label"> ({roadRotationLabel(selectedItem.rotation)})</span>
+                )}
+              </span>
               <button type="button" className="btn btn-small" onClick={() => rotateItem(selectedItem.id, -90)}>
                 ↺ Left
               </button>
@@ -499,40 +583,13 @@ export function CoastalWorld({ gameState, onUpdate, onEditAvatar, onReset }: Coa
             onPointerUp={stopDrag}
             onPointerCancel={stopDrag}
           >
-            <div className="map-sky" />
+            <CoastalMapTerrain phase={phase} />
             <div className="map-sun" aria-hidden="true" />
             <div className="map-moon" aria-hidden="true" />
             <div className="map-stars" aria-hidden="true" />
 
-            <div className="map-ocean">
-              <div className="wave wave-1" />
-              <div className="wave wave-2" />
-              <div className="wave wave-3" />
-            </div>
-
-            <div className="map-beach" />
-            <div className="map-land" />
-
-            {gameState.items.map((item) => (
-              <div
-                key={item.id}
-                onPointerDown={(e) => {
-                  startItemPointer(e, item)
-                  setDragMode('item')
-                }}
-                onPointerMove={handleMapPointerMove}
-                onPointerUp={finishItemPointer}
-                onPointerCancel={finishItemPointer}
-              >
-                <PlacedBuildingView
-                  item={item}
-                  isSelected={item.id === selectedItemId}
-                  onRotateLeft={() => rotateItem(item.id, -90)}
-                  onRotateRight={() => rotateItem(item.id, 90)}
-                  onDelete={() => deleteItem(item.id)}
-                />
-              </div>
-            ))}
+            {roadItems.map(renderPlacedItem)}
+            {structureItems.map(renderPlacedItem)}
 
             <div
               className="player-avatar"
@@ -566,7 +623,16 @@ export function CoastalWorld({ gameState, onUpdate, onEditAvatar, onReset }: Coa
           </div>
         </div>
 
-        <QuestPanel items={gameState.items} completedQuests={gameState.completedQuests} />
+        <SidePanel
+          avatar={gameState.avatar}
+          items={gameState.items}
+          completedQuests={gameState.completedQuests}
+          lastSavedAt={lastSavedAt}
+          saveFlash={saveFlash}
+          onNameChange={(name) => onUpdate((prev) => ({ ...prev, avatar: { ...prev.avatar, name } }))}
+          onEditAvatar={onEditAvatar}
+          onSaveNow={onSaveNow}
+        />
       </div>
     </div>
   )
