@@ -9,8 +9,10 @@ import {
   clampWindowOpening,
   DEFAULT_NEW_DOOR,
   DEFAULT_NEW_WINDOW,
+  getDefaultOpenings,
   resolveInteriorOpenings,
 } from '../data/interiorOpenings'
+import { ensureLivingRoomExitDoor } from '../data/interiorExitDoor'
 import { resolveInteriorStyle } from '../data/interiorStyles'
 import { getBuildingInteriorLayout, getRoomDef, getRoomFloorLabel, type RoomNavLink } from '../data/interiorLayouts'
 import {
@@ -101,9 +103,15 @@ export function BuildingInterior({
   const interiorStyle = layout
     ? resolveRoomInteriorStyle(liveItem, layout, currentRoomId, theme)
     : resolveInteriorStyle(liveItem.interiorStyle, theme)
-  const interiorOpenings = layout
+  const interiorOpeningsRaw = layout
     ? resolveRoomOpenings(liveItem, layout, currentRoomId, theme, interiorStyle)
-    : resolveInteriorOpenings(theme, interiorStyle, liveItem.interiorOpenings)
+    : liveItem.interiorOpenings === undefined || liveItem.interiorOpenings.length === 0
+      ? getDefaultOpenings(theme, interiorStyle)
+      : resolveInteriorOpenings(theme, interiorStyle, liveItem.interiorOpenings)
+  const interiorOpenings: InteriorOpening[] =
+    !layout || currentRoomId === layout.defaultRoomId
+      ? ensureLivingRoomExitDoor(interiorOpeningsRaw, theme, interiorStyle)
+      : interiorOpeningsRaw
   const windowView = roomDef?.forceOceanView
     ? 'ocean'
     : resolveWindowView(liveItem, building, gameState.items, mapSize, interiorStyle.windowViewId)
@@ -435,7 +443,7 @@ export function BuildingInterior({
     pointerMoved.current = false
     draggingOpeningId.current = opening.id
     const exitDoorTap =
-      isTownExitDoor(opening, layout ?? null, currentRoomId) &&
+      isTownExitDoor(opening, interiorOpenings, layout ?? null, currentRoomId) &&
       isAvatarNearExitDoor(avatarPosition, opening)
     if (!exitDoorTap) {
       setSelectedOpeningId(opening.id)
@@ -502,7 +510,7 @@ export function BuildingInterior({
       const opening = interiorOpenings.find((item) => item.id === draggingOpeningId.current)
       if (
         opening &&
-        isTownExitDoor(opening, layout ?? null, currentRoomId) &&
+        isTownExitDoor(opening, interiorOpenings, layout ?? null, currentRoomId) &&
         isAvatarNearExitDoor(avatarPosition, opening)
       ) {
         onExit()
@@ -733,7 +741,7 @@ export function BuildingInterior({
                 casingProfile={casingTrimProfile}
                 selected={opening.id === selectedOpeningId}
                 exitReady={
-                  isTownExitDoor(opening, layout ?? null, currentRoomId) && nearTownExitDoor
+                  isTownExitDoor(opening, interiorOpenings, layout ?? null, currentRoomId) && nearTownExitDoor
                 }
                 onPointerDown={(e) => startOpeningDrag(e, opening)}
                 onResizePointerDown={(e) => startOpeningResize(e, opening)}

@@ -808,10 +808,6 @@ function StandardRoomBackground({
   const baseTrimProfile = style.baseTrimProfileId ?? 'standard'
   const useWallpaper = style.wallpaperId !== 'none'
   const useFloorPattern = style.floorTypeId !== 'paint'
-  const showPerspectivePlanks =
-    style.floorTypeId === 'hardwood' ||
-    style.floorTypeId === 'wood-planks' ||
-    style.floorTypeId === 'lvp'
 
   return (
     <>
@@ -844,19 +840,6 @@ function StandardRoomBackground({
         fill={useFloorPattern ? 'url(#interior-floor)' : 'url(#room-floor)'}
       />
       <rect x={0} y={200} width={640} height={280} fill="url(#interior-floor-grad)" />
-      {showPerspectivePlanks &&
-        Array.from({ length: 9 }).map((_, i) => (
-          <line
-            key={i}
-            x1={i * 72}
-            y1={200}
-            x2={i * 72 - 20}
-            y2={480}
-            stroke={adjustColor(floorBase, -28)}
-            strokeWidth={2}
-            opacity={0.35}
-          />
-        ))}
       <BaseTrimMolding profile={baseTrimProfile} trimColor={trim} />
       {theme === 'boat' && (
         <>

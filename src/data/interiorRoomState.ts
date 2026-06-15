@@ -5,6 +5,7 @@ import {
   getRoomDef,
   getRoomDefaultOpenings,
 } from './interiorLayouts'
+import { ensureLivingRoomExitDoor } from './interiorExitDoor'
 import { resolveInteriorOpenings } from './interiorOpenings'
 import { resolveInteriorStyle } from './interiorStyles'
 import type { InteriorRoomState, PlacedItem } from '../types'
@@ -88,11 +89,18 @@ export function resolveRoomOpenings(
   const roomDef = getRoomDef(layout, roomId)
   const raw = getRawRoomState(item, roomId, layout.defaultRoomId)
 
-  if (raw.interiorOpenings === undefined && roomDef) {
-    return getRoomDefaultOpenings(roomDef)
+  let openings =
+    raw.interiorOpenings === undefined || raw.interiorOpenings.length === 0
+      ? roomDef
+        ? getRoomDefaultOpenings(roomDef)
+        : []
+      : resolveInteriorOpenings(theme, style, raw.interiorOpenings)
+
+  if (roomId === layout.defaultRoomId) {
+    openings = ensureLivingRoomExitDoor(openings, theme, style)
   }
 
-  return resolveInteriorOpenings(theme, style, raw.interiorOpenings)
+  return openings
 }
 
 export function resolveRoomAvatarPosition(

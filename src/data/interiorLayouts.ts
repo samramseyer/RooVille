@@ -608,7 +608,15 @@ export function getRoomDefaultOpenings(roomDef: InteriorRoomDef): InteriorOpenin
     ]
   }
 
-  // living room — windows on both sides
+  if (roomDef.id === 'living') {
+    return [
+      { id: 'win-left', kind: 'window', x: 40, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+      { id: 'win-right', kind: 'window', x: 520, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+      { id: 'door-main', kind: 'door', x: 280, y: 430, width: 80, height: 50, doorStyleId: 'coastal' },
+    ]
+  }
+
+  // default living / entry rooms — windows on both sides + town exit door
   return [
     { id: 'win-left', kind: 'window', x: 40, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
     { id: 'win-right', kind: 'window', x: 520, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
