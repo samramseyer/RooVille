@@ -3,6 +3,7 @@ import { DEFAULT_AVATAR } from './avatarOptions'
 import { getBuilding } from './buildings'
 import { getInteriorTheme } from './enterableBuildings'
 import { sanitizeInteriorStyle } from './interiorStyles'
+import { sanitizeInteriorOpenings } from './interiorOpenings'
 
 export const INITIAL_GAME_STATE: GameState = {
   avatar: DEFAULT_AVATAR,
@@ -46,6 +47,7 @@ function sanitizeItems(raw: unknown): PlacedItem[] {
         rotation: typeof item.rotation === 'number' ? item.rotation : 0,
         scale: typeof item.scale === 'number' ? item.scale : 1,
         interior: sanitizeInterior(item.interior),
+        interiorOpenings: sanitizeInteriorOpenings(item.interiorOpenings),
         interiorAvatarPosition:
           item.interiorAvatarPosition &&
           typeof item.interiorAvatarPosition.x === 'number' &&

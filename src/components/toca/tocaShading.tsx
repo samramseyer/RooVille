@@ -1,4 +1,14 @@
-import type { ReactNode } from 'react'
+import { createContext, useContext, type ReactNode } from 'react'
+
+const ShadePrefixContext = createContext('')
+
+export function ShadePrefixProvider({ prefix, children }: { prefix: string; children: ReactNode }) {
+  return <ShadePrefixContext.Provider value={prefix}>{children}</ShadePrefixContext.Provider>
+}
+
+function useShadePrefix() {
+  return useContext(ShadePrefixContext)
+}
 
 /** Shift a hex colour lighter (+) or darker (-). */
 export function adjustColor(hex: string, amount: number): string {
@@ -26,26 +36,27 @@ export const SHADE = {
 }
 
 export function TocaShadeDefs() {
+  const prefix = useShadePrefix()
   return (
     <defs>
-      <linearGradient id="toca-surface-light" x1="0%" y1="0%" x2="0%" y2="100%">
+      <linearGradient id={`${prefix}toca-surface-light`} x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.32" />
         <stop offset="45%" stopColor="#FFFFFF" stopOpacity="0.06" />
         <stop offset="100%" stopColor="#000000" stopOpacity="0.08" />
       </linearGradient>
-      <linearGradient id="toca-surface-side" x1="0%" y1="0%" x2="100%" y2="0%">
+      <linearGradient id={`${prefix}toca-surface-side`} x1="0%" y1="0%" x2="100%" y2="0%">
         <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.1" />
         <stop offset="100%" stopColor="#000000" stopOpacity="0.18" />
       </linearGradient>
-      <linearGradient id="toca-roof-shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <linearGradient id={`${prefix}toca-roof-shine`} x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.35" />
         <stop offset="100%" stopColor="#000000" stopOpacity="0.05" />
       </linearGradient>
-      <linearGradient id="interior-wall-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <linearGradient id={`${prefix}interior-wall-grad`} x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.35" />
         <stop offset="100%" stopColor="#000000" stopOpacity="0.06" />
       </linearGradient>
-      <linearGradient id="interior-floor-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <linearGradient id={`${prefix}interior-floor-grad`} x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.12" />
         <stop offset="100%" stopColor="#000000" stopOpacity="0.14" />
       </linearGradient>
@@ -74,6 +85,7 @@ export function ShadedRect({
   stroke?: string
   strokeWidth?: number
 }) {
+  const prefix = useShadePrefix()
   const side = adjustColor(fill, -32)
   const bottom = adjustColor(fill, -42)
   return (
@@ -109,7 +121,7 @@ export function ShadedRect({
         width={width - 4}
         height={Math.max(height * 0.18, 4)}
         rx={Math.max(rx * 0.5, 2)}
-        fill="url(#toca-surface-light)"
+        fill={`url(#${prefix}toca-surface-light)`}
         pointerEvents="none"
       />
       <rect
@@ -118,7 +130,7 @@ export function ShadedRect({
         width={3}
         height={height - 8}
         rx={1.5}
-        fill="url(#toca-surface-side)"
+        fill={`url(#${prefix}toca-surface-side)`}
         pointerEvents="none"
       />
     </g>

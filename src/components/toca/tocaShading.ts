@@ -6,6 +6,7 @@ export {
   GroundShadow,
   ShadedCylinder,
   ShadedSvgRoot,
+  ShadePrefixProvider,
   adjustColor,
   SHADE,
 } from './tocaShading.tsx'

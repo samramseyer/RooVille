@@ -1,5 +1,6 @@
 import type { DoorStyleId, InteriorStyle, WindowStyleId } from '../types'
 import type { InteriorTheme } from './enterableBuildings'
+import { sanitizeOpeningScale } from './interiorOpenings'
 
 export type { DoorStyleId, WindowStyleId }
 
@@ -19,6 +20,8 @@ export const WINDOW_STYLES: StyleOption<WindowStyleId>[] = [
   { id: 'classic', name: 'Classic', emoji: '🪟' },
   { id: 'colonial', name: 'Colonial', emoji: '🏛️' },
   { id: 'wide', name: 'Wide sill', emoji: '📐' },
+  { id: 'bay', name: 'Bay window', emoji: '🏠' },
+  { id: 'picture', name: 'Picture', emoji: '🖼️' },
   { id: 'minimal', name: 'Minimal', emoji: '⬜' },
   { id: 'rounded', name: 'Rounded', emoji: '🔲' },
   { id: 'porthole', name: 'Porthole', emoji: '⚓' },
@@ -27,9 +30,10 @@ export const WINDOW_STYLES: StyleOption<WindowStyleId>[] = [
 export const DOOR_STYLES: StyleOption<DoorStyleId>[] = [
   { id: 'panel', name: 'Panel', emoji: '🚪' },
   { id: 'glass', name: 'Glass top', emoji: '🪟' },
+  { id: 'sliding', name: 'Sliding glass', emoji: '🚿' },
+  { id: 'french', name: 'French', emoji: '🚪' },
   { id: 'coastal', name: 'Coastal', emoji: '🏖️' },
   { id: 'barn', name: 'Barn', emoji: '🌾' },
-  { id: 'french', name: 'French', emoji: '🚪' },
   { id: 'hatch', name: 'Hatch', emoji: '⚓' },
 ]
 
@@ -83,11 +87,13 @@ export function sanitizeTrimColor(raw: unknown, theme: InteriorTheme): string {
 export function resolveTrimStyleFields(
   style: Partial<InteriorStyle> | undefined,
   theme: InteriorTheme,
-): Pick<InteriorStyle, 'windowStyleId' | 'doorStyleId' | 'trimColor'> {
+): Pick<InteriorStyle, 'windowStyleId' | 'doorStyleId' | 'trimColor' | 'windowScale' | 'doorScale'> {
   return {
     windowStyleId: sanitizeWindowStyleId(style?.windowStyleId, theme),
     doorStyleId: sanitizeDoorStyleId(style?.doorStyleId, theme),
     trimColor: sanitizeTrimColor(style?.trimColor, theme),
+    windowScale: sanitizeOpeningScale(style?.windowScale, 1),
+    doorScale: sanitizeOpeningScale(style?.doorScale, 1),
   }
 }
 

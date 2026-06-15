@@ -29,10 +29,35 @@ export interface InteriorItem {
   rotation: number
 }
 
+export interface InteriorOpening {
+  id: string
+  kind: 'window' | 'door'
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export type WindowViewSetting = 'auto' | 'ocean' | 'beach' | 'dock' | 'town' | 'landscape'
 
-export type WindowStyleId = 'classic' | 'colonial' | 'wide' | 'minimal' | 'rounded' | 'porthole'
-export type DoorStyleId = 'panel' | 'glass' | 'coastal' | 'barn' | 'french' | 'hatch'
+export type WindowStyleId =
+  | 'classic'
+  | 'colonial'
+  | 'wide'
+  | 'minimal'
+  | 'rounded'
+  | 'porthole'
+  | 'bay'
+  | 'picture'
+export type DoorStyleId =
+  | 'panel'
+  | 'glass'
+  | 'coastal'
+  | 'barn'
+  | 'french'
+  | 'hatch'
+  | 'sliding'
+export type OpeningScaleId = 'small' | 'medium' | 'large'
 
 export interface InteriorStyle {
   wallColor: string
@@ -45,6 +70,10 @@ export interface InteriorStyle {
   windowStyleId?: WindowStyleId
   doorStyleId?: DoorStyleId
   trimColor?: string
+  /** Window size multiplier (0.55–1.55). Defaults to 1. */
+  windowScale?: number
+  /** Door size multiplier (0.55–1.55). Defaults to 1. */
+  doorScale?: number
 }
 
 export interface PlacedItem {
@@ -55,6 +84,7 @@ export interface PlacedItem {
   rotation: number
   scale: number
   interior?: InteriorItem[]
+  interiorOpenings?: InteriorOpening[]
   interiorAvatarPosition?: { x: number; y: number }
   interiorStyle?: InteriorStyle
 }

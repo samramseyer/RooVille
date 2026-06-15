@@ -1,88 +1,61 @@
-import type { ReactNode } from 'react'
 import type { InteriorTheme } from '../data/enterableBuildings'
 import type { WindowViewId } from '../data/interiorWindowView'
 import { getFloorColor, getWallpaperColor } from '../data/interiorStyles'
 import type { InteriorStyle } from '../types'
 import { FloorPatternDefs } from './InteriorFloorPatterns'
-import { InteriorDoor, InteriorWindow } from './InteriorDoorsTrim'
-import { WallpaperPatternDefs } from './InteriorWallpaperPatterns'
 import {
+  BenchArt,
+  ClockArt,
+  CoffeeTableArt,
+  DeskArt,
+  DeskLampArt,
+  DiningChairArt,
+  DiningTableArt,
+  DresserArt,
+  LaundryArt,
+  MicrowaveArt,
+  MirrorArt,
+  NightstandArt,
+  OttomanArt,
+  SectionalArt,
+  ShelfArt,
+  SinkArt,
+  StoveArt,
+  SurfboardArt,
+} from './InteriorFurniturePieces'
+import {
+  C,
+  Cushion,
+  FurnSvg,
   GroundShadow,
+  S,
+  SW,
   ShadedCylinder,
   ShadedEllipse,
   ShadedRect,
   TocaShadeDefs,
+  WoodGrainRect,
+  WoodLegs,
   adjustColor,
-} from './toca/tocaShading'
-
-const S = '#4E342E'
-const SW = 2.5
-
-/** Match exterior Toca / Aussie palette */
-const C = {
-  ocean: '#48B5B0',
-  oceanDark: '#2A9D8F',
-  sand: '#E8C872',
-  ochre: '#C4956A',
-  cream: '#FFF8F0',
-  weatherboard: '#F5F0E8',
-  wattle: '#FFD54F',
-  eucalyptus: '#6B9E6B',
-  gumGreen: '#4A7C59',
-  terracotta: '#C4684A',
-  tinRed: '#B74A42',
-  corrugated: '#7B8FA1',
-  window: '#B3E5FC',
-  wood: '#8B6914',
-  woodLight: '#C4956A',
-}
-
-function FurnSvg({ children, viewBox }: { children: ReactNode; viewBox: string }) {
-  return (
-    <svg viewBox={viewBox} width="100%" height="100%" aria-hidden="true">
-      <TocaShadeDefs />
-      {children}
-    </svg>
-  )
-}
-
-function WoodLegs({ xs, y, h = 8 }: { xs: number[]; y: number; h?: number }) {
-  return (
-    <>
-      {xs.map((x) => (
-        <ShadedCylinder key={x} x={x} topY={y} width={5} height={h} fill={C.wood} stroke={S} />
-      ))}
-    </>
-  )
-}
-
-function Cushion({ x, y, w, h, fill }: { x: number; y: number; w: number; h: number; fill: string }) {
-  return (
-    <>
-      <rect x={x} y={y} width={w} height={h} rx={h * 0.35} fill={fill} stroke={S} strokeWidth={1.8} />
-      <rect x={x + 2} y={y + 2} width={w - 4} height={h * 0.35} rx={2} fill="#FFFFFF" opacity={0.2} />
-    </>
-  )
-}
+} from './InteriorFurnitureShared'
+import { WallpaperPatternDefs } from './InteriorWallpaperPatterns'
 
 function SofaArt() {
   return (
-    <FurnSvg viewBox="0 0 90 50">
-      <GroundShadow cx={45} cy={48} rx={38} ry={4} />
-      <WoodLegs xs={[14, 76]} y={42} h={6} />
-      {/* Base */}
-      <ShadedRect x={6} y={26} width={78} height={16} rx={8} fill={C.oceanDark} depth={5} strokeWidth={SW} />
-      {/* Seat */}
-      <ShadedRect x={8} y={18} width={74} height={14} rx={7} fill={C.ocean} depth={4} strokeWidth={SW} />
-      {/* Back */}
-      <ShadedRect x={8} y={8} width={74} height={14} rx={8} fill={adjustColor(C.ocean, 12)} depth={4} strokeWidth={SW} />
-      {/* Arm rests */}
-      <rect x={6} y={14} width={8} height={22} rx={4} fill={C.oceanDark} stroke={S} strokeWidth={2} />
-      <rect x={76} y={14} width={8} height={22} rx={4} fill={C.oceanDark} stroke={S} strokeWidth={2} />
-      <Cushion x={14} y={20} w={20} h={9} fill={C.wattle} />
-      <Cushion x={56} y={20} w={20} h={9} fill={C.wattle} />
-      {/* Throw pillow */}
-      <ellipse cx={45} cy={22} rx={8} ry={5} fill={C.terracotta} stroke={S} strokeWidth={1.5} />
+    <FurnSvg viewBox="0 0 92 52">
+      <GroundShadow cx={46} cy={50} rx={40} ry={4} />
+      <WoodLegs xs={[14, 78]} y={44} h={7} w={4} />
+      <ShadedRect x={5} y={28} width={82} height={16} rx={8} fill={C.fabricDark} depth={5} strokeWidth={SW} />
+      <ShadedRect x={7} y={19} width={78} height={13} rx={7} fill={C.fabric} depth={4} strokeWidth={SW} />
+      <ShadedRect x={7} y={8} width={78} height={14} rx={8} fill={adjustColor(C.fabric, 12)} depth={4} strokeWidth={SW} />
+      <rect x={5} y={14} width={9} height={24} rx={4} fill={C.fabricDark} stroke={S} strokeWidth={2} />
+      <rect x={78} y={14} width={9} height={24} rx={4} fill={C.fabricDark} stroke={S} strokeWidth={2} />
+      <Cushion x={14} y={21} w={22} h={9} fill={C.cream} />
+      <Cushion x={56} y={21} w={22} h={9} fill={C.cream} />
+      <ellipse cx={46} cy={23} rx={9} ry={5} fill={C.terracotta} stroke={S} strokeWidth={1.5} />
+      {[20, 46, 72].map((x) => (
+        <circle key={x} cx={x} cy={14} r={2} fill={adjustColor(C.fabric, -10)} stroke={S} strokeWidth={0.8} opacity={0.5} />
+      ))}
     </FurnSvg>
   )
 }
@@ -104,24 +77,17 @@ function ArmchairArt() {
 
 function BedArt() {
   return (
-    <FurnSvg viewBox="0 0 80 60">
-      <GroundShadow cx={40} cy={58} rx={34} ry={4} />
-      {/* Frame */}
-      <ShadedRect x={4} y={22} width={72} height={32} rx={6} fill={C.woodLight} depth={5} strokeWidth={SW} />
-      {/* Mattress */}
-      <rect x={8} y={24} width={64} height={26} rx={5} fill={C.cream} stroke={S} strokeWidth={2} />
-      {/* Headboard */}
-      <ShadedRect x={6} y={6} width={30} height={18} rx={8} fill={C.weatherboard} depth={4} strokeWidth={SW} />
-      <rect x={10} y={10} width={22} height={10} rx={4} fill={C.eucalyptus} stroke={S} strokeWidth={1.5} opacity={0.5} />
-      {/* Pillows */}
-      <rect x={10} y={14} width={22} height={10} rx={5} fill={C.cream} stroke={S} strokeWidth={1.8} />
-      <rect x={12} y={15} width={18} height={6} rx={3} fill={C.window} stroke={S} strokeWidth={1} opacity={0.8} />
-      <rect x={36} y={16} width={18} height={9} rx={4} fill={C.cream} stroke={S} strokeWidth={1.5} />
-      {/* Aussie blanket — green & gold stripes */}
-      <rect x={10} y={32} width={58} height={16} rx={4} fill={C.eucalyptus} stroke={S} strokeWidth={1.5} opacity={0.85} />
-      {[34, 38, 42, 46].map((y) => (
-        <rect key={y} x={12} y={y} width={54} height={3} rx={1} fill={C.wattle} opacity={0.55} />
-      ))}
+    <FurnSvg viewBox="0 0 85 62">
+      <GroundShadow cx={42} cy={60} rx={36} ry={4} />
+      <ShadedRect x={4} y={24} width={77} height={32} rx={6} fill={C.woodLight} depth={5} strokeWidth={SW} />
+      <rect x={8} y={26} width={69} height={26} rx={5} fill={C.cream} stroke={S} strokeWidth={2} />
+      <ShadedRect x={5} y={6} width={34} height={20} rx={8} fill={C.wood} depth={4} strokeWidth={SW} />
+      <ShadedRect x={46} y={28} width={34} height={18} rx={4} fill={C.woodDark} depth={3} strokeWidth={2} />
+      <rect x={10} y={14} width={24} height={11} rx={5} fill={C.cream} stroke={S} strokeWidth={1.8} />
+      <rect x={38} y={15} width={20} height={10} rx={4} fill={C.cream} stroke={S} strokeWidth={1.5} />
+      <rect x={10} y={34} width={62} height={16} rx={4} fill={C.eucalyptus} stroke={S} strokeWidth={1.5} opacity={0.85} />
+      <path d="M 12 38 Q 42 34 72 38" fill="none" stroke={adjustColor(C.eucalyptus, -20)} strokeWidth={1.5} opacity={0.4} />
+      <path d="M 12 42 Q 42 46 72 42" fill="none" stroke={adjustColor(C.eucalyptus, -20)} strokeWidth={1.5} opacity={0.35} />
     </FurnSvg>
   )
 }
@@ -155,17 +121,8 @@ function TableArt() {
   return (
     <FurnSvg viewBox="0 0 70 50">
       <GroundShadow cx={35} cy={48} rx={28} ry={3} />
-      <ShadedEllipse cx={35} cy={16} rx={30} ry={13} fill={C.woodLight} stroke={S} strokeWidth={SW} />
-      {/* Table edge thickness */}
-      <ellipse cx={35} cy={20} rx={28} ry={4} fill={adjustColor(C.woodLight, -25)} opacity={0.7} />
-      <WoodLegs xs={[22, 48]} y={22} h={22} />
-      {/* Flat white mug */}
-      <ellipse cx={28} cy={14} rx={5} ry={3} fill={C.cream} stroke={S} strokeWidth={1.5} />
-      <rect x={25} y={8} width={6} height={6} rx={2} fill={C.cream} stroke={S} strokeWidth={1.2} />
-      <ellipse cx={28} cy={9} rx={3} ry={1.5} fill={C.ochre} opacity={0.6} />
-      {/* Snack plate */}
-      <ellipse cx={44} cy={15} rx={7} ry={4} fill={C.cream} stroke={S} strokeWidth={1.5} />
-      <circle cx={44} cy={14} r={3} fill={C.wattle} stroke={S} strokeWidth={1} />
+      <WoodGrainRect x={8} y={8} width={54} height={14} rx={4} />
+      <WoodLegs xs={[16, 54]} y={24} h={22} />
     </FurnSvg>
   )
 }
@@ -343,36 +300,78 @@ function PosterArt() {
   )
 }
 
-export function InteriorFurnitureArt({ id }: { id: string }) {
+export function InteriorFurnitureArt({ id, emoji }: { id: string; emoji?: string }) {
   switch (id) {
     case 'sofa':
       return <SofaArt />
+    case 'sectional':
+      return <SectionalArt />
     case 'armchair':
       return <ArmchairArt />
+    case 'ottoman':
+      return <OttomanArt />
     case 'bed':
       return <BedArt />
     case 'bunk':
       return <BunkArt />
+    case 'nightstand':
+      return <NightstandArt />
+    case 'dresser':
+      return <DresserArt />
+    case 'dining-table':
+      return <DiningTableArt />
+    case 'dining-chair':
+      return <DiningChairArt />
+    case 'coffee-table':
+      return <CoffeeTableArt />
+    case 'desk':
+      return <DeskArt />
+    case 'bench':
+      return <BenchArt />
     case 'table':
       return <TableArt />
     case 'rug':
       return <RugArt />
     case 'lamp':
       return <LampArt />
+    case 'desk-lamp':
+      return <DeskLampArt />
     case 'plant':
       return <PlantArt />
     case 'bookshelf':
       return <BookshelfArt />
+    case 'shelf':
+      return <ShelfArt />
     case 'tv':
       return <TvArt />
     case 'fridge':
       return <FridgeArt />
+    case 'stove':
+      return <StoveArt />
+    case 'sink':
+      return <SinkArt />
+    case 'microwave':
+      return <MicrowaveArt />
+    case 'laundry':
+      return <LaundryArt />
+    case 'surfboard':
+      return <SurfboardArt />
+    case 'mirror':
+      return <MirrorArt />
+    case 'clock':
+      return <ClockArt />
     case 'poster':
       return <PosterArt />
     default:
       return (
         <FurnSvg viewBox="0 0 40 40">
-          <ShadedRect x={6} y={6} width={28} height={28} rx={6} fill={C.corrugated} depth={4} />
+          {emoji ? (
+            <text x={20} y={26} textAnchor="middle" fontSize={22}>
+              {emoji}
+            </text>
+          ) : (
+            <ShadedRect x={6} y={6} width={28} height={28} rx={6} fill={C.corrugated} depth={4} />
+          )}
         </FurnSvg>
       )
   }
@@ -381,11 +380,10 @@ export function InteriorFurnitureArt({ id }: { id: string }) {
 export function InteriorRoomBackground({
   theme,
   style,
-  windowView,
 }: {
   theme: InteriorTheme
   style: InteriorStyle
-  windowView: WindowViewId
+  windowView?: WindowViewId
 }) {
   const wallBase =
     style.wallpaperId === 'none'
@@ -395,8 +393,6 @@ export function InteriorRoomBackground({
   const floorBase = getFloorColor(style, style.floorTypeId)
   const floorDark = adjustColor(floorBase, -18)
   const trim = style.trimColor ?? '#C4956A'
-  const windowStyleId = style.windowStyleId ?? 'classic'
-  const doorStyleId = style.doorStyleId ?? 'panel'
   const useWallpaper = style.wallpaperId !== 'none'
   const useFloorPattern = style.floorTypeId !== 'paint'
   const showPerspectivePlanks =
@@ -452,29 +448,18 @@ export function InteriorRoomBackground({
       <rect x={0} y={200} width={640} height={8} fill="#000000" opacity={0.06} />
       {theme === 'boat' && (
         <>
-          <InteriorWindow x={92} y={62} width={56} height={56} view={windowView} windowStyleId={windowStyleId} frameColor={trim} clipId="interior-win-left" />
-          <InteriorWindow x={492} y={62} width={56} height={56} view={windowView} windowStyleId={windowStyleId} frameColor={trim} clipId="interior-win-right" />
           <rect x={0} y={0} width={640} height={16} fill={trim} />
           <rect x={0} y={14} width={640} height={4} fill="#000000" opacity={0.12} />
         </>
       )}
-      {theme === 'home' && (
-        <>
-          <InteriorWindow x={40} y={40} width={80} height={60} view={windowView} windowStyleId={windowStyleId} frameColor={trim} clipId="interior-win-left" />
-          <InteriorWindow x={520} y={40} width={80} height={60} view={windowView} windowStyleId={windowStyleId} frameColor={trim} clipId="interior-win-right" />
-        </>
-      )}
       {theme === 'shop' && (
         <>
-          <InteriorWindow x={48} y={36} width={72} height={54} view={windowView} windowStyleId={windowStyleId} frameColor={trim} clipId="interior-win-left" />
-          <InteriorWindow x={520} y={36} width={72} height={54} view={windowView} windowStyleId={windowStyleId} frameColor={trim} clipId="interior-win-right" />
           <rect x={0} y={160} width={640} height={40} fill="#48B5B0" opacity={0.25} />
           <text x={320} y={188} textAnchor="middle" fontSize={18} fontWeight={700} fill="#2A9D8F">
             OPEN
           </text>
         </>
       )}
-      <InteriorDoor x={280} y={430} width={80} height={50} doorStyleId={doorStyleId} trimColor={trim} />
     </>
   )
 }

@@ -24,7 +24,7 @@ import { InteriorFurnitureArt } from './InteriorFurnitureArt'
 import { WindowViewPreviewSwatch } from './InteriorWindowViews'
 import { WallpaperPreviewSwatch } from './InteriorWallpaperPatterns'
 
-type PaletteTab = 'furniture' | 'walls' | 'trim'
+type PaletteTab = 'furniture' | 'walls' | 'openings' | 'trim'
 
 interface InteriorPaletteProps {
   style: InteriorStyle
@@ -32,6 +32,9 @@ interface InteriorPaletteProps {
   onSelectFurniture: (furniture: FurnitureDef) => void
   onStyleChange: (patch: Partial<InteriorStyle>) => void
   selectedFurnitureId: string | null
+  placementMode?: 'window' | 'door' | null
+  onStartPlaceWindow?: () => void
+  onStartPlaceDoor?: () => void
   editMode?: boolean
 }
 
@@ -49,6 +52,9 @@ export function InteriorPalette({
   onSelectFurniture,
   onStyleChange,
   selectedFurnitureId,
+  placementMode,
+  onStartPlaceWindow,
+  onStartPlaceDoor,
   editMode,
 }: InteriorPaletteProps) {
   const [tab, setTab] = useState<PaletteTab>('furniture')
@@ -58,7 +64,7 @@ export function InteriorPalette({
     <aside className={`interior-palette${editMode ? ' palette-dimmed' : ''}`}>
       <h3 className="palette-title">Decorate</h3>
 
-      <nav className="interior-palette-tabs interior-palette-tabs-3">
+      <nav className="interior-palette-tabs interior-palette-tabs-4">
         <button
           type="button"
           className={`interior-tab${tab === 'furniture' ? ' active' : ''}`}
@@ -75,10 +81,17 @@ export function InteriorPalette({
         </button>
         <button
           type="button"
+          className={`interior-tab${tab === 'openings' ? ' active' : ''}`}
+          onClick={() => setTab('openings')}
+        >
+          🪟 Windows
+        </button>
+        <button
+          type="button"
           className={`interior-tab${tab === 'trim' ? ' active' : ''}`}
           onClick={() => setTab('trim')}
         >
-          🪟 Trim
+          🖌️ Trim
         </button>
       </nav>
 
@@ -97,8 +110,11 @@ export function InteriorPalette({
                 className={`building-card interior-card${selectedFurnitureId === item.id ? ' selected' : ''}`}
                 onClick={() => onSelectFurniture(item)}
               >
-                <div className="building-preview interior-preview">
-                  <InteriorFurnitureArt id={item.id} />
+                <div
+                  className="building-preview interior-preview"
+                  style={{ width: '100%', height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <InteriorFurnitureArt id={item.id} emoji={item.emoji} />
                 </div>
                 <span className="building-card-name">
                   {item.emoji} {item.name}
@@ -293,9 +309,33 @@ export function InteriorPalette({
         </>
       )}
 
-      {tab === 'trim' && (
+      {tab === 'openings' && (
         <>
-          <p className="palette-hint">Pick window frames, doors, and trim colours!</p>
+          <p className="palette-hint">
+            {editMode
+              ? 'Drag to move, grab the corner to resize, or tap Delete.'
+              : 'Add windows & doors, then drag and resize them in the room!'}
+          </p>
+
+          <section className="interior-style-section">
+            <h4 className="interior-style-heading">Add to room</h4>
+            <div className="opening-place-row">
+              <button
+                type="button"
+                className={`btn btn-small opening-place-btn${placementMode === 'window' ? ' active' : ''}`}
+                onClick={onStartPlaceWindow}
+              >
+                ＋ Window
+              </button>
+              <button
+                type="button"
+                className={`btn btn-small opening-place-btn${placementMode === 'door' ? ' active' : ''}`}
+                onClick={onStartPlaceDoor}
+              >
+                ＋ Door
+              </button>
+            </div>
+          </section>
 
           <section className="interior-style-section">
             <h4 className="interior-style-heading">Window style</h4>
@@ -333,24 +373,6 @@ export function InteriorPalette({
             </div>
           </section>
 
-          <section className="interior-style-section">
-            <h4 className="interior-style-heading">Trim colour</h4>
-            <p className="interior-style-note">Frames, baseboards, and doors.</p>
-            <div className="interior-color-row">
-              {TRIM_COLORS.map((paint) => (
-                <button
-                  key={paint.id}
-                  type="button"
-                  className={`color-swatch interior-color-swatch${trimColor === paint.color ? ' selected' : ''}`}
-                  style={{ background: paint.color }}
-                  onClick={() => onStyleChange({ trimColor: paint.color })}
-                  title={paint.name}
-                  aria-label={`Trim colour: ${paint.name}`}
-                />
-              ))}
-            </div>
-          </section>
-
           <section className="interior-style-section interior-style-subsection">
             <h4 className="interior-style-heading">Window view</h4>
             <p className="interior-style-note">
@@ -370,6 +392,30 @@ export function InteriorPalette({
                   <WindowViewPreviewSwatch view={option.id} />
                   <span>{option.emoji}</span>
                 </button>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+
+      {tab === 'trim' && (
+        <>
+          <p className="palette-hint">Pick frame and trim colours for windows and doors.</p>
+
+          <section className="interior-style-section">
+            <h4 className="interior-style-heading">Trim colour</h4>
+            <p className="interior-style-note">Frames, baseboards, and doors.</p>
+            <div className="interior-color-row">
+              {TRIM_COLORS.map((paint) => (
+                <button
+                  key={paint.id}
+                  type="button"
+                  className={`color-swatch interior-color-swatch${trimColor === paint.color ? ' selected' : ''}`}
+                  style={{ background: paint.color }}
+                  onClick={() => onStyleChange({ trimColor: paint.color })}
+                  title={paint.name}
+                  aria-label={`Trim colour: ${paint.name}`}
+                />
               ))}
             </div>
           </section>

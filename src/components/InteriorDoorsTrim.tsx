@@ -6,7 +6,7 @@ import { WindowViewScene } from './InteriorWindowViews'
 
 const S = '#4E342E'
 
-export function InteriorWindow({
+function WindowPaneCore({
   x,
   y,
   width,
@@ -36,7 +36,7 @@ export function InteriorWindow({
   const strokeW = windowStyleId === 'minimal' ? 1.5 : 2
 
   return (
-    <g>
+    <>
       <defs>
         <clipPath id={clipId}>
           {porthole ? (
@@ -76,7 +76,133 @@ export function InteriorWindow({
         <WindowViewScene view={view} x={innerX} y={innerY} width={innerW} height={innerH} />
       </g>
       {renderWindowPanes(windowStyleId, x, y, width, height, inset, porthole)}
+    </>
+  )
+}
+
+function BayWindow({
+  x,
+  y,
+  width,
+  height,
+  view,
+  frameColor,
+  clipPrefix,
+}: {
+  x: number
+  y: number
+  width: number
+  height: number
+  view: WindowViewId
+  frameColor: string
+  clipPrefix: string
+}) {
+  const wingW = Math.max(width * 0.34, 14)
+  const wingH = height * 0.9
+  const wingY = y + (height - wingH) / 2
+  const centerW = width
+  const centerX = x
+  const leftX = x - wingW * 0.82
+  const rightX = x + centerW - wingW * 0.18
+  const frameDark = adjustColor(frameColor, -18)
+
+  return (
+    <g>
+      {/* Bench seat sill */}
+      <rect
+        x={leftX - 4}
+        y={y + height - 6}
+        width={rightX + wingW - leftX + 8}
+        height={10}
+        rx={3}
+        fill={frameDark}
+        stroke={S}
+        strokeWidth={1.5}
+      />
+      {/* Left angled wing */}
+      <polygon
+        points={`${leftX},${wingY + wingH} ${leftX + wingW},${wingY + wingH * 0.12} ${leftX + wingW},${wingY + wingH * 0.88} ${leftX},${wingY}`}
+        fill={frameColor}
+        stroke={S}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+      <polygon
+        points={`${leftX + 4},${wingY + wingH - 6} ${leftX + wingW - 3},${wingY + wingH * 0.22} ${leftX + wingW - 3},${wingY + wingH * 0.78} ${leftX + 4},${wingY + 6}`}
+        fill="#B8E8E4"
+        opacity={0.85}
+      />
+      {/* Right angled wing */}
+      <polygon
+        points={`${rightX + wingW},${wingY + wingH} ${rightX},${wingY + wingH * 0.12} ${rightX},${wingY + wingH * 0.88} ${rightX + wingW},${wingY}`}
+        fill={frameColor}
+        stroke={S}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+      <polygon
+        points={`${rightX + wingW - 4},${wingY + wingH - 6} ${rightX + 3},${wingY + wingH * 0.22} ${rightX + 3},${wingY + wingH * 0.78} ${rightX + wingW - 4},${wingY + 6}`}
+        fill="#B8E8E4"
+        opacity={0.85}
+      />
+      <WindowPaneCore
+        x={centerX}
+        y={y}
+        width={centerW}
+        height={height}
+        view={view}
+        windowStyleId="classic"
+        frameColor={frameColor}
+        clipId={`${clipPrefix}-center`}
+      />
     </g>
+  )
+}
+
+export function InteriorWindow({
+  x,
+  y,
+  width,
+  height,
+  view,
+  windowStyleId,
+  frameColor,
+  clipId,
+}: {
+  x: number
+  y: number
+  width: number
+  height: number
+  view: WindowViewId
+  windowStyleId: WindowStyleId
+  frameColor: string
+  clipId: string
+}) {
+  if (windowStyleId === 'bay') {
+    return (
+      <BayWindow
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        view={view}
+        frameColor={frameColor}
+        clipPrefix={clipId}
+      />
+    )
+  }
+
+  return (
+    <WindowPaneCore
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      view={view}
+      windowStyleId={windowStyleId}
+      frameColor={frameColor}
+      clipId={clipId}
+    />
   )
 }
 
@@ -132,6 +258,22 @@ function renderWindowPanes(
     )
   }
 
+  if (windowStyleId === 'picture') {
+    return (
+      <rect
+        x={x + inset + 1}
+        y={y + inset + 1}
+        width={width - inset * 2 - 2}
+        height={height - inset * 2 - 2}
+        rx={3}
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth={1.2}
+        opacity={0.28}
+      />
+    )
+  }
+
   return (
     <>
       <line x1={cx} y1={y + inset} x2={cx} y2={y + height - inset} stroke={S} strokeWidth={sw} opacity={opacity} />
@@ -160,7 +302,11 @@ export function InteriorDoor({
 
   return (
     <g>
-      <rect x={x} y={y} width={width} height={height} rx={doorStyleId === 'barn' ? 4 : 6} fill={trimColor} stroke={S} strokeWidth={3} opacity={0.92} />
+      {doorStyleId === 'sliding' ? (
+        <rect x={x} y={y} width={width} height={height} rx={4} fill="none" stroke={trimColor} strokeWidth={2.5} />
+      ) : (
+        <rect x={x} y={y} width={width} height={height} rx={doorStyleId === 'barn' ? 4 : 6} fill={trimColor} stroke={S} strokeWidth={3} opacity={0.92} />
+      )}
       {doorStyleId === 'panel' && (
         <>
           <rect x={x + 8} y={y + 8} width={width / 2 - 12} height={height / 2 - 12} rx={3} fill={light} stroke={S} strokeWidth={1.5} opacity={0.55} />
@@ -214,8 +360,21 @@ export function InteriorDoor({
           <circle cx={x + width - 16} cy={y + height / 2} r={5} fill="#FFD54F" stroke={S} strokeWidth={1.5} />
         </>
       )}
-      {doorStyleId !== 'hatch' && (
+      {doorStyleId === 'sliding' && (
+        <>
+          <rect x={x + 4} y={y + 4} width={width - 8} height={height - 10} rx={3} fill="#C8E6F5" stroke={S} strokeWidth={1.8} opacity={0.82} />
+          <line x1={x + width / 2} y1={y + 6} x2={x + width / 2} y2={y + height - 12} stroke={S} strokeWidth={1.8} opacity={0.45} />
+          <rect x={x + 8} y={y + 10} width={width / 2 - 14} height={height - 24} rx={2} fill="#FFFFFF" opacity={0.22} />
+          <rect x={x + width / 2 + 6} y={y + 10} width={width / 2 - 14} height={height - 24} rx={2} fill="#FFFFFF" opacity={0.15} />
+          <rect x={x + 3} y={y + height - 8} width={width - 6} height={5} rx={2} fill={dark} stroke={S} strokeWidth={1.2} opacity={0.65} />
+          <line x1={x + 8} y1={y + height - 5} x2={x + width - 8} y2={y + height - 5} stroke={S} strokeWidth={1} opacity={0.35} />
+        </>
+      )}
+      {doorStyleId !== 'hatch' && doorStyleId !== 'sliding' && (
         <circle cx={x + width - 14} cy={y + height / 2} r={4} fill="#FFD54F" stroke={S} strokeWidth={1.5} />
+      )}
+      {doorStyleId === 'sliding' && (
+        <circle cx={x + width - 12} cy={y + height / 2} r={3.5} fill="#C0C0C0" stroke={S} strokeWidth={1.2} />
       )}
     </g>
   )
@@ -228,13 +387,14 @@ export function WindowStylePreviewSwatch({
   windowStyleId: WindowStyleId
   frameColor: string
 }) {
+  const isBay = windowStyleId === 'bay'
   return (
-    <svg viewBox="0 0 40 32" width={40} height={32} aria-hidden="true">
-      <rect width={40} height={32} rx={6} fill="#FFF8F0" stroke={S} strokeWidth={1.5} />
+    <svg viewBox={isBay ? '0 0 48 32' : '0 0 40 32'} width={40} height={32} aria-hidden="true">
+      <rect width={isBay ? 48 : 40} height={32} rx={6} fill="#FFF8F0" stroke={S} strokeWidth={1.5} />
       <InteriorWindow
-        x={8}
+        x={isBay ? 10 : 8}
         y={6}
-        width={24}
+        width={isBay ? 28 : 24}
         height={20}
         view="ocean"
         windowStyleId={windowStyleId}
@@ -252,10 +412,18 @@ export function DoorStylePreviewSwatch({
   doorStyleId: DoorStyleId
   trimColor: string
 }) {
+  const isSliding = doorStyleId === 'sliding'
   return (
     <svg viewBox="0 0 40 32" width={40} height={32} aria-hidden="true">
       <rect width={40} height={32} rx={6} fill="#FFF8F0" stroke={S} strokeWidth={1.5} />
-      <InteriorDoor x={12} y={4} width={16} height={24} doorStyleId={doorStyleId} trimColor={trimColor} />
+      <InteriorDoor
+        x={isSliding ? 6 : 12}
+        y={4}
+        width={isSliding ? 28 : 16}
+        height={24}
+        doorStyleId={doorStyleId}
+        trimColor={trimColor}
+      />
     </svg>
   )
 }
