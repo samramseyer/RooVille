@@ -36,6 +36,10 @@ export interface InteriorOpening {
   y: number
   width: number
   height: number
+  /** Per-window style; falls back to room default when unset. */
+  windowStyleId?: WindowStyleId
+  /** Per-door style; falls back to room default when unset. */
+  doorStyleId?: DoorStyleId
 }
 
 export type WindowViewSetting = 'auto' | 'ocean' | 'beach' | 'dock' | 'town' | 'landscape'

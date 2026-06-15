@@ -47,7 +47,7 @@ function sanitizeItems(raw: unknown): PlacedItem[] {
         rotation: typeof item.rotation === 'number' ? item.rotation : 0,
         scale: typeof item.scale === 'number' ? item.scale : 1,
         interior: sanitizeInterior(item.interior),
-        interiorOpenings: sanitizeInteriorOpenings(item.interiorOpenings),
+        interiorOpenings: sanitizeInteriorOpenings(item.interiorOpenings, theme),
         interiorAvatarPosition:
           item.interiorAvatarPosition &&
           typeof item.interiorAvatarPosition.x === 'number' &&

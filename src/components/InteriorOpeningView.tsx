@@ -1,11 +1,14 @@
 import type { DoorStyleId, InteriorOpening, WindowStyleId } from '../types'
 import type { WindowViewId } from '../data/interiorWindowView'
+import { getOpeningDoorStyle, getOpeningWindowStyle } from '../data/interiorOpenings'
+import type { InteriorTheme } from '../data/enterableBuildings'
 import { InteriorDoor, InteriorWindow } from './InteriorDoorsTrim'
 
 interface InteriorOpeningViewProps {
   opening: InteriorOpening
-  windowStyleId: WindowStyleId
-  doorStyleId: DoorStyleId
+  theme: InteriorTheme
+  defaultWindowStyleId: WindowStyleId
+  defaultDoorStyleId: DoorStyleId
   trimColor: string
   windowView: WindowViewId
   selected: boolean
@@ -17,8 +20,9 @@ interface InteriorOpeningViewProps {
 
 export function InteriorOpeningView({
   opening,
-  windowStyleId,
-  doorStyleId,
+  theme,
+  defaultWindowStyleId,
+  defaultDoorStyleId,
   trimColor,
   windowView,
   selected,
@@ -28,6 +32,8 @@ export function InteriorOpeningView({
   onPointerUp,
 }: InteriorOpeningViewProps) {
   const { kind, width, height } = opening
+  const windowStyleId = getOpeningWindowStyle(opening, defaultWindowStyleId, theme)
+  const doorStyleId = getOpeningDoorStyle(opening, defaultDoorStyleId, theme)
 
   return (
     <div

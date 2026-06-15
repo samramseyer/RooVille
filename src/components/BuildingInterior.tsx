@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { BuildingDef, GameState, InteriorItem, InteriorOpening, PlacedItem } from '../types'
+import type { BuildingDef, DoorStyleId, GameState, InteriorItem, InteriorOpening, PlacedItem, WindowStyleId } from '../types'
 import type { FurnitureDef } from '../data/interiorFurniture'
 import { getFurniture, isWallFurniture } from '../data/interiorFurniture'
 import { getInteriorTheme } from '../data/enterableBuildings'
@@ -189,6 +189,9 @@ export function BuildingInterior({
       y: y - defaults.height / 2,
       width: defaults.width,
       height: defaults.height,
+      ...(kind === 'window'
+        ? { windowStyleId: windowStyleId }
+        : { doorStyleId: doorStyleId }),
     }
     const placed = clampOpening(draft)
     persistOpenings([...interiorOpenings, placed])
@@ -219,6 +222,15 @@ export function BuildingInterior({
     if (soundOn) playRotateSound()
   }
 
+  const updateOpening = (id: string, patch: Partial<InteriorOpening>) => {
+    persistOpenings(
+      interiorOpenings.map((item) => {
+        if (item.id !== id) return item
+        return clampOpening({ ...item, ...patch })
+      }),
+    )
+  }
+
   const applyStyleChange = (patch: Partial<typeof interiorStyle>) => {
     persistInterior({
       interiorStyle: { ...interiorStyle, ...patch },
@@ -227,13 +239,24 @@ export function BuildingInterior({
     if (soundOn) playPlaceSound()
   }
 
-  const updateOpening = (id: string, patch: Partial<InteriorOpening>) => {
-    persistOpenings(
-      interiorOpenings.map((item) => {
-        if (item.id !== id) return item
-        return clampOpening({ ...item, ...patch })
-      }),
-    )
+  const applyWindowStyleChoice = (styleId: WindowStyleId) => {
+    const opening = interiorOpenings.find((o) => o.id === selectedOpeningId)
+    if (opening?.kind === 'window') {
+      updateOpening(opening.id, { windowStyleId: styleId })
+      if (soundOn) playPlaceSound()
+    } else {
+      applyStyleChange({ windowStyleId: styleId })
+    }
+  }
+
+  const applyDoorStyleChoice = (styleId: DoorStyleId) => {
+    const opening = interiorOpenings.find((o) => o.id === selectedOpeningId)
+    if (opening?.kind === 'door') {
+      updateOpening(opening.id, { doorStyleId: styleId })
+      if (soundOn) playPlaceSound()
+    } else {
+      applyStyleChange({ doorStyleId: styleId })
+    }
   }
 
   const handleRoomPointerDown = (e: React.PointerEvent) => {
@@ -485,6 +508,7 @@ export function BuildingInterior({
         <InteriorPalette
           style={interiorStyle}
           resolvedWindowView={windowView}
+          selectedOpening={selectedOpening ?? null}
           onSelectFurniture={(f) => {
             setSelectedFurniture(f)
             setSelectedInteriorId(null)
@@ -492,19 +516,19 @@ export function BuildingInterior({
             setPlacementMode(null)
           }}
           onStyleChange={applyStyleChange}
+          onSelectWindowStyle={applyWindowStyleChoice}
+          onSelectDoorStyle={applyDoorStyleChoice}
           selectedFurnitureId={selectedFurniture?.id ?? null}
           placementMode={placementMode}
           onStartPlaceWindow={() => {
             setPlacementMode('window')
             setSelectedFurniture(null)
             setSelectedInteriorId(null)
-            setSelectedOpeningId(null)
           }}
           onStartPlaceDoor={() => {
             setPlacementMode('door')
             setSelectedFurniture(null)
             setSelectedInteriorId(null)
-            setSelectedOpeningId(null)
           }}
           editMode={selectedInteriorId !== null || selectedOpeningId !== null}
         />
@@ -562,8 +586,9 @@ export function BuildingInterior({
               <InteriorOpeningView
                 key={opening.id}
                 opening={opening}
-                windowStyleId={windowStyleId}
-                doorStyleId={doorStyleId}
+                theme={theme}
+                defaultWindowStyleId={windowStyleId}
+                defaultDoorStyleId={doorStyleId}
                 trimColor={trimColor}
                 windowView={windowView}
                 selected={opening.id === selectedOpeningId}

@@ -17,7 +17,7 @@ import {
   WINDOW_STYLES,
 } from '../data/interiorTrimStyles'
 import { WINDOW_VIEW_OPTIONS, type WindowViewId } from '../data/interiorWindowView'
-import type { InteriorStyle, WindowViewSetting } from '../types'
+import type { InteriorStyle, InteriorOpening, WindowViewSetting, WindowStyleId, DoorStyleId } from '../types'
 import { DoorStylePreviewSwatch, WindowStylePreviewSwatch } from './InteriorDoorsTrim'
 import { FloorPreviewSwatch } from './InteriorFloorPatterns'
 import { InteriorFurnitureArt } from './InteriorFurnitureArt'
@@ -29,8 +29,11 @@ type PaletteTab = 'furniture' | 'walls' | 'openings' | 'trim'
 interface InteriorPaletteProps {
   style: InteriorStyle
   resolvedWindowView: WindowViewId
+  selectedOpening?: InteriorOpening | null
   onSelectFurniture: (furniture: FurnitureDef) => void
   onStyleChange: (patch: Partial<InteriorStyle>) => void
+  onSelectWindowStyle: (styleId: WindowStyleId) => void
+  onSelectDoorStyle: (styleId: DoorStyleId) => void
   selectedFurnitureId: string | null
   placementMode?: 'window' | 'door' | null
   onStartPlaceWindow?: () => void
@@ -49,8 +52,11 @@ const WINDOW_VIEW_LABELS: Record<WindowViewId, string> = {
 export function InteriorPalette({
   style,
   resolvedWindowView,
+  selectedOpening,
   onSelectFurniture,
   onStyleChange,
+  onSelectWindowStyle,
+  onSelectDoorStyle,
   selectedFurnitureId,
   placementMode,
   onStartPlaceWindow,
@@ -59,6 +65,16 @@ export function InteriorPalette({
 }: InteriorPaletteProps) {
   const [tab, setTab] = useState<PaletteTab>('furniture')
   const trimColor = style.trimColor ?? '#C4956A'
+  const defaultWindowStyle = style.windowStyleId ?? 'classic'
+  const defaultDoorStyle = style.doorStyleId ?? 'panel'
+  const activeWindowStyle =
+    selectedOpening?.kind === 'window'
+      ? (selectedOpening.windowStyleId ?? defaultWindowStyle)
+      : defaultWindowStyle
+  const activeDoorStyle =
+    selectedOpening?.kind === 'door'
+      ? (selectedOpening.doorStyleId ?? defaultDoorStyle)
+      : defaultDoorStyle
 
   return (
     <aside className={`interior-palette${editMode ? ' palette-dimmed' : ''}`}>
@@ -312,9 +328,15 @@ export function InteriorPalette({
       {tab === 'openings' && (
         <>
           <p className="palette-hint">
-            {editMode
-              ? 'Drag to move, grab the corner to resize, or tap Delete.'
-              : 'Add windows & doors, then drag and resize them in the room!'}
+            {selectedOpening?.kind === 'window'
+              ? 'Pick a style below for this window, or tap ＋ Window to add another.'
+              : selectedOpening?.kind === 'door'
+                ? 'Pick a style below for this door, or tap ＋ Door to add another.'
+                : placementMode === 'window'
+                  ? 'Tap the wall to place a new window.'
+                  : placementMode === 'door'
+                    ? 'Tap the floor to place a new door.'
+                    : 'Tap a window or door to restyle it, or tap ＋ to add more.'}
           </p>
 
           <section className="interior-style-section">
@@ -338,14 +360,24 @@ export function InteriorPalette({
           </section>
 
           <section className="interior-style-section">
-            <h4 className="interior-style-heading">Window style</h4>
+            <h4 className="interior-style-heading">
+              {selectedOpening?.kind === 'window' ? 'This window' : 'Window style'}
+            </h4>
+            {!selectedOpening && (
+              <p className="interior-style-note">
+                Tap a window in the room to change just that one, or pick a default for new windows.
+              </p>
+            )}
+            {selectedOpening?.kind === 'door' && (
+              <p className="interior-style-note">Select a window in the room to change its style.</p>
+            )}
             <div className="interior-wallpaper-grid">
               {WINDOW_STYLES.map((option) => (
                 <button
                   key={option.id}
                   type="button"
-                  className={`interior-wallpaper-btn${style.windowStyleId === option.id ? ' selected' : ''}`}
-                  onClick={() => onStyleChange({ windowStyleId: option.id })}
+                  className={`interior-wallpaper-btn${activeWindowStyle === option.id ? ' selected' : ''}`}
+                  onClick={() => onSelectWindowStyle(option.id)}
                   title={option.name}
                 >
                   <WindowStylePreviewSwatch windowStyleId={option.id} frameColor={trimColor} />
@@ -356,14 +388,24 @@ export function InteriorPalette({
           </section>
 
           <section className="interior-style-section">
-            <h4 className="interior-style-heading">Door style</h4>
+            <h4 className="interior-style-heading">
+              {selectedOpening?.kind === 'door' ? 'This door' : 'Door style'}
+            </h4>
+            {!selectedOpening && (
+              <p className="interior-style-note">
+                Tap a door in the room to change just that one, or pick a default for new doors.
+              </p>
+            )}
+            {selectedOpening?.kind === 'window' && (
+              <p className="interior-style-note">Select a door in the room to change its style.</p>
+            )}
             <div className="interior-wallpaper-grid">
               {DOOR_STYLES.map((option) => (
                 <button
                   key={option.id}
                   type="button"
-                  className={`interior-wallpaper-btn${style.doorStyleId === option.id ? ' selected' : ''}`}
-                  onClick={() => onStyleChange({ doorStyleId: option.id })}
+                  className={`interior-wallpaper-btn${activeDoorStyle === option.id ? ' selected' : ''}`}
+                  onClick={() => onSelectDoorStyle(option.id)}
                   title={option.name}
                 >
                   <DoorStylePreviewSwatch doorStyleId={option.id} trimColor={trimColor} />

@@ -1,5 +1,6 @@
 import type { InteriorTheme } from './enterableBuildings'
-import type { InteriorOpening, InteriorStyle, OpeningScaleId } from '../types'
+import type { DoorStyleId, InteriorOpening, InteriorStyle, OpeningScaleId, WindowStyleId } from '../types'
+import { sanitizeDoorStyleId, sanitizeWindowStyleId } from './interiorTrimStyles'
 
 export interface OpeningRect {
   x: number
@@ -144,15 +145,37 @@ export function clampOpening(opening: InteriorOpening): InteriorOpening {
   return { ...opening, ...rect }
 }
 
+export function getOpeningWindowStyle(
+  opening: InteriorOpening,
+  roomDefault: WindowStyleId,
+  theme: InteriorTheme,
+): WindowStyleId {
+  if (opening.kind !== 'window') return roomDefault
+  return opening.windowStyleId
+    ? sanitizeWindowStyleId(opening.windowStyleId, theme)
+    : roomDefault
+}
+
+export function getOpeningDoorStyle(
+  opening: InteriorOpening,
+  roomDefault: DoorStyleId,
+  theme: InteriorTheme,
+): DoorStyleId {
+  if (opening.kind !== 'door') return roomDefault
+  return opening.doorStyleId ? sanitizeDoorStyleId(opening.doorStyleId, theme) : roomDefault
+}
+
 export function getDefaultOpenings(theme: InteriorTheme, style: InteriorStyle): InteriorOpening[] {
   const windowScale = style.windowScale ?? 1
   const doorScale = style.doorScale ?? 1
+  const windowStyle = style.windowStyleId ?? sanitizeWindowStyleId(undefined, theme)
+  const doorStyle = style.doorStyleId ?? sanitizeDoorStyleId(undefined, theme)
   const windows = getThemeWindowRects(theme, windowScale)
   const door = getThemeDoorRect(theme, doorScale)
   return [
-    { id: 'win-left', kind: 'window', ...windows.left },
-    { id: 'win-right', kind: 'window', ...windows.right },
-    { id: 'door-main', kind: 'door', ...door },
+    { id: 'win-left', kind: 'window', ...windows.left, windowStyleId: windowStyle },
+    { id: 'win-right', kind: 'window', ...windows.right, windowStyleId: windowStyle },
+    { id: 'door-main', kind: 'door', ...door, doorStyleId: doorStyle },
   ]
 }
 
@@ -167,7 +190,10 @@ export function resolveInteriorOpenings(
   return saved.map(clampOpening)
 }
 
-export function sanitizeInteriorOpenings(raw: unknown): InteriorOpening[] | undefined {
+export function sanitizeInteriorOpenings(
+  raw: unknown,
+  theme: InteriorTheme = 'home',
+): InteriorOpening[] | undefined {
   if (raw === undefined) return undefined
   if (!Array.isArray(raw)) return undefined
   const valid = raw
@@ -182,6 +208,21 @@ export function sanitizeInteriorOpenings(raw: unknown): InteriorOpening[] | unde
         typeof (item as InteriorOpening).width === 'number' &&
         typeof (item as InteriorOpening).height === 'number',
     )
-    .map(clampOpening)
+    .map((item) => {
+      const clamped = clampOpening(item)
+      if (item.kind === 'window' && item.windowStyleId) {
+        return {
+          ...clamped,
+          windowStyleId: sanitizeWindowStyleId(item.windowStyleId, theme),
+        }
+      }
+      if (item.kind === 'door' && item.doorStyleId) {
+        return {
+          ...clamped,
+          doorStyleId: sanitizeDoorStyleId(item.doorStyleId, theme),
+        }
+      }
+      return clamped
+    })
   return valid
 }
