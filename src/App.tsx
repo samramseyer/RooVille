@@ -1,0 +1,52 @@
+import { useState } from 'react'
+import type { Screen } from './types'
+import { Welcome } from './components/Welcome'
+import { AvatarCreator } from './components/AvatarCreator'
+import { CoastalWorld } from './components/CoastalWorld'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { useGameSave } from './hooks/useGameSave'
+import './App.css'
+
+function App() {
+  const { gameState, updateGameState, resetGame, hasSave } = useGameSave()
+  const [screen, setScreen] = useState<Screen>(() =>
+    hasSave ? 'play' : 'welcome',
+  )
+
+  return (
+    <ErrorBoundary onResetSave={resetGame}>
+      <div className="app">
+      {screen === 'welcome' && (
+        <Welcome
+          onStart={() => setScreen('avatar')}
+          onContinue={() => setScreen('play')}
+          hasSave={hasSave}
+        />
+      )}
+
+      {screen === 'avatar' && (
+        <AvatarCreator
+          avatar={gameState.avatar}
+          onChange={(avatar) => updateGameState((prev) => ({ ...prev, avatar }))}
+          onDone={() => setScreen('play')}
+          onBack={() => setScreen('welcome')}
+        />
+      )}
+
+      {screen === 'play' && (
+        <CoastalWorld
+          gameState={gameState}
+          onUpdate={updateGameState}
+          onEditAvatar={() => setScreen('avatar')}
+          onReset={() => {
+            resetGame()
+            setScreen('avatar')
+          }}
+        />
+      )}
+      </div>
+    </ErrorBoundary>
+  )
+}
+
+export default App
