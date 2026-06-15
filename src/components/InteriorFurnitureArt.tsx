@@ -1,7 +1,37 @@
+import type { InteriorRoomVariant } from '../data/interiorLayouts'
 import type { InteriorTheme } from '../data/enterableBuildings'
 import type { WindowViewId } from '../data/interiorWindowView'
+import {
+  DEFAULT_CABINET_COLOR,
+  DEFAULT_COUNTERTOP_MATERIAL,
+  type CountertopMaterial,
+  usesCabinetFinishes,
+} from '../data/interiorCabinetStyles'
 import { getFloorColor, getWallpaperColor } from '../data/interiorStyles'
 import type { InteriorStyle } from '../types'
+import {
+  AlcoveTubArt,
+  BathMatArt,
+  BathShelfArt,
+  BathStoolArt,
+  BathroomMirrorArt,
+  BathroomMirrorRoundArt,
+  BidetArt,
+  ClawfootTubArt,
+  GlassShowerArt,
+  HeatedTowelRailArt,
+  HotTubArt,
+  JacuzziArt,
+  LaundryHamperArt,
+  PedestalSinkArt,
+  SoapDispenserArt,
+  TileShowerArt,
+  ToiletArt,
+  ToiletPaperHolderArt,
+  TowelBarArt,
+  TowelHookArt,
+  TowelRackArt,
+} from './InteriorBathroomAccessoriesArt'
 import { FloorPatternDefs } from './InteriorFloorPatterns'
 import {
   BenchArt,
@@ -23,6 +53,57 @@ import {
   StoveArt,
   SurfboardArt,
 } from './InteriorFurniturePieces'
+import {
+  BaseCabinetArt,
+  BaseCabinet3DrawerArt,
+  BaseCabinetGraniteArt,
+  BaseCabinetMarbleArt,
+  BaseCabinetNarrowArt,
+  BaseCabinetWideArt,
+  BathroomLinenArt,
+  BathroomTowerArt,
+  BathroomTowerWideArt,
+  BathroomVanityArt,
+  BathroomVanityWideArt,
+  CornerCabinetArt,
+  CounterButcher60Art,
+  CounterButcher90Art,
+  CounterButcher120Art,
+  CounterConcrete90Art,
+  CounterGranite90Art,
+  CounterGranite120Art,
+  CounterLaminate90Art,
+  CounterMarble90Art,
+  CounterMarble120Art,
+  CounterQuartz90Art,
+  CounterQuartz120Art,
+  CounterTeal90Art,
+  DishwasherArt,
+  HoodVentArt,
+  HoodVentWideArt,
+  KitchenIslandArt,
+  KitchenIslandLargeArt,
+  KitchenIslandLargeButcherArt,
+  KitchenIslandLargeGraniteArt,
+  KitchenIslandLargeMarbleArt,
+  KitchenIslandMarbleArt,
+  KitchenIslandXlArt,
+  KitchenIslandXlQuartzArt,
+  KitchenIslandXlTealArt,
+  MedicineCabinetArt,
+  PantryCabinetArt,
+  PantryCabinetWideArt,
+  SinkBaseArt,
+  SinkBaseCornerArt,
+  SinkBaseDrawerArt,
+  SinkBaseFarmhouseArt,
+  SinkBaseNarrowArt,
+  SinkBaseWideArt,
+  WallCabinetArt,
+  WallCabinetGlassArt,
+  WallCabinetWideArt,
+  CabinetFinishProvider,
+} from './InteriorKitchenBathArt'
 import {
   C,
   Cushion,
@@ -321,7 +402,29 @@ function PosterArt() {
   )
 }
 
-export function InteriorFurnitureArt({ id, emoji }: { id: string; emoji?: string }) {
+export function InteriorFurnitureArt({
+  id,
+  emoji,
+  cabinetColor = DEFAULT_CABINET_COLOR,
+  countertopMaterial = DEFAULT_COUNTERTOP_MATERIAL,
+}: {
+  id: string
+  emoji?: string
+  cabinetColor?: string
+  countertopMaterial?: CountertopMaterial
+}) {
+  const art = renderInteriorFurnitureArt(id, emoji)
+  if (usesCabinetFinishes(id)) {
+    return (
+      <CabinetFinishProvider bodyColor={cabinetColor} countertopMaterial={countertopMaterial}>
+        {art}
+      </CabinetFinishProvider>
+    )
+  }
+  return art
+}
+
+function renderInteriorFurnitureArt(id: string, emoji?: string) {
   switch (id) {
     case 'sofa':
       return <SofaArt />
@@ -385,6 +488,144 @@ export function InteriorFurnitureArt({ id, emoji }: { id: string; emoji?: string
       return <ClockArt />
     case 'poster':
       return <PosterArt />
+    case 'base-cabinet':
+      return <BaseCabinetArt />
+    case 'base-cabinet-wide':
+      return <BaseCabinetWideArt />
+    case 'base-cabinet-narrow':
+      return <BaseCabinetNarrowArt />
+    case 'base-cabinet-3drawer':
+      return <BaseCabinet3DrawerArt />
+    case 'base-cabinet-marble':
+      return <BaseCabinetMarbleArt />
+    case 'base-cabinet-granite':
+      return <BaseCabinetGraniteArt />
+    case 'sink-base':
+      return <SinkBaseArt />
+    case 'sink-base-wide':
+      return <SinkBaseWideArt />
+    case 'sink-base-narrow':
+      return <SinkBaseNarrowArt />
+    case 'sink-base-drawer':
+      return <SinkBaseDrawerArt />
+    case 'sink-base-farmhouse':
+      return <SinkBaseFarmhouseArt />
+    case 'sink-base-corner':
+      return <SinkBaseCornerArt />
+    case 'wall-cabinet':
+      return <WallCabinetArt />
+    case 'wall-cabinet-wide':
+      return <WallCabinetWideArt />
+    case 'wall-cabinet-glass':
+      return <WallCabinetGlassArt />
+    case 'corner-cabinet':
+      return <CornerCabinetArt />
+    case 'kitchen-island':
+      return <KitchenIslandArt />
+    case 'kitchen-island-large':
+      return <KitchenIslandLargeArt />
+    case 'kitchen-island-xl':
+      return <KitchenIslandXlArt />
+    case 'kitchen-island-marble':
+      return <KitchenIslandMarbleArt />
+    case 'kitchen-island-large-marble':
+      return <KitchenIslandLargeMarbleArt />
+    case 'kitchen-island-large-granite':
+      return <KitchenIslandLargeGraniteArt />
+    case 'kitchen-island-large-butcher':
+      return <KitchenIslandLargeButcherArt />
+    case 'kitchen-island-xl-quartz':
+      return <KitchenIslandXlQuartzArt />
+    case 'kitchen-island-xl-teal':
+      return <KitchenIslandXlTealArt />
+    case 'pantry-cabinet':
+      return <PantryCabinetArt />
+    case 'pantry-cabinet-wide':
+      return <PantryCabinetWideArt />
+    case 'hood-vent':
+      return <HoodVentArt />
+    case 'hood-vent-wide':
+      return <HoodVentWideArt />
+    case 'counter-butcher-60':
+      return <CounterButcher60Art />
+    case 'counter-butcher-90':
+      return <CounterButcher90Art />
+    case 'counter-butcher-120':
+      return <CounterButcher120Art />
+    case 'counter-marble-90':
+      return <CounterMarble90Art />
+    case 'counter-marble-120':
+      return <CounterMarble120Art />
+    case 'counter-granite-90':
+      return <CounterGranite90Art />
+    case 'counter-granite-120':
+      return <CounterGranite120Art />
+    case 'counter-quartz-90':
+      return <CounterQuartz90Art />
+    case 'counter-quartz-120':
+      return <CounterQuartz120Art />
+    case 'counter-concrete-90':
+      return <CounterConcrete90Art />
+    case 'counter-teal-90':
+      return <CounterTeal90Art />
+    case 'counter-laminate-90':
+      return <CounterLaminate90Art />
+    case 'dishwasher':
+      return <DishwasherArt />
+    case 'bathroom-vanity':
+      return <BathroomVanityArt />
+    case 'bathroom-vanity-wide':
+      return <BathroomVanityWideArt />
+    case 'medicine-cabinet':
+      return <MedicineCabinetArt />
+    case 'bathroom-linen':
+      return <BathroomLinenArt />
+    case 'bathroom-tower':
+      return <BathroomTowerArt />
+    case 'bathroom-tower-wide':
+      return <BathroomTowerWideArt />
+    case 'clawfoot-tub':
+      return <ClawfootTubArt />
+    case 'alcove-tub':
+      return <AlcoveTubArt />
+    case 'tile-shower':
+      return <TileShowerArt />
+    case 'glass-shower':
+      return <GlassShowerArt />
+    case 'jacuzzi':
+      return <JacuzziArt />
+    case 'hot-tub':
+      return <HotTubArt />
+    case 'toilet':
+      return <ToiletArt />
+    case 'pedestal-sink':
+      return <PedestalSinkArt />
+    case 'bidet':
+      return <BidetArt />
+    case 'bathroom-mirror':
+      return <BathroomMirrorArt />
+    case 'bathroom-mirror-round':
+      return <BathroomMirrorRoundArt />
+    case 'towel-rack':
+      return <TowelRackArt />
+    case 'towel-bar':
+      return <TowelBarArt />
+    case 'heated-towel-rail':
+      return <HeatedTowelRailArt />
+    case 'towel-hook':
+      return <TowelHookArt />
+    case 'bath-mat':
+      return <BathMatArt />
+    case 'toilet-paper-holder':
+      return <ToiletPaperHolderArt />
+    case 'bath-stool':
+      return <BathStoolArt />
+    case 'laundry-hamper':
+      return <LaundryHamperArt />
+    case 'bath-shelf':
+      return <BathShelfArt />
+    case 'soap-dispenser':
+      return <SoapDispenserArt />
     default:
       return (
         <FurnSvg viewBox="0 0 40 40">
@@ -403,10 +644,79 @@ export function InteriorFurnitureArt({ id, emoji }: { id: string; emoji?: string
 export function InteriorRoomBackground({
   theme,
   style,
+  variant = 'standard',
 }: {
   theme: InteriorTheme
   style: InteriorStyle
   windowView?: WindowViewId
+  variant?: InteriorRoomVariant
+}) {
+  if (variant === 'balcony') {
+    return <BalconyRoomBackground style={style} />
+  }
+
+  return <StandardRoomBackground theme={theme} style={style} />
+}
+
+function BalconyRoomBackground({ style }: { style: InteriorStyle }) {
+  const deck = getFloorColor(style, style.floorTypeId)
+  const deckDark = adjustColor(deck, -18)
+  const trim = style.trimColor ?? '#8B6914'
+
+  return (
+    <>
+      <TocaShadeDefs />
+      <defs>
+        <linearGradient id="balcony-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#87CEEB" />
+          <stop offset="55%" stopColor="#B8E8F4" />
+          <stop offset="100%" stopColor="#48CAE4" />
+        </linearGradient>
+        <linearGradient id="balcony-ocean" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#20B2AA" />
+          <stop offset="100%" stopColor="#0077B6" />
+        </linearGradient>
+        <linearGradient id="balcony-deck" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={deck} />
+          <stop offset="100%" stopColor={deckDark} />
+        </linearGradient>
+      </defs>
+      {/* Sky */}
+      <rect x={0} y={0} width={640} height={130} fill="url(#balcony-sky)" />
+      {/* Ocean horizon */}
+      <rect x={0} y={130} width={640} height={70} fill="url(#balcony-ocean)" />
+      <ellipse cx={520} cy={155} rx={90} ry={12} fill="#FFFFFF" opacity={0.25} />
+      <ellipse cx={180} cy={165} rx={60} ry={8} fill="#FFFFFF" opacity={0.18} />
+      {/* Deck floor */}
+      <rect x={0} y={200} width={640} height={280} fill="url(#balcony-deck)" />
+      {Array.from({ length: 9 }).map((_, i) => (
+        <line
+          key={i}
+          x1={i * 72}
+          y1={200}
+          x2={i * 72 - 20}
+          y2={480}
+          stroke={adjustColor(deck, -28)}
+          strokeWidth={2}
+          opacity={0.35}
+        />
+      ))}
+      {/* Railing */}
+      <rect x={0} y={188} width={640} height={14} fill={trim} stroke={S} strokeWidth={2} />
+      {Array.from({ length: 14 }).map((_, i) => (
+        <rect key={i} x={i * 46 + 12} y={174} width={6} height={28} rx={2} fill={trim} stroke={S} strokeWidth={1} />
+      ))}
+      <rect x={0} y={172} width={640} height={6} rx={2} fill={adjustColor(trim, 12)} stroke={S} strokeWidth={1.5} />
+    </>
+  )
+}
+
+function StandardRoomBackground({
+  theme,
+  style,
+}: {
+  theme: InteriorTheme
+  style: InteriorStyle
 }) {
   const wallBase =
     style.wallpaperId === 'none'

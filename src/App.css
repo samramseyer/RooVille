@@ -1242,6 +1242,38 @@ button {
   gap: 0.5rem;
 }
 
+.interior-furniture-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+.interior-furniture-category {
+  width: 100%;
+  padding: 0.38rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-family: inherit;
+  border: 2px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.interior-furniture-category.active {
+  border-color: var(--ocean);
+  background: rgba(72, 181, 176, 0.12);
+  color: var(--accent);
+}
+
+.interior-furniture-category:hover {
+  border-color: var(--ocean);
+}
+
 .interior-palette-tabs {
   display: flex;
   gap: 0.35rem;
@@ -1495,6 +1527,10 @@ button {
   z-index: 2;
 }
 
+.interior-furniture.is-wall-base {
+  z-index: 4;
+}
+
 .interior-furniture.selected {
   z-index: 5;
 }
@@ -1531,6 +1567,91 @@ button {
 .interior-opening svg {
   pointer-events: none;
   filter: drop-shadow(2px 3px 0 rgba(78, 52, 46, 0.14));
+}
+
+.interior-nav {
+  position: absolute;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.45rem 0.65rem;
+  border: 2px solid var(--ocean);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(78, 52, 46, 0.15);
+  transition: transform 0.12s ease, background 0.12s ease;
+  max-width: 88px;
+  text-align: center;
+}
+
+.interior-nav:hover {
+  transform: scale(1.05);
+  background: #fff;
+}
+
+.interior-nav-arrow {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.interior-nav-label {
+  font-size: 0.68rem;
+}
+
+.interior-nav--left {
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.interior-nav--left:hover {
+  transform: translateY(-50%) scale(1.05);
+}
+
+.interior-nav--right {
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.interior-nav--right:hover {
+  transform: translateY(-50%) scale(1.05);
+}
+
+.interior-nav--up {
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.interior-nav--up:hover {
+  transform: translateX(-50%) scale(1.05);
+}
+
+.interior-nav--down {
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.interior-nav--down:hover {
+  transform: translateX(-50%) scale(1.05);
+}
+
+.interior-room--upstairs {
+  box-shadow: inset 0 0 0 3px rgba(72, 181, 176, 0.18);
+}
+
+.interior-room--outdoor {
+  box-shadow: inset 0 0 0 3px rgba(32, 178, 170, 0.28);
 }
 
 .opening-resize-handle {

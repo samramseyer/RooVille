@@ -1,6 +1,11 @@
 import { useState } from 'react'
-import type { FurnitureDef } from '../data/interiorFurniture'
-import { INTERIOR_FURNITURE } from '../data/interiorFurniture'
+import type { FurnitureCategory, FurnitureDef } from '../data/interiorFurniture'
+import { FURNITURE_CATEGORIES, getFurniture, getFurnitureByCategory, supportsTrimZonePlacement, supportsWallPlacement } from '../data/interiorFurniture'
+import {
+  CABINET_COLORS,
+  COUNTERTOP_MATERIALS,
+  type CountertopMaterial,
+} from '../data/interiorCabinetStyles'
 import {
   FLOOR_PAINT_COLORS,
   FLOOR_TYPES,
@@ -22,6 +27,7 @@ import type { InteriorStyle, InteriorOpening, WindowViewSetting, WindowStyleId, 
 import { DoorStylePreviewSwatch, WindowStylePreviewSwatch } from './InteriorDoorsTrim'
 import { FloorPreviewSwatch } from './InteriorFloorPatterns'
 import { InteriorFurnitureArt } from './InteriorFurnitureArt'
+import { CountertopMaterialPreview } from './InteriorKitchenBathArt'
 import { TrimProfilePreviewSwatch } from './InteriorTrimProfiles'
 import { WindowViewPreviewSwatch } from './InteriorWindowViews'
 import { WallpaperPreviewSwatch } from './InteriorWallpaperPatterns'
@@ -66,6 +72,22 @@ export function InteriorPalette({
   editMode,
 }: InteriorPaletteProps) {
   const [tab, setTab] = useState<PaletteTab>('furniture')
+  const [furnitureCategory, setFurnitureCategory] = useState<FurnitureCategory>('furniture')
+  const categoryItems = getFurnitureByCategory(furnitureCategory)
+  const selectedFurnitureDef = selectedFurnitureId ? getFurniture(selectedFurnitureId) : undefined
+  const placementHint = editMode
+    ? 'Tap Done below to finish moving furniture.'
+    : furnitureCategory === 'countertops'
+      ? 'Tap along the trim line, wall, or floor to place countertops!'
+      : furnitureCategory === 'bathroom-accessories'
+        ? 'Tap the wall or floor to place bathroom fixtures and accessories!'
+        : selectedFurnitureDef
+        ? supportsTrimZonePlacement(selectedFurnitureDef.id)
+          ? 'Tap the trim line to cover baseboards, or the wall/floor for other spots!'
+          : supportsWallPlacement(selectedFurnitureDef.id)
+            ? 'Tap the wall or floor to place it!'
+            : 'Tap the floor to place it!'
+        : 'Pick an item, then tap the room to place it!'
   const trimColor = style.trimColor ?? '#C4956A'
   const baseTrimProfile = style.baseTrimProfileId ?? 'standard'
   const casingTrimProfile = style.casingTrimProfileId ?? 'standard'
@@ -79,6 +101,10 @@ export function InteriorPalette({
     selectedOpening?.kind === 'door'
       ? (selectedOpening.doorStyleId ?? defaultDoorStyle)
       : defaultDoorStyle
+  const cabinetColor = style.cabinetColor ?? '#FFF8F0'
+  const countertopMaterial = style.countertopMaterial ?? 'wood'
+  const showCabinetFinishes =
+    furnitureCategory === 'kitchen-cabinets' || furnitureCategory === 'countertops'
 
   return (
     <aside className={`interior-palette${editMode ? ' palette-dimmed' : ''}`}>
@@ -117,13 +143,63 @@ export function InteriorPalette({
 
       {tab === 'furniture' && (
         <>
-          <p className="palette-hint">
-            {editMode
-              ? 'Tap Done below to finish moving furniture.'
-              : 'Pick furniture, then tap the floor to place it!'}
-          </p>
+          <p className="palette-hint">{placementHint}</p>
+          <div className="interior-furniture-categories">
+            {FURNITURE_CATEGORIES.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                className={`interior-furniture-category${furnitureCategory === category.id ? ' active' : ''}`}
+                onClick={() => setFurnitureCategory(category.id)}
+                title={category.name}
+              >
+                {category.emoji} {category.name}
+              </button>
+            ))}
+          </div>
+          {showCabinetFinishes && (
+            <>
+              <section className="interior-style-section">
+                <h4 className="interior-style-heading">Cabinet colour</h4>
+                <p className="interior-style-note">Applies to all kitchen and bathroom cabinets in this room.</p>
+                <div className="interior-color-row">
+                  {CABINET_COLORS.map((paint) => (
+                    <button
+                      key={paint.id}
+                      type="button"
+                      className={`color-swatch interior-color-swatch${cabinetColor === paint.color ? ' selected' : ''}`}
+                      style={{ background: paint.color }}
+                      onClick={() => onStyleChange({ cabinetColor: paint.color })}
+                      title={paint.name}
+                      aria-label={`Cabinet colour: ${paint.name}`}
+                    />
+                  ))}
+                </div>
+              </section>
+              <section className="interior-style-section">
+                <h4 className="interior-style-heading">Countertop material</h4>
+                <p className="interior-style-note">Used on cabinets, islands, and countertop slabs.</p>
+                <div className="interior-wallpaper-grid">
+                  {COUNTERTOP_MATERIALS.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={`interior-wallpaper-btn${countertopMaterial === option.id ? ' selected' : ''}`}
+                      onClick={() =>
+                        onStyleChange({ countertopMaterial: option.id as CountertopMaterial })
+                      }
+                      title={option.name}
+                    >
+                      <CountertopMaterialPreview material={option.id} />
+                      <span>{option.emoji}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
           <div className="interior-furniture-grid">
-            {INTERIOR_FURNITURE.map((item) => (
+            {categoryItems.map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -134,7 +210,12 @@ export function InteriorPalette({
                   className="building-preview interior-preview"
                   style={{ width: '100%', height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  <InteriorFurnitureArt id={item.id} emoji={item.emoji} />
+                  <InteriorFurnitureArt
+                    id={item.id}
+                    emoji={item.emoji}
+                    cabinetColor={cabinetColor}
+                    countertopMaterial={countertopMaterial}
+                  />
                 </div>
                 <span className="building-card-name">
                   {item.emoji} {item.name}

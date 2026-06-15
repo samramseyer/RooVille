@@ -1,6 +1,7 @@
 import type { InteriorItem } from '../types'
+import type { CountertopMaterial } from '../data/interiorCabinetStyles'
 import type { FurnitureDef } from '../data/interiorFurniture'
-import { getFurnitureDimensions, isResizableFurniture, isWallFurniture } from '../data/interiorFurniture'
+import { getFurnitureDimensions, isResizableFurniture, isWallBaseMounted, isWallMounted } from '../data/interiorFurniture'
 import { InteriorFurnitureArt } from './InteriorFurnitureArt'
 
 const ROOM_WIDTH = 640
@@ -10,6 +11,8 @@ interface InteriorFurnitureItemViewProps {
   item: InteriorItem
   def: FurnitureDef
   selected: boolean
+  cabinetColor?: string
+  countertopMaterial?: CountertopMaterial
   onPointerDown: (e: React.PointerEvent) => void
   onResizePointerDown: (e: React.PointerEvent) => void
   onPointerMove?: (e: React.PointerEvent) => void
@@ -20,6 +23,8 @@ export function InteriorFurnitureItemView({
   item,
   def,
   selected,
+  cabinetColor,
+  countertopMaterial,
   onPointerDown,
   onResizePointerDown,
   onPointerMove,
@@ -30,7 +35,7 @@ export function InteriorFurnitureItemView({
 
   return (
     <div
-      className={`interior-furniture${selected ? ' selected' : ''}${item.furnitureId === 'rug' ? ' is-rug' : ''}${isWallFurniture(item.furnitureId) ? ' is-wall' : ''}${resizable ? ' is-resizable' : ''}`}
+      className={`interior-furniture${selected ? ' selected' : ''}${item.furnitureId === 'rug' ? ' is-rug' : ''}${isWallMounted(item.furnitureId, item.y, height) ? ' is-wall' : ''}${isWallBaseMounted(item.furnitureId, item.y, height) ? ' is-wall-base' : ''}${resizable ? ' is-resizable' : ''}`}
       style={{
         left: `${(item.x / ROOM_WIDTH) * 100}%`,
         top: `${(item.y / ROOM_HEIGHT) * 100}%`,
@@ -43,7 +48,12 @@ export function InteriorFurnitureItemView({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      <InteriorFurnitureArt id={item.furnitureId} emoji={def.emoji} />
+      <InteriorFurnitureArt
+        id={item.furnitureId}
+        emoji={def.emoji}
+        cabinetColor={cabinetColor}
+        countertopMaterial={countertopMaterial}
+      />
       {selected && (
         <>
           <div className="selection-ring" />

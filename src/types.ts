@@ -1,5 +1,8 @@
 export type Screen = 'welcome' | 'avatar' | 'play'
 
+import type { CountertopMaterial } from './data/interiorCabinetStyles'
+export type { CountertopMaterial }
+
 export type BuildingCategory =
   | 'houses'
   | 'businesses'
@@ -87,6 +90,18 @@ export interface InteriorStyle {
   windowScale?: number
   /** Door size multiplier (0.55–1.55). Defaults to 1. */
   doorScale?: number
+  /** Cabinet body colour for kitchen and bathroom cabinets. */
+  cabinetColor?: string
+  /** Countertop material for cabinets, islands, and countertop slabs. */
+  countertopMaterial?: CountertopMaterial
+}
+
+/** Per-room interior data for multi-room buildings (e.g. big boathouse). */
+export interface InteriorRoomState {
+  interior?: InteriorItem[]
+  interiorOpenings?: InteriorOpening[]
+  interiorAvatarPosition?: { x: number; y: number }
+  interiorStyle?: InteriorStyle
 }
 
 export interface PlacedItem {
@@ -96,10 +111,15 @@ export interface PlacedItem {
   y: number
   rotation: number
   scale: number
+  /** Legacy single-room fields — used when building has no multi-room layout. */
   interior?: InteriorItem[]
   interiorOpenings?: InteriorOpening[]
   interiorAvatarPosition?: { x: number; y: number }
   interiorStyle?: InteriorStyle
+  /** Per-room interior data for multi-room buildings. */
+  interiorRooms?: Partial<Record<string, InteriorRoomState>>
+  /** Last visited room when re-entering a multi-room building. */
+  currentInteriorRoomId?: string
 }
 
 export interface GameState {

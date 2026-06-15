@@ -1,7 +1,9 @@
-import type { GameState, InteriorItem, PlacedItem } from '../types'
+import type { GameState, InteriorItem, InteriorRoomState, PlacedItem } from '../types'
 import { DEFAULT_AVATAR } from './avatarOptions'
 import { getBuilding } from './buildings'
 import { getInteriorTheme } from './enterableBuildings'
+import { getBuildingInteriorLayout } from './interiorLayouts'
+import { migratePlacedItemRooms } from './interiorRoomState'
 import { clampInteriorFurnitureItem, getFurniture } from './interiorFurniture'
 import { sanitizeInteriorStyle } from './interiorStyles'
 import { sanitizeInteriorOpenings } from './interiorOpenings'
@@ -42,6 +44,32 @@ function sanitizeInterior(raw: unknown): InteriorItem[] {
     })
 }
 
+function sanitizeInteriorRooms(
+  raw: unknown,
+  theme: ReturnType<typeof getInteriorTheme>,
+): Partial<Record<string, InteriorRoomState>> | undefined {
+  if (!raw || typeof raw !== 'object') return undefined
+  const result: Partial<Record<string, InteriorRoomState>> = {}
+  for (const [roomId, roomRaw] of Object.entries(raw as Record<string, unknown>)) {
+    if (!roomRaw || typeof roomRaw !== 'object') continue
+    const room = roomRaw as InteriorRoomState
+    result[roomId] = {
+      interior: sanitizeInterior(room.interior),
+      interiorOpenings: sanitizeInteriorOpenings(room.interiorOpenings, theme),
+      interiorAvatarPosition:
+        room.interiorAvatarPosition &&
+        typeof room.interiorAvatarPosition.x === 'number' &&
+        typeof room.interiorAvatarPosition.y === 'number'
+          ? room.interiorAvatarPosition
+          : undefined,
+      interiorStyle: room.interiorStyle
+        ? sanitizeInteriorStyle(room.interiorStyle, theme)
+        : undefined,
+    }
+  }
+  return Object.keys(result).length > 0 ? result : undefined
+}
+
 function sanitizeItems(raw: unknown): PlacedItem[] {
   if (!Array.isArray(raw)) return []
   return raw
@@ -55,7 +83,8 @@ function sanitizeItems(raw: unknown): PlacedItem[] {
     .map((item) => {
       const building = getBuilding(item.buildingId)
       const theme = building ? getInteriorTheme(building) : 'home'
-      return {
+      const layout = getBuildingInteriorLayout(item.buildingId)
+      const base: PlacedItem = {
         id: item.id,
         buildingId: item.buildingId,
         x: typeof item.x === 'number' ? item.x : 0,
@@ -71,7 +100,18 @@ function sanitizeItems(raw: unknown): PlacedItem[] {
             ? item.interiorAvatarPosition
             : undefined,
         interiorStyle: sanitizeInteriorStyle(item.interiorStyle, theme),
+        interiorRooms: sanitizeInteriorRooms(item.interiorRooms, theme),
+        currentInteriorRoomId:
+          typeof item.currentInteriorRoomId === 'string' ? item.currentInteriorRoomId : undefined,
       }
+      const migrated = migratePlacedItemRooms(base)
+      if (!layout) return migrated
+      const validRoomId =
+        migrated.currentInteriorRoomId &&
+        layout.rooms.some((room) => room.id === migrated.currentInteriorRoomId)
+          ? migrated.currentInteriorRoomId
+          : layout.defaultRoomId
+      return { ...migrated, currentInteriorRoomId: validRoomId }
     })
 }
 

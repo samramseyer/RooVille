@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { BuildingDef, DoorStyleId, GameState, InteriorItem, InteriorOpening, PlacedItem, WindowStyleId } from '../types'
+import type { BuildingDef, DoorStyleId, GameState, InteriorItem, InteriorOpening, InteriorRoomState, PlacedItem, WindowStyleId } from '../types'
 import type { FurnitureDef } from '../data/interiorFurniture'
-import { getFurniture, getFurnitureDimensions, isResizableFurniture, isWallFurniture, clampFurnitureDimensions } from '../data/interiorFurniture'
+import { getFurniture, getFurnitureDimensions, isResizableFurniture, clampFurnitureDimensions, clampFurniturePosition, supportsTrimZonePlacement, supportsWallPlacement } from '../data/interiorFurniture'
 import { getInteriorTheme } from '../data/enterableBuildings'
 import {
   clampDoorOpening,
@@ -12,6 +12,16 @@ import {
   resolveInteriorOpenings,
 } from '../data/interiorOpenings'
 import { resolveInteriorStyle } from '../data/interiorStyles'
+import { getBuildingInteriorLayout, getFloorLabel, getRoomDef, type RoomNavLink } from '../data/interiorLayouts'
+import {
+  getRawRoomState,
+  patchRoomState,
+  resolveCurrentRoomId,
+  resolveRoomAvatarPosition,
+  resolveRoomInteriorItems,
+  resolveRoomInteriorStyle,
+  resolveRoomOpenings,
+} from '../data/interiorRoomState'
 import { resolveWindowView, type MapSize } from '../data/interiorWindowView'
 import { playDeleteSound, playPlaceSound, playRotateSound } from '../audio/sounds'
 import { AvatarSprite } from './AvatarSprite'
@@ -19,6 +29,7 @@ import { InteriorFurnitureItemView } from './InteriorFurnitureItemView'
 import { InteriorRoomBackground } from './InteriorFurnitureArt'
 import { InteriorOpeningView } from './InteriorOpeningView'
 import { InteriorPalette } from './InteriorPalette'
+import { InteriorRoomNav } from './InteriorRoomNav'
 
 const ROOM_WIDTH = 640
 const ROOM_HEIGHT = 480
@@ -28,28 +39,6 @@ const AVATAR_RADIUS = 28
 
 type PlacementMode = 'window' | 'door' | null
 type DragMode = 'avatar' | 'furniture' | 'opening' | 'resize-opening' | 'resize-furniture' | null
-
-function clampFurniturePosition(
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  furnitureId?: string,
-) {
-  const clampedX = Math.max(0, Math.min(ROOM_WIDTH - width, x))
-
-  if (furnitureId && isWallFurniture(furnitureId)) {
-    return {
-      x: clampedX,
-      y: Math.max(0, Math.min(FLOOR_TOP - height, y)),
-    }
-  }
-
-  return {
-    x: clampedX,
-    y: Math.max(FLOOR_TOP, Math.min(ROOM_HEIGHT - height, y)),
-  }
-}
 
 function clampAvatarPosition(x: number, y: number) {
   return {
@@ -67,14 +56,6 @@ interface BuildingInteriorProps {
   onExit: () => void
 }
 
-function updatePlacedItem(
-  items: PlacedItem[],
-  itemId: string,
-  patch: Partial<PlacedItem>,
-): PlacedItem[] {
-  return items.map((item) => (item.id === itemId ? { ...item, ...patch } : item))
-}
-
 export function BuildingInterior({
   gameState,
   placedItem,
@@ -84,14 +65,21 @@ export function BuildingInterior({
   onExit,
 }: BuildingInteriorProps) {
   const theme = getInteriorTheme(building)
+  const layout = getBuildingInteriorLayout(building.id)
   const roomRef = useRef<HTMLDivElement>(null)
   const [selectedFurniture, setSelectedFurniture] = useState<FurnitureDef | null>(null)
   const [selectedInteriorId, setSelectedInteriorId] = useState<string | null>(null)
   const [selectedOpeningId, setSelectedOpeningId] = useState<string | null>(null)
   const [placementMode, setPlacementMode] = useState<PlacementMode>(null)
   const [dragMode, setDragMode] = useState<DragMode>(null)
-  const [avatarPosition, setAvatarPosition] = useState(
-    placedItem.interiorAvatarPosition ?? DEFAULT_AVATAR_INTERIOR,
+
+  const liveItem = gameState.items.find((i) => i.id === placedItem.id) ?? placedItem
+  const initialRoomId = layout ? resolveCurrentRoomId(liveItem, layout) : 'main'
+  const [currentRoomId, setCurrentRoomId] = useState(initialRoomId)
+  const [avatarPosition, setAvatarPosition] = useState(() =>
+    layout
+      ? resolveRoomAvatarPosition(liveItem, layout, initialRoomId)
+      : liveItem.interiorAvatarPosition ?? DEFAULT_AVATAR_INTERIOR,
   )
   const dragOffset = useRef({ x: 0, y: 0 })
   const dragStart = useRef({ x: 0, y: 0 })
@@ -100,46 +88,57 @@ export function BuildingInterior({
   const draggingOpeningId = useRef<string | null>(null)
   const resizeSnapshot = useRef({ x: 0, y: 0, width: 0, height: 0, pointerX: 0, pointerY: 0 })
 
-  const liveItem = gameState.items.find((i) => i.id === placedItem.id) ?? placedItem
-  const interiorItems = liveItem.interior ?? []
-  const interiorStyle = resolveInteriorStyle(liveItem.interiorStyle, theme)
-  const interiorOpenings = resolveInteriorOpenings(theme, interiorStyle, liveItem.interiorOpenings)
-  const windowView = resolveWindowView(
-    liveItem,
-    building,
-    gameState.items,
-    mapSize,
-    interiorStyle.windowViewId,
-  )
+  const roomDef = layout ? getRoomDef(layout, currentRoomId) : undefined
+  const interiorItems = layout
+    ? resolveRoomInteriorItems(liveItem, layout, currentRoomId)
+    : liveItem.interior ?? []
+  const interiorStyle = layout
+    ? resolveRoomInteriorStyle(liveItem, layout, currentRoomId, theme)
+    : resolveInteriorStyle(liveItem.interiorStyle, theme)
+  const interiorOpenings = layout
+    ? resolveRoomOpenings(liveItem, layout, currentRoomId, theme, interiorStyle)
+    : resolveInteriorOpenings(theme, interiorStyle, liveItem.interiorOpenings)
+  const windowView = roomDef?.forceOceanView
+    ? 'ocean'
+    : resolveWindowView(liveItem, building, gameState.items, mapSize, interiorStyle.windowViewId)
   const soundOn = gameState.soundEnabled
   const trimColor = interiorStyle.trimColor ?? '#C4956A'
   const windowStyleId = interiorStyle.windowStyleId ?? 'classic'
   const doorStyleId = interiorStyle.doorStyleId ?? 'panel'
   const casingTrimProfile = interiorStyle.casingTrimProfileId ?? 'standard'
 
-  const persistInterior = useCallback(
-    (patch: Partial<PlacedItem>) => {
+  const persistRoomData = useCallback(
+    (patch: Partial<InteriorRoomState>) => {
       onUpdate((prev) => ({
         ...prev,
-        items: updatePlacedItem(prev.items, placedItem.id, patch),
+        items: prev.items.map((item) => {
+          if (item.id !== placedItem.id) return item
+          if (!layout) {
+            return { ...item, ...patch }
+          }
+          return {
+            ...item,
+            ...patchRoomState(item, currentRoomId, layout.defaultRoomId, patch),
+          }
+        }),
       }))
     },
-    [onUpdate, placedItem.id],
+    [onUpdate, placedItem.id, layout, currentRoomId],
   )
 
   const persistOpenings = useCallback(
     (openings: InteriorOpening[]) => {
-      persistInterior({ interiorOpenings: openings })
+      persistRoomData({ interiorOpenings: openings })
     },
-    [persistInterior],
+    [persistRoomData],
   )
 
   const persistAvatarPosition = useCallback(
     (pos: { x: number; y: number }) => {
       setAvatarPosition(pos)
-      persistInterior({ interiorAvatarPosition: pos })
+      persistRoomData({ interiorAvatarPosition: pos })
     },
-    [persistInterior],
+    [persistRoomData],
   )
 
   const getCoords = (clientX: number, clientY: number) => {
@@ -168,6 +167,7 @@ export function BuildingInterior({
       selectedFurniture.width,
       selectedFurniture.height,
       selectedFurniture.id,
+      y,
     )
     const newItem: InteriorItem = {
       id: crypto.randomUUID(),
@@ -176,7 +176,7 @@ export function BuildingInterior({
       y: pos.y,
       rotation: 0,
     }
-    persistInterior({ interior: [...interiorItems, newItem] })
+    persistRoomData({ interior: [...interiorItems, newItem] })
     setSelectedInteriorId(newItem.id)
     setSelectedOpeningId(null)
     if (soundOn) playPlaceSound()
@@ -204,7 +204,7 @@ export function BuildingInterior({
   }
 
   const deleteFurniture = (id: string) => {
-    persistInterior({ interior: interiorItems.filter((item) => item.id !== id) })
+    persistRoomData({ interior: interiorItems.filter((item) => item.id !== id) })
     setSelectedInteriorId(null)
     if (soundOn) playDeleteSound()
   }
@@ -216,7 +216,7 @@ export function BuildingInterior({
   }
 
   const rotateFurniture = (id: string, delta: number) => {
-    persistInterior({
+    persistRoomData({
       interior: interiorItems.map((item) =>
         item.id === id ? { ...item, rotation: (item.rotation + delta + 360) % 360 } : item,
       ),
@@ -234,7 +234,7 @@ export function BuildingInterior({
   }
 
   const applyStyleChange = (patch: Partial<typeof interiorStyle>) => {
-    persistInterior({
+    persistRoomData({
       interiorStyle: { ...interiorStyle, ...patch },
     })
     setSelectedFurniture(null)
@@ -305,7 +305,7 @@ export function BuildingInterior({
         size.height,
         furniture.furnitureId,
       )
-      persistInterior({
+      persistRoomData({
         interior: interiorItems.map((item) =>
           item.id === draggingFurnitureId.current ? { ...item, x: pos.x, y: pos.y } : item,
         ),
@@ -377,7 +377,7 @@ export function BuildingInterior({
         snap.width + dw,
         snap.height + dh,
       )
-      persistInterior({
+      persistRoomData({
         interior: interiorItems.map((item) =>
           item.id === furniture.id
             ? { ...item, x: next.x, y: next.y, width: next.width, height: next.height }
@@ -521,6 +521,49 @@ export function BuildingInterior({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [selectedInteriorId, selectedOpeningId, placementMode, interiorItems, interiorOpenings, soundOn])
 
+  const switchRoom = (link: RoomNavLink) => {
+    if (!layout) return
+
+    onUpdate((prev) => {
+      const item = prev.items.find((entry) => entry.id === placedItem.id)
+      if (!item) return prev
+
+      const currentRoomState = getRawRoomState(item, currentRoomId, layout.defaultRoomId)
+      const savedRooms = {
+        ...item.interiorRooms,
+        [currentRoomId]: {
+          ...currentRoomState,
+          interiorAvatarPosition: avatarPosition,
+        },
+      }
+
+      const targetState = savedRooms[link.targetRoomId]
+      const spawn =
+        targetState?.interiorAvatarPosition ??
+        getRoomDef(layout, link.targetRoomId)?.defaultAvatar ??
+        link.spawnPosition
+
+      setCurrentRoomId(link.targetRoomId)
+      setAvatarPosition(spawn)
+
+      return {
+        ...prev,
+        items: prev.items.map((entry) =>
+          entry.id === placedItem.id
+            ? {
+                ...item,
+                interiorRooms: savedRooms,
+                currentInteriorRoomId: link.targetRoomId,
+              }
+            : entry,
+        ),
+      }
+    })
+
+    clearSelection()
+    if (soundOn) playPlaceSound()
+  }
+
   const selectedInterior = interiorItems.find((item) => item.id === selectedInteriorId)
   const selectedInteriorDef = selectedInterior ? getFurniture(selectedInterior.furnitureId) : null
   const selectedOpening = interiorOpenings.find((item) => item.id === selectedOpeningId)
@@ -535,12 +578,25 @@ export function BuildingInterior({
           </button>
           <div>
             <h2>{building.name}</h2>
-            <span className="interior-subtitle">Inside with {gameState.avatar.name}</span>
+            <span className="interior-subtitle">
+              {roomDef ? (
+                <>
+                  {roomDef.emoji} {roomDef.name} · {getFloorLabel(roomDef.floor)}
+                </>
+              ) : (
+                <>Inside with {gameState.avatar.name}</>
+              )}
+            </span>
           </div>
         </div>
         {selectedFurniture && !selectedInteriorId && !selectedOpeningId && (
           <div className="placement-hint interior-placement-hint">
-            Placing: {selectedFurniture.name}
+            Placing: {selectedFurniture.name} — tap the{' '}
+            {supportsTrimZonePlacement(selectedFurniture.id)
+              ? 'trim line, wall, or floor'
+              : supportsWallPlacement(selectedFurniture.id)
+                ? 'wall or floor'
+                : 'floor'}
             <button type="button" className="btn btn-ghost btn-small" onClick={() => setSelectedFurniture(null)}>
               Cancel
             </button>
@@ -624,7 +680,7 @@ export function BuildingInterior({
 
           <div
             ref={roomRef}
-            className={`interior-room interior-room--${theme}${isPlacing && !selectedInteriorId && !selectedOpeningId ? ' placing-mode' : ''}`}
+            className={`interior-room interior-room--${theme}${roomDef ? ` interior-room--${roomDef.floor}` : ''}${isPlacing && !selectedInteriorId && !selectedOpeningId ? ' placing-mode' : ''}`}
             onPointerDown={handleRoomPointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={stopDrag}
@@ -635,8 +691,16 @@ export function BuildingInterior({
               viewBox={`0 0 ${ROOM_WIDTH} ${ROOM_HEIGHT}`}
               preserveAspectRatio="xMidYMid meet"
             >
-              <InteriorRoomBackground theme={theme} style={interiorStyle} />
+              <InteriorRoomBackground
+                theme={theme}
+                style={interiorStyle}
+                variant={roomDef?.variant ?? 'standard'}
+              />
             </svg>
+
+            {roomDef && (
+              <InteriorRoomNav links={roomDef.nav} onNavigate={switchRoom} />
+            )}
 
             {interiorOpenings.map((opening) => (
               <InteriorOpeningView
@@ -672,6 +736,8 @@ export function BuildingInterior({
                     item={item}
                     def={def}
                     selected={item.id === selectedInteriorId}
+                    cabinetColor={interiorStyle.cabinetColor}
+                    countertopMaterial={interiorStyle.countertopMaterial}
                     onPointerDown={(e) => startFurnitureDrag(e, item)}
                     onResizePointerDown={(e) => startFurnitureResize(e, item)}
                     onPointerMove={handlePointerMove}

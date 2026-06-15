@@ -1,5 +1,6 @@
 import type { InteriorStyle, WindowViewSetting } from '../types'
 import type { InteriorTheme } from './enterableBuildings'
+import { resolveCabinetStyleFields } from './interiorCabinetStyles'
 import { resolveTrimStyleFields } from './interiorTrimStyles'
 import { sanitizeWindowViewSetting } from './interiorWindowView'
 
@@ -197,6 +198,7 @@ export function resolveInteriorStyle(
     floorTypeColors,
     windowViewId: sanitizeWindowViewSetting(style?.windowViewId) as WindowViewSetting,
     ...resolveTrimStyleFields(style, theme),
+    ...resolveCabinetStyleFields(style),
   }
 }
 
