@@ -374,7 +374,7 @@ button {
 }
 
 .avatar-sprite {
-  filter: drop-shadow(0 4px 8px rgba(44, 36, 32, 0.12));
+  filter: none;
 }
 
 .name-input-label {
@@ -541,7 +541,7 @@ button {
 }
 
 .building-preview svg {
-  filter: drop-shadow(2px 3px 0 rgba(78, 52, 46, 0.16));
+  filter: none;
 }
 
 /* Day / night cycle */
@@ -1534,7 +1534,6 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  filter: drop-shadow(2px 4px 0 rgba(78, 52, 46, 0.22)) drop-shadow(0 8px 12px rgba(78, 52, 46, 0.1));
 }
 
 .player-avatar:active {

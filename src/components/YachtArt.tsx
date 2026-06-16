@@ -9,26 +9,11 @@ interface YachtArtProps {
 }
 
 /** Motor yacht with hull anchored to waterline */
-export function YachtPaths({ showWake = false }: { showWake?: boolean }) {
+export function YachtPaths({ showWake: _showWake = false }: { showWake?: boolean }) {
   const wl = YACHT_WATERLINE_Y
 
   return (
     <>
-      {/* Wake & reflection at waterline */}
-      {showWake && (
-        <>
-          <ellipse cx="60" cy={wl + 2} rx="48" ry="4" fill="rgba(255,255,255,0.22)" />
-          <path
-            d={`M 18 ${wl + 1} Q 40 ${wl - 2} 60 ${wl} Q 80 ${wl + 2} 102 ${wl + 1}`}
-            fill="none"
-            stroke="rgba(255,255,255,0.3)"
-            strokeWidth="1.2"
-          />
-          {/* Soft reflection below water */}
-          <ellipse cx="60" cy={wl + 8} rx="38" ry="3" fill="rgba(255,255,255,0.08)" />
-        </>
-      )}
-
       {/* Submerged hull */}
       <path
         d={`M 10 ${wl - 2}

@@ -289,37 +289,67 @@ export const LIGHTHOUSE_LAYOUT: BuildingInteriorLayout = {
   rooms: LIGHTHOUSE_ROOMS,
 }
 
-const STILT_HOUSE_ROOMS: InteriorRoomDef[] = [
+/** Grand Manor — three-storey brick manor with upper-floor balcony */
+const GRAND_MANOR_ROOMS: InteriorRoomDef[] = [
   {
-    id: 'stilt-living',
+    id: 'manor-living',
     name: 'Living room',
     emoji: '🛋️',
     floor: 'downstairs',
     defaultAvatar: { x: 290, y: 340 },
     defaultStyle: {
-      wallColor: '#FFF0E0',
-      floorColor: '#C4956A',
+      wallColor: '#F5F0E8',
+      floorColor: '#B8926A',
       wallpaperId: 'none',
       floorTypeId: 'wood-planks',
-      trimColor: '#48B5B0',
+      trimColor: '#C4564E',
+      doorStyleId: 'coastal',
     },
     nav: [
       {
+        direction: 'left',
+        targetRoomId: 'manor-office',
+        label: 'Office',
+        spawnPosition: { x: 540, y: 340 },
+      },
+      {
         direction: 'right',
-        targetRoomId: 'stilt-kitchen',
+        targetRoomId: 'manor-kitchen',
         label: 'Kitchen',
         spawnPosition: { x: 100, y: 340 },
       },
       {
         direction: 'up',
-        targetRoomId: 'stilt-bedroom-1',
+        targetRoomId: 'manor-bed-1',
         label: 'Upstairs',
         spawnPosition: { x: 320, y: 360 },
       },
     ],
   },
   {
-    id: 'stilt-kitchen',
+    id: 'manor-office',
+    name: 'Office',
+    emoji: '💼',
+    floor: 'downstairs',
+    defaultAvatar: { x: 320, y: 340 },
+    defaultStyle: {
+      wallColor: '#EDE6DC',
+      floorColor: '#9E7B4F',
+      wallpaperId: 'none',
+      floorTypeId: 'wood-planks',
+      trimColor: '#5D4037',
+    },
+    nav: [
+      {
+        direction: 'right',
+        targetRoomId: 'manor-living',
+        label: 'Living room',
+        spawnPosition: { x: 100, y: 340 },
+      },
+    ],
+  },
+  {
+    id: 'manor-kitchen',
     name: 'Kitchen',
     emoji: '🍳',
     floor: 'downstairs',
@@ -329,27 +359,27 @@ const STILT_HOUSE_ROOMS: InteriorRoomDef[] = [
       floorColor: '#D5DBDB',
       wallpaperId: 'none',
       floorTypeId: 'tile',
-      trimColor: '#48B5B0',
+      trimColor: '#C4564E',
     },
     nav: [
       {
         direction: 'left',
-        targetRoomId: 'stilt-living',
+        targetRoomId: 'manor-living',
         label: 'Living room',
         spawnPosition: { x: 540, y: 340 },
       },
       {
         direction: 'right',
-        targetRoomId: 'stilt-bath',
-        label: 'Bathroom',
+        targetRoomId: 'manor-powder',
+        label: 'Small bathroom',
         spawnPosition: { x: 100, y: 340 },
       },
     ],
   },
   {
-    id: 'stilt-bath',
-    name: 'Bathroom',
-    emoji: '🛁',
+    id: 'manor-powder',
+    name: 'Small bathroom',
+    emoji: '🚽',
     floor: 'downstairs',
     defaultAvatar: { x: 320, y: 340 },
     defaultStyle: {
@@ -362,70 +392,132 @@ const STILT_HOUSE_ROOMS: InteriorRoomDef[] = [
     nav: [
       {
         direction: 'left',
-        targetRoomId: 'stilt-kitchen',
+        targetRoomId: 'manor-kitchen',
         label: 'Kitchen',
         spawnPosition: { x: 540, y: 340 },
       },
     ],
   },
   {
-    id: 'stilt-bedroom-1',
+    id: 'manor-bed-1',
     name: 'Bedroom 1',
     emoji: '🛏️',
     floor: 'upstairs',
     defaultAvatar: { x: 200, y: 340 },
     defaultStyle: {
       wallColor: '#F5F0E8',
-      floorColor: '#C4956A',
+      floorColor: '#B8926A',
       wallpaperId: 'none',
       floorTypeId: 'wood-planks',
-      trimColor: '#6B9E6B',
+      trimColor: '#C4564E',
     },
     nav: [
       {
         direction: 'down',
-        targetRoomId: 'stilt-living',
+        targetRoomId: 'manor-living',
         label: 'Downstairs',
         spawnPosition: { x: 320, y: 300 },
       },
       {
         direction: 'right',
-        targetRoomId: 'stilt-bedroom-2',
+        targetRoomId: 'manor-bed-2',
         label: 'Bedroom 2',
         spawnPosition: { x: 100, y: 340 },
       },
     ],
   },
   {
-    id: 'stilt-bedroom-2',
+    id: 'manor-bed-2',
     name: 'Bedroom 2',
     emoji: '🛏️',
     floor: 'upstairs',
     defaultAvatar: { x: 320, y: 340 },
     defaultStyle: {
       wallColor: '#F5F0E8',
-      floorColor: '#C4956A',
+      floorColor: '#B8926A',
       wallpaperId: 'none',
       floorTypeId: 'wood-planks',
-      trimColor: '#6B9E6B',
+      trimColor: '#C4564E',
     },
     nav: [
       {
         direction: 'left',
-        targetRoomId: 'stilt-bedroom-1',
+        targetRoomId: 'manor-bed-1',
         label: 'Bedroom 1',
         spawnPosition: { x: 540, y: 340 },
       },
       {
         direction: 'right',
-        targetRoomId: 'stilt-balcony',
-        label: 'Balcony',
+        targetRoomId: 'manor-bed-3',
+        label: 'Bedroom 3',
         spawnPosition: { x: 100, y: 340 },
       },
     ],
   },
   {
-    id: 'stilt-balcony',
+    id: 'manor-bed-3',
+    name: 'Bedroom 3',
+    emoji: '🛏️',
+    floor: 'upstairs',
+    defaultAvatar: { x: 320, y: 340 },
+    defaultStyle: {
+      wallColor: '#F5F0E8',
+      floorColor: '#B8926A',
+      wallpaperId: 'none',
+      floorTypeId: 'wood-planks',
+      trimColor: '#C4564E',
+    },
+    nav: [
+      {
+        direction: 'left',
+        targetRoomId: 'manor-bed-2',
+        label: 'Bedroom 2',
+        spawnPosition: { x: 540, y: 340 },
+      },
+      {
+        direction: 'right',
+        targetRoomId: 'manor-master-bath',
+        label: 'Master bath',
+        spawnPosition: { x: 100, y: 340 },
+      },
+      {
+        direction: 'up',
+        targetRoomId: 'manor-balcony',
+        label: 'Balcony',
+        spawnPosition: { x: 320, y: 360 },
+      },
+    ],
+  },
+  {
+    id: 'manor-master-bath',
+    name: 'Master bath',
+    emoji: '🛁',
+    floor: 'upstairs',
+    defaultAvatar: { x: 320, y: 340 },
+    defaultStyle: {
+      wallColor: '#EEF6FA',
+      floorColor: '#A8C8D8',
+      wallpaperId: 'none',
+      floorTypeId: 'tile',
+      trimColor: '#5A9E9A',
+    },
+    nav: [
+      {
+        direction: 'left',
+        targetRoomId: 'manor-bed-3',
+        label: 'Bedroom 3',
+        spawnPosition: { x: 540, y: 340 },
+      },
+      {
+        direction: 'up',
+        targetRoomId: 'manor-balcony',
+        label: 'Balcony',
+        spawnPosition: { x: 320, y: 360 },
+      },
+    ],
+  },
+  {
+    id: 'manor-balcony',
     name: 'Balcony',
     emoji: '🌊',
     floor: 'outdoor',
@@ -434,28 +526,436 @@ const STILT_HOUSE_ROOMS: InteriorRoomDef[] = [
     defaultAvatar: { x: 400, y: 340 },
     defaultStyle: {
       wallColor: '#87CEEB',
-      floorColor: '#C4956A',
+      floorColor: '#B8926A',
       wallpaperId: 'none',
       floorTypeId: 'wood-planks',
-      trimColor: '#8B6914',
+      trimColor: '#C4564E',
       windowViewId: 'ocean',
     },
     nav: [
       {
+        direction: 'down',
+        targetRoomId: 'manor-bed-3',
+        label: 'Bedroom 3',
+        spawnPosition: { x: 320, y: 300 },
+      },
+    ],
+  },
+]
+
+export const GRAND_MANOR_LAYOUT: BuildingInteriorLayout = {
+  buildingId: 'coastal-home',
+  defaultRoomId: 'manor-living',
+  rooms: GRAND_MANOR_ROOMS,
+}
+
+/** Heritage Cottage — two-storey sage stone townhouse */
+const HERITAGE_COTTAGE_ROOMS: InteriorRoomDef[] = [
+  {
+    id: 'cottage-living',
+    name: 'Living room',
+    emoji: '🛋️',
+    floor: 'downstairs',
+    defaultAvatar: { x: 290, y: 340 },
+    defaultStyle: {
+      wallColor: '#E8EDE4',
+      floorColor: '#B8926A',
+      wallpaperId: 'none',
+      floorTypeId: 'wood-planks',
+      trimColor: '#6B8E4E',
+      doorStyleId: 'coastal',
+    },
+    nav: [
+      {
+        direction: 'right',
+        targetRoomId: 'cottage-kitchen',
+        label: 'Kitchen',
+        spawnPosition: { x: 100, y: 340 },
+      },
+      {
+        direction: 'up',
+        targetRoomId: 'cottage-bed-1',
+        label: 'Upstairs',
+        spawnPosition: { x: 320, y: 360 },
+      },
+    ],
+  },
+  {
+    id: 'cottage-kitchen',
+    name: 'Kitchen',
+    emoji: '🍳',
+    floor: 'downstairs',
+    defaultAvatar: { x: 320, y: 340 },
+    defaultStyle: {
+      wallColor: '#FFF8F0',
+      floorColor: '#D5DBDB',
+      wallpaperId: 'none',
+      floorTypeId: 'tile',
+      trimColor: '#6B8E4E',
+    },
+    nav: [
+      {
         direction: 'left',
-        targetRoomId: 'stilt-bedroom-2',
+        targetRoomId: 'cottage-living',
+        label: 'Living room',
+        spawnPosition: { x: 540, y: 340 },
+      },
+      {
+        direction: 'right',
+        targetRoomId: 'cottage-powder',
+        label: 'Small bathroom',
+        spawnPosition: { x: 100, y: 340 },
+      },
+    ],
+  },
+  {
+    id: 'cottage-powder',
+    name: 'Small bathroom',
+    emoji: '🚽',
+    floor: 'downstairs',
+    defaultAvatar: { x: 320, y: 340 },
+    defaultStyle: {
+      wallColor: '#E8F4F8',
+      floorColor: '#B8D4E3',
+      wallpaperId: 'none',
+      floorTypeId: 'tile',
+      trimColor: '#48B5B0',
+    },
+    nav: [
+      {
+        direction: 'left',
+        targetRoomId: 'cottage-kitchen',
+        label: 'Kitchen',
+        spawnPosition: { x: 540, y: 340 },
+      },
+    ],
+  },
+  {
+    id: 'cottage-bed-1',
+    name: 'Bedroom 1',
+    emoji: '🛏️',
+    floor: 'upstairs',
+    defaultAvatar: { x: 200, y: 340 },
+    defaultStyle: {
+      wallColor: '#F5F0E8',
+      floorColor: '#B8926A',
+      wallpaperId: 'none',
+      floorTypeId: 'wood-planks',
+      trimColor: '#6B8E4E',
+    },
+    nav: [
+      {
+        direction: 'down',
+        targetRoomId: 'cottage-living',
+        label: 'Downstairs',
+        spawnPosition: { x: 320, y: 300 },
+      },
+      {
+        direction: 'right',
+        targetRoomId: 'cottage-bed-2',
         label: 'Bedroom 2',
+        spawnPosition: { x: 100, y: 340 },
+      },
+    ],
+  },
+  {
+    id: 'cottage-bed-2',
+    name: 'Bedroom 2',
+    emoji: '🛏️',
+    floor: 'upstairs',
+    defaultAvatar: { x: 320, y: 340 },
+    defaultStyle: {
+      wallColor: '#F5F0E8',
+      floorColor: '#B8926A',
+      wallpaperId: 'none',
+      floorTypeId: 'wood-planks',
+      trimColor: '#6B8E4E',
+    },
+    nav: [
+      {
+        direction: 'left',
+        targetRoomId: 'cottage-bed-1',
+        label: 'Bedroom 1',
+        spawnPosition: { x: 540, y: 340 },
+      },
+      {
+        direction: 'right',
+        targetRoomId: 'cottage-bed-3',
+        label: 'Bedroom 3',
+        spawnPosition: { x: 100, y: 340 },
+      },
+    ],
+  },
+  {
+    id: 'cottage-bed-3',
+    name: 'Bedroom 3',
+    emoji: '🛏️',
+    floor: 'upstairs',
+    defaultAvatar: { x: 320, y: 340 },
+    defaultStyle: {
+      wallColor: '#F5F0E8',
+      floorColor: '#B8926A',
+      wallpaperId: 'none',
+      floorTypeId: 'wood-planks',
+      trimColor: '#6B8E4E',
+    },
+    nav: [
+      {
+        direction: 'left',
+        targetRoomId: 'cottage-bed-2',
+        label: 'Bedroom 2',
+        spawnPosition: { x: 540, y: 340 },
+      },
+      {
+        direction: 'right',
+        targetRoomId: 'cottage-master-bath',
+        label: 'Master bath',
+        spawnPosition: { x: 100, y: 340 },
+      },
+    ],
+  },
+  {
+    id: 'cottage-master-bath',
+    name: 'Master bath',
+    emoji: '🛁',
+    floor: 'upstairs',
+    defaultAvatar: { x: 320, y: 340 },
+    defaultStyle: {
+      wallColor: '#EEF6FA',
+      floorColor: '#A8C8D8',
+      wallpaperId: 'none',
+      floorTypeId: 'tile',
+      trimColor: '#5A9E9A',
+    },
+    nav: [
+      {
+        direction: 'left',
+        targetRoomId: 'cottage-bed-3',
+        label: 'Bedroom 3',
         spawnPosition: { x: 540, y: 340 },
       },
     ],
   },
 ]
 
-export const STILT_HOUSE_LAYOUT: BuildingInteriorLayout = {
-  buildingId: 'stilt-house',
-  defaultRoomId: 'stilt-living',
-  rooms: STILT_HOUSE_ROOMS,
+export const HERITAGE_COTTAGE_LAYOUT: BuildingInteriorLayout = {
+  buildingId: 'beach-shack',
+  defaultRoomId: 'cottage-living',
+  rooms: HERITAGE_COTTAGE_ROOMS,
 }
+
+interface BeachHouseTheme {
+  prefix: string
+  buildingId: string
+  wallColor: string
+  trimColor: string
+}
+
+function createBeachHouseLayout({ prefix, buildingId, wallColor, trimColor }: BeachHouseTheme): BuildingInteriorLayout {
+  const livingId = `${prefix}-living`
+  const kitchenId = `${prefix}-kitchen`
+  const bathId = `${prefix}-bath`
+  const bed1Id = `${prefix}-bed-1`
+  const bed2Id = `${prefix}-bed-2`
+  const balconyId = `${prefix}-balcony`
+
+  const rooms: InteriorRoomDef[] = [
+    {
+      id: livingId,
+      name: 'Living room',
+      emoji: '🛋️',
+      floor: 'downstairs',
+      defaultAvatar: { x: 290, y: 340 },
+      defaultStyle: {
+        wallColor,
+        floorColor: '#C4956A',
+        wallpaperId: 'none',
+        floorTypeId: 'wood-planks',
+        trimColor,
+        doorStyleId: 'coastal',
+      },
+      nav: [
+        {
+          direction: 'right',
+          targetRoomId: kitchenId,
+          label: 'Kitchen',
+          spawnPosition: { x: 100, y: 340 },
+        },
+        {
+          direction: 'up',
+          targetRoomId: bed1Id,
+          label: 'Upstairs',
+          spawnPosition: { x: 320, y: 360 },
+        },
+      ],
+    },
+    {
+      id: kitchenId,
+      name: 'Kitchen',
+      emoji: '🍳',
+      floor: 'downstairs',
+      defaultAvatar: { x: 320, y: 340 },
+      defaultStyle: {
+        wallColor: '#FFF8F0',
+        floorColor: '#D5DBDB',
+        wallpaperId: 'none',
+        floorTypeId: 'tile',
+        trimColor,
+      },
+      nav: [
+        {
+          direction: 'left',
+          targetRoomId: livingId,
+          label: 'Living room',
+          spawnPosition: { x: 540, y: 340 },
+        },
+        {
+          direction: 'right',
+          targetRoomId: bathId,
+          label: 'Bathroom',
+          spawnPosition: { x: 100, y: 340 },
+        },
+      ],
+    },
+    {
+      id: bathId,
+      name: 'Bathroom',
+      emoji: '🛁',
+      floor: 'downstairs',
+      defaultAvatar: { x: 320, y: 340 },
+      defaultStyle: {
+        wallColor: '#E8F4F8',
+        floorColor: '#B8D4E3',
+        wallpaperId: 'none',
+        floorTypeId: 'tile',
+        trimColor: '#48B5B0',
+      },
+      nav: [
+        {
+          direction: 'left',
+          targetRoomId: kitchenId,
+          label: 'Kitchen',
+          spawnPosition: { x: 540, y: 340 },
+        },
+      ],
+    },
+    {
+      id: bed1Id,
+      name: 'Bedroom 1',
+      emoji: '🛏️',
+      floor: 'upstairs',
+      defaultAvatar: { x: 200, y: 340 },
+      defaultStyle: {
+        wallColor: '#FFF8F5',
+        floorColor: '#C4956A',
+        wallpaperId: 'none',
+        floorTypeId: 'wood-planks',
+        trimColor,
+      },
+      nav: [
+        {
+          direction: 'down',
+          targetRoomId: livingId,
+          label: 'Downstairs',
+          spawnPosition: { x: 320, y: 300 },
+        },
+        {
+          direction: 'right',
+          targetRoomId: bed2Id,
+          label: 'Bedroom 2',
+          spawnPosition: { x: 100, y: 340 },
+        },
+      ],
+    },
+    {
+      id: bed2Id,
+      name: 'Bedroom 2',
+      emoji: '🛏️',
+      floor: 'upstairs',
+      defaultAvatar: { x: 320, y: 340 },
+      defaultStyle: {
+        wallColor: '#FFF8F5',
+        floorColor: '#C4956A',
+        wallpaperId: 'none',
+        floorTypeId: 'wood-planks',
+        trimColor,
+      },
+      nav: [
+        {
+          direction: 'left',
+          targetRoomId: bed1Id,
+          label: 'Bedroom 1',
+          spawnPosition: { x: 540, y: 340 },
+        },
+        {
+          direction: 'up',
+          targetRoomId: balconyId,
+          label: 'Balcony',
+          spawnPosition: { x: 320, y: 360 },
+        },
+      ],
+    },
+    {
+      id: balconyId,
+      name: 'Balcony',
+      emoji: '🌊',
+      floor: 'outdoor',
+      floorLabel: 'Upper balcony',
+      variant: 'balcony',
+      forceOceanView: true,
+      defaultAvatar: { x: 400, y: 340 },
+      defaultStyle: {
+        wallColor: '#87CEEB',
+        floorColor: '#C4956A',
+        wallpaperId: 'none',
+        floorTypeId: 'wood-planks',
+        trimColor,
+        windowViewId: 'ocean',
+      },
+      nav: [
+        {
+          direction: 'down',
+          targetRoomId: bed2Id,
+          label: 'Bedroom 2',
+          spawnPosition: { x: 320, y: 300 },
+        },
+      ],
+    },
+  ]
+
+  return {
+    buildingId,
+    defaultRoomId: livingId,
+    rooms,
+  }
+}
+
+const BEACH_HOUSE_LAYOUTS: BuildingInteriorLayout[] = [
+  createBeachHouseLayout({
+    prefix: 'pink',
+    buildingId: 'pink-beach-house',
+    wallColor: '#FCE4EC',
+    trimColor: '#F06292',
+  }),
+  createBeachHouseLayout({
+    prefix: 'red',
+    buildingId: 'red-beach-house',
+    wallColor: '#FFEBEE',
+    trimColor: '#E53935',
+  }),
+  createBeachHouseLayout({
+    prefix: 'orange',
+    buildingId: 'orange-beach-house',
+    wallColor: '#FFF3E0',
+    trimColor: '#FFB74D',
+  }),
+  createBeachHouseLayout({
+    prefix: 'blue',
+    buildingId: 'blue-beach-house',
+    wallColor: '#E3F2FD',
+    trimColor: '#42A5F5',
+  }),
+]
 
 export const PETTING_ZOO_LAYOUT: BuildingInteriorLayout = {
   buildingId: 'petting-zoo',
@@ -481,7 +981,14 @@ export const PETTING_ZOO_LAYOUT: BuildingInteriorLayout = {
   ],
 }
 
-const LAYOUTS: BuildingInteriorLayout[] = [BIG_BOATHOUSE_LAYOUT, LIGHTHOUSE_LAYOUT, STILT_HOUSE_LAYOUT, PETTING_ZOO_LAYOUT]
+const LAYOUTS: BuildingInteriorLayout[] = [
+  BIG_BOATHOUSE_LAYOUT,
+  LIGHTHOUSE_LAYOUT,
+  GRAND_MANOR_LAYOUT,
+  HERITAGE_COTTAGE_LAYOUT,
+  ...BEACH_HOUSE_LAYOUTS,
+  PETTING_ZOO_LAYOUT,
+]
 
 export function getBuildingInteriorLayout(buildingId: string): BuildingInteriorLayout | null {
   return LAYOUTS.find((layout) => layout.buildingId === buildingId) ?? null
@@ -489,6 +996,11 @@ export function getBuildingInteriorLayout(buildingId: string): BuildingInteriorL
 
 export function getRoomDef(layout: BuildingInteriorLayout, roomId: string): InteriorRoomDef | undefined {
   return layout.rooms.find((room) => room.id === roomId)
+}
+
+function getBeachHouseRoomPrefix(roomId: string): string | null {
+  const match = roomId.match(/^(pink|red|orange|blue)-/)
+  return match ? match[1]! : null
 }
 
 export function getRoomDefaultOpenings(roomDef: InteriorRoomDef): InteriorOpening[] {
@@ -512,6 +1024,49 @@ export function getRoomDefaultOpenings(roomDef: InteriorRoomDef): InteriorOpenin
 
   if (roomDef.variant === 'zoo-topdown') {
     return []
+  }
+
+  const beachPrefix = getBeachHouseRoomPrefix(roomDef.id)
+  if (beachPrefix) {
+    if (roomDef.id === `${beachPrefix}-living`) {
+      return [
+        { id: 'win-left', kind: 'window', x: 40, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+        { id: 'win-right', kind: 'window', x: 520, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+        { id: 'door-main', kind: 'door', x: 280, y: 430, width: 80, height: 50, doorStyleId: 'coastal' },
+      ]
+    }
+    if (roomDef.id === `${beachPrefix}-kitchen`) {
+      return [
+        {
+          id: `${beachPrefix}-kitchen-window`,
+          kind: 'window',
+          x: 480,
+          y: 40,
+          width: 72,
+          height: 54,
+          windowStyleId: 'wide',
+        },
+      ]
+    }
+    if (roomDef.id === `${beachPrefix}-bath`) {
+      return [
+        {
+          id: `${beachPrefix}-bath-window`,
+          kind: 'window',
+          x: 280,
+          y: 52,
+          width: 36,
+          height: 36,
+          windowStyleId: 'rounded',
+        },
+      ]
+    }
+    if (roomDef.id === `${beachPrefix}-bed-1` || roomDef.id === `${beachPrefix}-bed-2`) {
+      return [
+        { id: 'win-left', kind: 'window', x: 48, y: 44, width: 72, height: 56, windowStyleId: 'classic' },
+        { id: 'win-right', kind: 'window', x: 500, y: 44, width: 72, height: 56, windowStyleId: 'classic' },
+      ]
+    }
   }
 
   if (roomDef.id === 'lighthouse-ground') {
@@ -565,18 +1120,32 @@ export function getRoomDefaultOpenings(roomDef: InteriorRoomDef): InteriorOpenin
     ]
   }
 
-  if (roomDef.id === 'stilt-living') {
+  if (roomDef.id === 'manor-living') {
     return [
-      { id: 'win-left', kind: 'window', x: 40, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
-      { id: 'win-right', kind: 'window', x: 520, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+      { id: 'win-left', kind: 'window', x: 32, y: 36, width: 88, height: 68, windowStyleId: 'classic' },
+      { id: 'win-right', kind: 'window', x: 520, y: 36, width: 88, height: 68, windowStyleId: 'classic' },
       { id: 'door-main', kind: 'door', x: 280, y: 430, width: 80, height: 50, doorStyleId: 'coastal' },
     ]
   }
 
-  if (roomDef.id === 'stilt-kitchen') {
+  if (roomDef.id === 'manor-office') {
     return [
       {
-        id: 'stilt-kitchen-window',
+        id: 'manor-office-window',
+        kind: 'window',
+        x: 48,
+        y: 44,
+        width: 72,
+        height: 56,
+        windowStyleId: 'classic',
+      },
+    ]
+  }
+
+  if (roomDef.id === 'manor-kitchen') {
+    return [
+      {
+        id: 'manor-kitchen-window',
         kind: 'window',
         x: 480,
         y: 40,
@@ -587,24 +1156,103 @@ export function getRoomDefaultOpenings(roomDef: InteriorRoomDef): InteriorOpenin
     ]
   }
 
-  if (roomDef.id === 'stilt-bath') {
+  if (roomDef.id === 'manor-powder') {
     return [
       {
-        id: 'stilt-bath-window',
+        id: 'manor-powder-window',
         kind: 'window',
-        x: 260,
-        y: 48,
-        width: 48,
-        height: 48,
+        x: 280,
+        y: 52,
+        width: 36,
+        height: 36,
         windowStyleId: 'rounded',
       },
     ]
   }
 
-  if (roomDef.id === 'stilt-bedroom-1' || roomDef.id === 'stilt-bedroom-2') {
+  if (
+    roomDef.id === 'manor-bed-1' ||
+    roomDef.id === 'manor-bed-2' ||
+    roomDef.id === 'manor-bed-3'
+  ) {
     return [
       { id: 'win-left', kind: 'window', x: 48, y: 44, width: 72, height: 56, windowStyleId: 'classic' },
       { id: 'win-right', kind: 'window', x: 500, y: 44, width: 72, height: 56, windowStyleId: 'classic' },
+    ]
+  }
+
+  if (roomDef.id === 'manor-master-bath') {
+    return [
+      {
+        id: 'manor-master-bath-window',
+        kind: 'window',
+        x: 252,
+        y: 44,
+        width: 56,
+        height: 56,
+        windowStyleId: 'rounded',
+      },
+    ]
+  }
+
+  if (roomDef.id === 'cottage-living') {
+    return [
+      { id: 'win-left', kind: 'window', x: 40, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+      { id: 'win-right', kind: 'window', x: 520, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+      { id: 'door-main', kind: 'door', x: 280, y: 430, width: 80, height: 50, doorStyleId: 'coastal' },
+    ]
+  }
+
+  if (roomDef.id === 'cottage-kitchen') {
+    return [
+      {
+        id: 'cottage-kitchen-window',
+        kind: 'window',
+        x: 480,
+        y: 40,
+        width: 72,
+        height: 54,
+        windowStyleId: 'wide',
+      },
+    ]
+  }
+
+  if (roomDef.id === 'cottage-powder') {
+    return [
+      {
+        id: 'cottage-powder-window',
+        kind: 'window',
+        x: 280,
+        y: 52,
+        width: 36,
+        height: 36,
+        windowStyleId: 'rounded',
+      },
+    ]
+  }
+
+  if (
+    roomDef.id === 'cottage-bed-1' ||
+    roomDef.id === 'cottage-bed-2' ||
+    roomDef.id === 'cottage-bed-3'
+  ) {
+    return [
+      { id: 'win-left', kind: 'window', x: 48, y: 44, width: 72, height: 56, windowStyleId: 'classic' },
+      { id: 'win-right', kind: 'window', x: 500, y: 44, width: 72, height: 56, windowStyleId: 'classic' },
+    ]
+  }
+
+  if (roomDef.id === 'cottage-master-bath') {
+    return [
+      {
+        id: 'cottage-master-bath-window',
+        kind: 'window',
+        x: 252,
+        y: 44,
+        width: 56,
+        height: 56,
+        windowStyleId: 'rounded',
+      },
     ]
   }
 

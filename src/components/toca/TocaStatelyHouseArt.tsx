@@ -352,46 +352,12 @@ export function HeritageCottageToca() {
   )
 }
 
-/** Elevated waterfront villa — cream weatherboard on stilts */
-export function WaterfrontVillaToca() {
-  const bx = 12
-  const by = 36
-  const bw = 76
-  const bh = 44
-  return (
-    <TocaWrap>
-      <TocaShadow cy={108} rx={38} />
-      {/* Stilts & deck */}
-      {[22, 78].map((px) => (
-        <rect key={px} x={px} y={by + bh + 4} width={5} height={28} rx={2} fill={STATELY.stoneDark} stroke={S} strokeWidth={1} />
-      ))}
-      <rect x={bx - 2} y={by + bh + 2} width={bw + 4} height={5} rx={2} fill={STATELY.stone} stroke={S} strokeWidth={1.2} />
-      <ellipse cx={50} cy={106} rx={34} ry={3} fill={TOCA.ocean} opacity={0.35} />
-      <Foundation x={bx} y={by + bh - 1} w={bw} />
-      <StatelyBushes x={bx + 4} y={by + bh + 8} w={bw - 8} />
-      <StoneWall x={bx} y={by} w={bw} h={bh} fill={STATELY.stone} />
-      <FloorBand x={bx} y={by + 22} w={bw} />
-      <MansardRoof x={bx} y={18} w={bw} h={22} dormers={2} />
-      <ArchedWindow x={bx + 8} y={by + 6} w={11} h={12} />
-      <ArchedWindow x={bx + 32} y={by + 4} w={14} h={14} />
-      <ArchedWindow x={bx + 58} y={by + 6} w={11} h={12} />
-      <BayWindow x={bx + 8} y={by + 24} w={15} h={16} />
-      <StatelyEntrance cx={50} y={by + 26} doorW={12} doorH={14} />
-      <BayWindow x={bx + 54} y={by + 24} w={15} h={16} />
-      {/* Porch rail hint */}
-      <rect x={bx} y={by + bh - 1} width={bw} height={2} fill={STATELY.stoneDark} opacity={0.5} />
-    </TocaWrap>
-  )
-}
-
 export function getStatelyHouseArt(id: string): ReactNode | null {
   switch (id) {
     case 'coastal-home':
       return <GrandManorToca />
     case 'beach-shack':
       return <HeritageCottageToca />
-    case 'stilt-house':
-      return <WaterfrontVillaToca />
     default:
       return null
   }

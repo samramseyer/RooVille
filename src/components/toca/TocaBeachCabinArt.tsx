@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { TOCA, TocaShadow, TocaWrap } from './TocaHouseArt'
+import { TOCA, TocaWrap } from './TocaHouseArt'
 import { adjustColor } from './tocaShading'
 
 const S = TOCA.stroke
@@ -219,9 +219,6 @@ export function BeachCabinToca() {
 
   return (
     <TocaWrap>
-      <TocaShadow cy={112} rx={40} />
-      {/* Water hint */}
-      <ellipse cx={cx} cy={110} rx={48} ry={4} fill={TOCA.ocean} opacity={0.28} />
       <BeachRocks x={deckX - 4} y={104} w={deckW + 8} />
       <Wildflowers x={deckX + 4} y={100} />
       <Wildflowers x={deckX + deckW - 28} y={101} />
@@ -253,8 +250,6 @@ export function BeachCabinToca() {
       <rect x={cx - 7} y={cabinY + 12} width={14} height={20} rx={1} fill={CABIN.frame} stroke={S} strokeWidth={0.9} />
       <rect x={cx - 5.5} y={cabinY + 14} width={11} height={16} rx={1} fill={CABIN.door} stroke={S} strokeWidth={0.7} />
       <circle cx={cx + 3} cy={cabinY + 24} r={1.2} fill={TOCA.wattle} />
-      {/* Sand patch under deck */}
-      <ellipse cx={cx} cy={106} rx={36} ry={5} fill={CABIN.sand} opacity={0.45} />
     </TocaWrap>
   )
 }

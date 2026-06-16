@@ -6,22 +6,9 @@ interface SailboatArtProps {
 }
 
 /** Shared sailboat paths — bermuda-rig sloop with curved hull and belled sails */
-export function SailboatPaths({ showWake = false }: { showWake?: boolean }) {
+export function SailboatPaths({ showWake: _showWake = false }: { showWake?: boolean }) {
   return (
     <>
-      {/* Wake on water */}
-      {showWake && (
-        <>
-          <ellipse cx="50" cy="84" rx="34" ry="3.5" fill="rgba(255,255,255,0.25)" />
-          <path
-            d="M 22 84 Q 35 81 50 83 Q 65 85 78 82"
-            fill="none"
-            stroke="rgba(255,255,255,0.35)"
-            strokeWidth="1.2"
-          />
-        </>
-      )}
-
       {/* Hull — curved fibreglass cruiser */}
       <path
         d="M 8 58

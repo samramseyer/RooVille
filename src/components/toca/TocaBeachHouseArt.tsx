@@ -158,15 +158,8 @@ function BeachDoor({ x, y, w, h, color }: { x: number; y: number; w: number; h: 
   )
 }
 
-function SandBase({ cx, w }: { cx: number; w: number }) {
-  return (
-    <g className="beach-sand-base" aria-hidden="true">
-      <ellipse cx={cx} cy={106} rx={w * 0.48} ry={5} fill={BEACH.sand} opacity={0.55} />
-      {[0.2, 0.45, 0.7].map((f) => (
-        <ellipse key={f} cx={cx - w * 0.3 + f * w * 0.6} cy={104} rx={3} ry={1.5} fill={BEACH.grass} opacity={0.7} />
-      ))}
-    </g>
-  )
+function SandBase(_props: { cx: number; w: number }) {
+  return null
 }
 
 function RoundWindow({ cx, cy, r = 3.5 }: { cx: number; cy: number; r?: number }) {

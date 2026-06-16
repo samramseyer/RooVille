@@ -15,7 +15,6 @@ export const BUILDINGS: BuildingDef[] = [
   { id: 'beach-shack', name: 'Heritage Cottage', category: 'houses', emoji: '🏛️', width: 115, height: 112 },
   { id: 'coastal-home', name: 'Grand Manor', category: 'houses', emoji: '🏠', width: 135, height: 128 },
   { id: 'lighthouse', name: 'Lighthouse', category: 'houses', emoji: '🗼', width: 110, height: 145 },
-  { id: 'stilt-house', name: 'Waterfront Villa', category: 'houses', emoji: '🏡', width: 125, height: 122 },
   { id: 'beach-cabin', name: 'Beach Cabin', category: 'houses', emoji: '🏖️', width: 130, height: 118 },
   { id: 'painted-lady', name: 'Painted Lady', category: 'houses', emoji: '🏘️', width: 145, height: 132 },
   { id: 'pink-beach-house', name: 'Pink Beach House', category: 'houses', emoji: '🩷', width: 115, height: 112 },

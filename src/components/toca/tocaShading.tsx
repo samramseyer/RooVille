@@ -156,30 +156,19 @@ export function ShadedEllipse({
 }) {
   return (
     <g>
-      <ellipse cx={cx + 2} cy={cy + 3} rx={rx} ry={ry} fill={SHADE.groundShadowSoft} />
       <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
       <ellipse cx={cx - rx * 0.25} cy={cy - ry * 0.3} rx={rx * 0.35} ry={ry * 0.35} fill="#FFFFFF" opacity={0.25} />
     </g>
   )
 }
 
-export function GroundShadow({
-  cx,
-  cy,
-  rx,
-  ry = 5,
-}: {
+export function GroundShadow(_props: {
   cx: number
   cy: number
   rx: number
   ry?: number
 }) {
-  return (
-    <g className="toca-ground-shadow" aria-hidden="true">
-      <ellipse cx={cx} cy={cy + 2} rx={rx * 1.08} ry={ry + 2} fill={SHADE.groundShadowSoft} />
-      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={SHADE.groundShadow} />
-    </g>
-  )
+  return null
 }
 
 export function ShadedCylinder({

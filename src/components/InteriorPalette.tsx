@@ -21,6 +21,7 @@ import {
   DOOR_STYLES,
   TRIM_COLORS,
   TRIM_PROFILES,
+  WAINSCOTING_OPTIONS,
   WINDOW_STYLES,
 } from '../data/interiorTrimStyles'
 import { OPENING_SCALE_OPTIONS } from '../data/interiorOpenings'
@@ -30,7 +31,7 @@ import { DoorStylePreviewSwatch, WindowStylePreviewSwatch } from './InteriorDoor
 import { FloorPreviewSwatch } from './InteriorFloorPatterns'
 import { InteriorFurnitureArt } from './InteriorFurnitureArt'
 import { CountertopMaterialPreview } from './InteriorKitchenBathArt'
-import { TrimProfilePreviewSwatch } from './InteriorTrimProfiles'
+import { TrimProfilePreviewSwatch, WainscotingPreviewSwatch } from './InteriorTrimProfiles'
 import { WindowViewPreviewSwatch } from './InteriorWindowViews'
 import { WallpaperPreviewSwatch } from './InteriorWallpaperPatterns'
 
@@ -98,6 +99,7 @@ export function InteriorPalette({
   const trimColor = style.trimColor ?? '#C4956A'
   const baseTrimProfile = style.baseTrimProfileId ?? 'standard'
   const casingTrimProfile = style.casingTrimProfileId ?? 'standard'
+  const wainscotingId = style.wainscotingId ?? 'none'
   const defaultWindowStyle = style.windowStyleId ?? 'classic'
   const defaultDoorStyle = style.doorStyleId ?? 'panel'
   const activeWindowStyle =
@@ -601,7 +603,7 @@ export function InteriorPalette({
 
       {tab === 'trim' && (
         <>
-          <p className="palette-hint">Choose trim profiles, colours, and casing for windows and doors.</p>
+          <p className="palette-hint">Choose trim profiles, wainscoting, colours, and casing for windows and doors.</p>
 
           <section className="interior-style-section">
             <h4 className="interior-style-heading">Base trim</h4>
@@ -642,8 +644,27 @@ export function InteriorPalette({
           </section>
 
           <section className="interior-style-section">
+            <h4 className="interior-style-heading">Wall wainscoting</h4>
+            <p className="interior-style-note">Raised panels and chair rail on the lower wall.</p>
+            <div className="interior-wallpaper-grid">
+              {WAINSCOTING_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={`interior-wallpaper-btn${wainscotingId === option.id ? ' selected' : ''}`}
+                  onClick={() => onStyleChange({ wainscotingId: option.id })}
+                  title={option.name}
+                >
+                  <WainscotingPreviewSwatch wainscotingId={option.id} trimColor={trimColor} />
+                  <span>{option.emoji}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="interior-style-section">
             <h4 className="interior-style-heading">Trim colour</h4>
-            <p className="interior-style-note">Frames, baseboards, and doors.</p>
+            <p className="interior-style-note">Frames, baseboards, wainscoting, and doors.</p>
             <div className="interior-color-row">
               {TRIM_COLORS.map((paint) => (
                 <button

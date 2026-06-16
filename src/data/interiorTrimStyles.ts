@@ -1,4 +1,4 @@
-import type { DoorStyleId, InteriorStyle, TrimProfileId, WindowStyleId } from '../types'
+import type { DoorStyleId, InteriorStyle, TrimProfileId, WainscotingId, WindowStyleId } from '../types'
 import type { InteriorTheme } from './enterableBuildings'
 import { sanitizeOpeningScale } from './interiorOpenings'
 
@@ -41,6 +41,11 @@ export const TRIM_PROFILES: StyleOption<TrimProfileId>[] = [
   { id: 'standard', name: 'Standard', emoji: '📏' },
   { id: 'decorative', name: 'Decorative', emoji: '✨' },
   { id: 'rustic', name: 'Rustic', emoji: '🪵' },
+]
+
+export const WAINSCOTING_OPTIONS: StyleOption<WainscotingId>[] = [
+  { id: 'none', name: 'None', emoji: '⬜' },
+  { id: 'wainscoting', name: 'Wainscoting', emoji: '🪵' },
 ]
 
 export const TRIM_COLORS: PaintOption[] = [
@@ -92,6 +97,11 @@ export function sanitizeTrimProfileId(raw: unknown): TrimProfileId {
   return 'standard'
 }
 
+export function sanitizeWainscotingId(raw: unknown): WainscotingId {
+  if (WAINSCOTING_OPTIONS.some((o) => o.id === raw)) return raw as WainscotingId
+  return 'none'
+}
+
 export function sanitizeTrimColor(raw: unknown, theme: InteriorTheme): string {
   if (typeof raw === 'string' && TRIM_COLORS.some((c) => c.color === raw)) return raw
   if (typeof raw === 'string' && /^#[0-9A-Fa-f]{6}$/.test(raw)) return raw
@@ -108,6 +118,7 @@ export function resolveTrimStyleFields(
   | 'trimColor'
   | 'baseTrimProfileId'
   | 'casingTrimProfileId'
+  | 'wainscotingId'
   | 'windowScale'
   | 'doorScale'
 > {
@@ -117,6 +128,7 @@ export function resolveTrimStyleFields(
     trimColor: sanitizeTrimColor(style?.trimColor, theme),
     baseTrimProfileId: sanitizeTrimProfileId(style?.baseTrimProfileId),
     casingTrimProfileId: sanitizeTrimProfileId(style?.casingTrimProfileId),
+    wainscotingId: sanitizeWainscotingId(style?.wainscotingId),
     windowScale: sanitizeOpeningScale(style?.windowScale, 1),
     doorScale: sanitizeOpeningScale(style?.doorScale, 1),
   }

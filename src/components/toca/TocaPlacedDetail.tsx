@@ -133,7 +133,6 @@ function ResortDetail({ w, groundY }: { w: number; groundY: number }) {
   return (
     <>
       <GroundBase w={w} groundY={groundY} />
-      <ellipse cx={w * 0.5} cy={groundY - 4} rx={w * 0.18} ry={5} fill={TOCA.ocean} opacity={0.35} />
       {[0.2, 0.8].map((f) => (
         <g key={f}>
           <line x1={w * f} y1={groundY - 20} x2={w * f} y2={groundY - 8} stroke={TOCA.ochre} strokeWidth={1.5} />
@@ -155,9 +154,6 @@ function DockDetail({ w, groundY }: { w: number; groundY: number }) {
         stroke={TOCA.corrugatedDark}
         strokeWidth={1.2}
       />
-      {[0.25, 0.5, 0.75].map((f) => (
-        <ellipse key={f} cx={w * f} cy={groundY} rx={w * 0.06} ry={1.5} fill={TOCA.oceanDark} opacity={0.35} />
-      ))}
     </>
   )
 }
@@ -172,19 +168,8 @@ function ZooDetail({ w, groundY }: { w: number; groundY: number }) {
   )
 }
 
-function BoatDetail({ w, groundY }: { w: number; groundY: number }) {
-  return (
-    <>
-      <path
-        d={`M ${w * 0.2} ${groundY} Q ${w * 0.35} ${groundY - 3} ${w * 0.5} ${groundY - 1} Q ${w * 0.65} ${groundY + 1} ${w * 0.8} ${groundY}`}
-        fill="none"
-        stroke="rgba(255,255,255,0.45)"
-        strokeWidth={1.2}
-      />
-      <ellipse cx={w * 0.35} cy={groundY + 1} rx={w * 0.08} ry={1.5} fill="rgba(255,255,255,0.25)" />
-      <ellipse cx={w * 0.65} cy={groundY + 1} rx={w * 0.07} ry={1.2} fill="rgba(255,255,255,0.2)" />
-    </>
-  )
+function BoatDetail(_props: { w: number; groundY: number }) {
+  return null
 }
 
 function DetailForId(id: string, w: number, groundY: number): ReactNode {

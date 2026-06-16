@@ -2,8 +2,10 @@ import { useCallback, useState } from 'react'
 import type { Avatar } from '../types'
 import {
   NECKLACES,
-  SUNGLASSES,
+  SHOES,
   ACCENT_COLORS,
+  SHOE_COLORS,
+  SUNGLASSES,
   BODY_SHAPES,
   HAIR_COLORS,
   HAIR_STYLES,
@@ -165,10 +167,17 @@ export function AvatarCreator({ avatar, onChange, onDone, onBack }: AvatarCreato
             onSelect={(outfitColor) => patch({ outfitColor })}
           />
           <ColorPicker
-            label="Shoes & accents"
+            label="Accent color"
             colors={ACCENT_COLORS}
             selected={draft.accentColor}
             onSelect={(accentColor) => patch({ accentColor })}
+          />
+          <OptionPicker label="Shoes" options={SHOES} selected={draft.shoes} onSelect={(shoes) => patch({ shoes })} />
+          <ColorPicker
+            label="Shoe color"
+            colors={SHOE_COLORS}
+            selected={draft.shoeColor}
+            onSelect={(shoeColor) => patch({ shoeColor })}
           />
           <OptionPicker label="Hat" options={HATS} selected={draft.hat} onSelect={(hat) => patch({ hat })} />
           <OptionPicker

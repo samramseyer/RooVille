@@ -19,6 +19,7 @@ export type AvatarHairStyleId = 'wavy' | 'long' | 'short' | 'curly' | 'bob' | 'p
 
 export type AvatarSunglassesId = 'none' | 'classic' | 'aviator' | 'round' | 'sport'
 export type AvatarNecklaceId = 'none' | 'shell' | 'bead' | 'starfish' | 'pearl' | 'surf'
+export type AvatarShoesId = 'sneakers' | 'sandals' | 'flip-flops' | 'boots' | 'boat' | 'barefoot'
 
 export interface Avatar {
   name: string
@@ -29,9 +30,11 @@ export interface Avatar {
   outfitStyle: AvatarOutfitStyleId
   outfitColor: string
   accentColor: string
+  shoeColor: string
   hat: 'none' | 'sunhat' | 'cap' | 'bucket'
   sunglasses: AvatarSunglassesId
   necklace: AvatarNecklaceId
+  shoes: AvatarShoesId
   pet: 'none' | 'dog' | 'cat' | 'kangaroo' | 'parrot'
   vehicle: 'none' | 'bike' | 'surfboard'
 }
@@ -82,6 +85,7 @@ export type DoorStyleId =
   | 'sliding'
 export type OpeningScaleId = 'small' | 'medium' | 'large'
 export type TrimProfileId = 'standard' | 'decorative' | 'rustic'
+export type WainscotingId = 'none' | 'wainscoting'
 
 export interface InteriorStyle {
   wallColor: string
@@ -98,6 +102,8 @@ export interface InteriorStyle {
   baseTrimProfileId?: TrimProfileId
   /** Window and door casing profile. */
   casingTrimProfileId?: TrimProfileId
+  /** Lower-wall panel treatment (chair rail + boards). */
+  wainscotingId?: WainscotingId
   /** Window size multiplier (0.55–1.55). Defaults to 1. */
   windowScale?: number
   /** Door size multiplier (0.55–1.55). Defaults to 1. */

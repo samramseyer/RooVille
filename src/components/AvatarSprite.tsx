@@ -16,12 +16,14 @@ function CharacterDefs({
   hair,
   cloth,
   accent,
+  shoe,
 }: {
   id: string
   skin: string
   hair: string
   cloth: string
   accent: string
+  shoe: string
 }) {
   return (
     <defs>
@@ -47,6 +49,10 @@ function CharacterDefs({
       <linearGradient id={`${id}-accent`} x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stopColor={adjustColor(accent, 12)} />
         <stop offset="100%" stopColor={adjustColor(accent, -15)} />
+      </linearGradient>
+      <linearGradient id={`${id}-shoe`} x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor={adjustColor(shoe, 12)} />
+        <stop offset="100%" stopColor={adjustColor(shoe, -15)} />
       </linearGradient>
       <radialGradient id={`${id}-eye`} cx="42%" cy="38%" r="60%">
         <stop offset="0%" stopColor="#7A5C42" />
@@ -614,15 +620,15 @@ function LegsAndShoes({
   metrics,
   onVehicle,
   shoeStyle,
-  accentColor,
+  shoeColor,
   legStartY,
   bareLegs,
 }: {
   gradId: string
   metrics: ReturnType<typeof getBodyMetrics>
   onVehicle: boolean
-  shoeStyle: 'sneakers' | 'sandals' | 'boots'
-  accentColor: string
+  shoeStyle: Avatar['shoes']
+  shoeColor: string
   /** When set, legs render from this Y instead of the hip (e.g. dress hem). */
   legStartY?: number
   /** Bare skin below legStartY instead of denim. */
@@ -633,39 +639,78 @@ function LegsAndShoes({
   const legTop = legStartY ?? torsoBottom - 1
   const ankle = torsoBottom - 1 + legLength
   const denim = `url(#${gradId}-denim)`
-  const accent = `url(#${gradId}-accent)`
-  const legFill = bareLegs ? `url(#${gradId}-skin)` : denim
+  const shoeFill = `url(#${gradId}-shoe)`
+  const skin = `url(#${gradId}-skin)`
+  const legFill = bareLegs ? skin : denim
   const legOuter = bareLegs ? 4.5 : hip + 1
   const legInnerTop = bareLegs ? 3 : 3.5
   const legInnerAnkle = bareLegs ? 2 : 2
   const legOuterAnkle = bareLegs ? 4.5 : 5
 
+  const renderShoes = () => {
+    switch (shoeStyle) {
+      case 'sneakers':
+        return (
+          <>
+            <path d={`M ${50 - 8} ${ankle} L ${50 - 9} ${ankle + 5} L ${50 - 1} ${ankle + 5.5} L ${50 - 1} ${ankle} Z`} fill={shoeFill} />
+            <path d={`M ${50 + 8} ${ankle} L ${50 + 9} ${ankle + 5} L ${50 + 1} ${ankle + 5.5} L ${50 + 1} ${ankle} Z`} fill={shoeFill} />
+            <rect x={50 - 10} y={ankle + 4.5} width={9} height={2.5} rx={0.8} fill="#F0F0F0" />
+            <rect x={50 + 1} y={ankle + 4.5} width={9} height={2.5} rx={0.8} fill="#F0F0F0" />
+          </>
+        )
+      case 'sandals':
+        return (
+          <>
+            <ellipse cx={50 - 5} cy={ankle + 4} rx={5} ry={2} fill={shoeColor} opacity={0.85} />
+            <ellipse cx={50 + 5} cy={ankle + 4} rx={5} ry={2} fill={shoeColor} opacity={0.85} />
+            <line x1={50 - 8} y1={ankle + 2} x2={50 - 2} y2={ankle + 2} stroke={adjustColor(shoeColor, -30)} strokeWidth={0.8} />
+            <line x1={50 + 2} y1={ankle + 2} x2={50 + 8} y2={ankle + 2} stroke={adjustColor(shoeColor, -30)} strokeWidth={0.8} />
+          </>
+        )
+      case 'flip-flops':
+        return (
+          <>
+            <ellipse cx={50 - 5} cy={ankle + 4.2} rx={4.8} ry={1.6} fill={shoeColor} opacity={0.9} />
+            <ellipse cx={50 + 5} cy={ankle + 4.2} rx={4.8} ry={1.6} fill={shoeColor} opacity={0.9} />
+            <path d={`M ${50 - 5} ${ankle + 1.5} L ${50 - 5} ${ankle + 4.2} M ${50 - 5} ${ankle + 1.5} L ${50 - 7.5} ${ankle + 3.5} M ${50 - 5} ${ankle + 1.5} L ${50 - 2.5} ${ankle + 3.5}`} fill="none" stroke={adjustColor(shoeColor, -35)} strokeWidth={0.75} strokeLinecap="round" />
+            <path d={`M ${50 + 5} ${ankle + 1.5} L ${50 + 5} ${ankle + 4.2} M ${50 + 5} ${ankle + 1.5} L ${50 + 2.5} ${ankle + 3.5} M ${50 + 5} ${ankle + 1.5} L ${50 + 7.5} ${ankle + 3.5}`} fill="none" stroke={adjustColor(shoeColor, -35)} strokeWidth={0.75} strokeLinecap="round" />
+          </>
+        )
+      case 'boots':
+        return (
+          <>
+            <rect x={50 - 9} y={ankle - 2} width={7} height={8} rx={1.5} fill={adjustColor(shoeColor, -25)} />
+            <rect x={50 + 2} y={ankle - 2} width={7} height={8} rx={1.5} fill={adjustColor(shoeColor, -25)} />
+          </>
+        )
+      case 'boat':
+        return (
+          <>
+            <path d={`M ${50 - 9} ${ankle + 1} L ${50 - 9} ${ankle + 5.5} Q ${50 - 5} ${ankle + 6.2} ${50 - 1} ${ankle + 5.5} L ${50 - 1} ${ankle + 1} Z`} fill={adjustColor(shoeColor, -18)} />
+            <path d={`M ${50 + 9} ${ankle + 1} L ${50 + 9} ${ankle + 5.5} Q ${50 + 5} ${ankle + 6.2} ${50 + 1} ${ankle + 5.5} L ${50 + 1} ${ankle + 1} Z`} fill={adjustColor(shoeColor, -18)} />
+            <line x1={50 - 8} y1={ankle + 2.5} x2={50 - 2} y2={ankle + 2.5} stroke="#F5F0E8" strokeWidth={0.6} />
+            <line x1={50 - 7.5} y1={ankle + 3.5} x2={50 - 2.5} y2={ankle + 3.5} stroke="#F5F0E8" strokeWidth={0.6} />
+            <line x1={50 + 2} y1={ankle + 2.5} x2={50 + 8} y2={ankle + 2.5} stroke="#F5F0E8" strokeWidth={0.6} />
+            <line x1={50 + 2.5} y1={ankle + 3.5} x2={50 + 7.5} y2={ankle + 3.5} stroke="#F5F0E8" strokeWidth={0.6} />
+          </>
+        )
+      case 'barefoot':
+        return (
+          <>
+            <ellipse cx={50 - 5} cy={ankle + 3.8} rx={3.2} ry={2.2} fill={skin} />
+            <ellipse cx={50 + 5} cy={ankle + 3.8} rx={3.2} ry={2.2} fill={skin} />
+          </>
+        )
+      default:
+        return null
+    }
+  }
+
   return (
     <>
       <path d={`M ${50 - legOuter} ${legTop} L ${50 - legOuterAnkle} ${ankle} L ${50 - legInnerAnkle} ${ankle} L ${50 - legInnerTop} ${legTop} Z`} fill={legFill} />
       <path d={`M ${50 + legOuter} ${legTop} L ${50 + legOuterAnkle} ${ankle} L ${50 + legInnerAnkle} ${ankle} L ${50 + legInnerTop} ${legTop} Z`} fill={legFill} />
-      {shoeStyle === 'sneakers' && (
-        <>
-          <path d={`M ${50 - 8} ${ankle} L ${50 - 9} ${ankle + 5} L ${50 - 1} ${ankle + 5.5} L ${50 - 1} ${ankle} Z`} fill={accent} />
-          <path d={`M ${50 + 8} ${ankle} L ${50 + 9} ${ankle + 5} L ${50 + 1} ${ankle + 5.5} L ${50 + 1} ${ankle} Z`} fill={accent} />
-          <rect x={50 - 10} y={ankle + 4.5} width={9} height={2.5} rx={0.8} fill="#F0F0F0" />
-          <rect x={50 + 1} y={ankle + 4.5} width={9} height={2.5} rx={0.8} fill="#F0F0F0" />
-        </>
-      )}
-      {shoeStyle === 'sandals' && (
-        <>
-          <ellipse cx={50 - 5} cy={ankle + 4} rx={5} ry={2} fill={accentColor} opacity={0.85} />
-          <ellipse cx={50 + 5} cy={ankle + 4} rx={5} ry={2} fill={accentColor} opacity={0.85} />
-          <line x1={50 - 8} y1={ankle + 2} x2={50 - 2} y2={ankle + 2} stroke={adjustColor(accentColor, -30)} strokeWidth={0.8} />
-          <line x1={50 + 2} y1={ankle + 2} x2={50 + 8} y2={ankle + 2} stroke={adjustColor(accentColor, -30)} strokeWidth={0.8} />
-        </>
-      )}
-      {shoeStyle === 'boots' && (
-        <>
-          <rect x={50 - 9} y={ankle - 2} width={7} height={8} rx={1.5} fill={adjustColor(accentColor, -25)} />
-          <rect x={50 + 2} y={ankle - 2} width={7} height={8} rx={1.5} fill={adjustColor(accentColor, -25)} />
-        </>
-      )}
+      {renderShoes()}
     </>
   )
 }
@@ -681,11 +726,12 @@ function OutfitLayer({
   metrics: ReturnType<typeof getBodyMetrics>
   onVehicle: boolean
 }) {
-  const { outfitStyle, outfitColor, accentColor, skinTone } = avatar
-  const cloth = `url(#${gradId}-cloth)`
-  const shade = adjustColor(outfitColor, -14)
+  const { outfitStyle, outfitColor, accentColor, skinTone, shoes, shoeColor } = avatar
   const { shoulder, waist, hip, torsoBottom, legLength } = metrics
   const top = 54
+  const cloth = `url(#${gradId}-cloth)`
+  const waistAccentY = top + 14
+  const shade = adjustColor(outfitColor, -14)
   const legTop = torsoBottom - 1
   const dressHem = legTop + legLength * 0.72
   const dressHemWidth = hip + 5
@@ -713,13 +759,15 @@ function OutfitLayer({
           fill={cloth}
         />
         <path d={`M ${50 - shoulder + 2} ${top} Q 50 ${top + 2} ${50 + shoulder - 2} ${top}`} fill="#FFFFFF" opacity={0.12} />
+        <rect x={50 - waist - 1} y={waistAccentY} width={waist * 2 + 2} height={3.5} rx={1} fill={accentColor} />
+        <circle cx={50} cy={waistAccentY + 1.75} r={1.6} fill={adjustColor(accentColor, -12)} />
         {arms}
         <LegsAndShoes
           gradId={gradId}
           metrics={metrics}
           onVehicle={onVehicle}
-          shoeStyle="sandals"
-          accentColor={accentColor}
+          shoeStyle={shoes}
+          shoeColor={shoeColor}
           legStartY={dressHem}
           bareLegs
         />
@@ -737,10 +785,12 @@ function OutfitLayer({
         />
         <rect x={50 - 4} y={top - 2} width={3} height={14} fill={adjustColor('#4A6278', -5)} />
         <rect x={50 + 1} y={top - 2} width={3} height={14} fill={adjustColor('#4A6278', -5)} />
+        <rect x={50 - 5} y={top + 3} width={4.5} height={3.2} rx={0.8} fill={accentColor} />
+        <rect x={50 + 0.5} y={top + 3} width={4.5} height={3.2} rx={0.8} fill={accentColor} />
         <path d={`M ${50 - shoulder + 2} ${top + 2} L ${50 - waist} ${top + 10} L ${50 - waist} ${top + 18} L ${50 - shoulder + 2} ${top + 12} Z`} fill={outfitColor} />
         <path d={`M ${50 + shoulder - 2} ${top + 2} L ${50 + waist} ${top + 10} L ${50 + waist} ${top + 18} L ${50 + shoulder - 2} ${top + 12} Z`} fill={outfitColor} />
         {arms}
-        <LegsAndShoes gradId={gradId} metrics={metrics} onVehicle={onVehicle} shoeStyle="sneakers" accentColor={accentColor} />
+        <LegsAndShoes gradId={gradId} metrics={metrics} onVehicle={onVehicle} shoeStyle={shoes} shoeColor={shoeColor} />
       </g>
     )
   }
@@ -752,11 +802,13 @@ function OutfitLayer({
           d={`M ${50 - shoulder} ${top} L ${50 - waist} ${torsoBottom - 4} L ${50 + waist} ${torsoBottom - 4} L ${50 + shoulder} ${top} Q 50 ${top - 3} ${50 - shoulder} ${top} Z`}
           fill={cloth}
         />
+        <path d={`M ${50 - 5} ${top + 1} Q 50 ${top + 5} ${50 + 5} ${top + 1}`} fill="none" stroke={accentColor} strokeWidth={1.3} strokeLinecap="round" />
         <path d={`M ${50 - 3} ${top + 2} L ${50 + 3} ${top + 2} L ${50 + 2} ${top + 8} L ${50 - 2} ${top + 8} Z`} fill="#FFFFFF" opacity={0.5} />
         {arms}
+        <rect x={50 - waist} y={torsoBottom - 7} width={waist * 2} height={2.5} rx={0.8} fill={accentColor} />
         <path d={`M ${50 - waist} ${torsoBottom - 4} L ${50 - 6} ${metrics.torsoBottom + metrics.legLength - 4} L ${50 - 3} ${metrics.torsoBottom + metrics.legLength - 4} L ${50 - 4} ${torsoBottom - 4} Z`} fill={adjustColor(outfitColor, -20)} />
         <path d={`M ${50 + waist} ${torsoBottom - 4} L ${50 + 6} ${metrics.torsoBottom + metrics.legLength - 4} L ${50 + 3} ${metrics.torsoBottom + metrics.legLength - 4} L ${50 + 4} ${torsoBottom - 4} Z`} fill={adjustColor(outfitColor, -20)} />
-        <LegsAndShoes gradId={gradId} metrics={metrics} onVehicle={onVehicle} shoeStyle="sandals" accentColor={accentColor} />
+        <LegsAndShoes gradId={gradId} metrics={metrics} onVehicle={onVehicle} shoeStyle={shoes} shoeColor={shoeColor} />
       </g>
     )
   }
@@ -771,7 +823,9 @@ function OutfitLayer({
         <ellipse cx={50} cy={top + 1} rx={5} ry={2} fill={adjustColor(outfitColor, -8)} opacity={0.4} />
         {arms}
         <rect x={50 - waist - 1} y={torsoBottom - 5} width={waist * 2 + 2} height={3} rx={1} fill={accentColor} opacity={0.9} />
-        <LegsAndShoes gradId={gradId} metrics={metrics} onVehicle={onVehicle} shoeStyle="sneakers" accentColor={accentColor} />
+        <rect x={50 - shoulder + 1} y={top + 8} width={2} height={10} rx={1} fill={accentColor} opacity={0.85} />
+        <rect x={50 + shoulder - 3} y={top + 8} width={2} height={10} rx={1} fill={accentColor} opacity={0.85} />
+        <LegsAndShoes gradId={gradId} metrics={metrics} onVehicle={onVehicle} shoeStyle={shoes} shoeColor={shoeColor} />
       </g>
     )
   }
@@ -786,6 +840,8 @@ function OutfitLayer({
       <path d={`M ${50 - shoulder + 1} ${top} Q 50 ${top + 4} ${50 + shoulder - 1} ${top}`} fill="#FFFFFF" opacity={0.1} />
       <line x1={50} y1={top + 2} x2={50} y2={torsoBottom - 2} stroke={shade} strokeWidth={0.5} opacity={0.4} />
       <path d={`M ${50 - 7} ${top + 16} Q 50 ${top + 20} ${50 + 7} ${top + 16} L ${50 + 6} ${top + 19} Q 50 ${top + 23} ${50 - 6} ${top + 19} Z`} fill={shade} opacity={0.25} />
+      <circle cx={50 - 6} cy={top + 22} r={1.3} fill={accentColor} />
+      <circle cx={50 + 6} cy={top + 22} r={1.3} fill={accentColor} />
       <path
         d={`M ${50 - shoulder} ${top + 6} Q ${50 - shoulder - 6} ${top + 12} ${50 - shoulder - 4} ${top + 20} L ${50 - shoulder + 1} ${top + 14} Z`}
         fill={outfitColor}
@@ -798,7 +854,7 @@ function OutfitLayer({
       <ellipse cx={50 + shoulder + 4} cy={top + 21} rx={2.5} ry={2} fill={skinTone} />
       <rect x={50 - waist - 1} y={torsoBottom - 5} width={waist * 2 + 2} height={3} rx={1} fill={accentColor} />
       <circle cx={50} cy={torsoBottom - 3.5} r={2} fill="#D0D0D0" stroke="#AAA" strokeWidth={0.3} />
-      <LegsAndShoes gradId={gradId} metrics={metrics} onVehicle={onVehicle} shoeStyle="sneakers" accentColor={accentColor} />
+      <LegsAndShoes gradId={gradId} metrics={metrics} onVehicle={onVehicle} shoeStyle={shoes} shoeColor={shoeColor} />
     </g>
   )
 }
@@ -907,10 +963,10 @@ export function AvatarSprite({ avatar, size = 80, className }: AvatarSpriteProps
         hair={avatar.hairColor}
         cloth={avatar.outfitColor}
         accent={avatar.accentColor}
+        shoe={avatar.shoeColor}
       />
 
       <VehicleSprite vehicle={avatar.vehicle} accentColor={avatar.accentColor} />
-      {!onVehicle && <ellipse cx={50} cy={footY + 4} rx={13} ry={3} fill="#1A1612" opacity={0.14} />}
 
       <HairBack
         id={gradId}

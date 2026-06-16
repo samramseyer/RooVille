@@ -148,7 +148,7 @@ import {
   WoodLegs,
   adjustColor,
 } from './InteriorFurnitureShared'
-import { BaseTrimMolding } from './InteriorTrimProfiles'
+import { BaseTrimMolding, WallWainscoting } from './InteriorTrimProfiles'
 import { WallpaperPatternDefs } from './InteriorWallpaperPatterns'
 
 function SofaArt() {
@@ -819,6 +819,7 @@ function StandardRoomBackground({
   const floorDark = adjustColor(floorBase, -18)
   const trim = style.trimColor ?? '#C4956A'
   const baseTrimProfile = style.baseTrimProfileId ?? 'standard'
+  const wainscotingId = style.wainscotingId ?? 'none'
   const useWallpaper = style.wallpaperId !== 'none'
   const useFloorPattern = style.floorTypeId !== 'paint'
 
@@ -845,6 +846,7 @@ function StandardRoomBackground({
         fill={useWallpaper ? 'url(#interior-wallpaper)' : 'url(#room-wall)'}
       />
       <rect x={0} y={0} width={640} height={200} fill="url(#interior-wall-grad)" />
+      {wainscotingId === 'wainscoting' && <WallWainscoting trimColor={trim} />}
       <rect
         x={0}
         y={200}

@@ -1,4 +1,4 @@
-import type { TrimProfileId } from '../types'
+import type { TrimProfileId, WainscotingId } from '../types'
 import { adjustColor } from './toca/tocaShading'
 
 const S = '#4E342E'
@@ -93,6 +93,70 @@ export function BaseTrimMolding({
       ))}
       <rect x={0} y={wallLineY} width={roomWidth} height={7} fill="#000000" opacity={0.08} />
     </>
+  )
+}
+
+/** Lower-wall chair rail and raised panel boards. */
+export function WallWainscoting({
+  trimColor,
+  wallLineY = 200,
+  roomWidth = 640,
+  startY = 118,
+}: {
+  trimColor: string
+  wallLineY?: number
+  roomWidth?: number
+  startY?: number
+}) {
+  const panelFill = adjustColor(trimColor, 22)
+  const panelMid = adjustColor(trimColor, 8)
+  const panelDark = adjustColor(trimColor, -18)
+  const railH = 7
+  const panelTop = startY + railH
+  const panelH = wallLineY - panelTop
+
+  return (
+    <>
+      <rect x={0} y={panelTop} width={roomWidth} height={panelH} fill={panelFill} />
+      {Array.from({ length: Math.ceil(roomWidth / 64) + 1 }).map((_, i) => {
+        const x = i * 64
+        return (
+          <g key={i}>
+            <rect x={x + 2} y={panelTop + 4} width={58} height={panelH - 8} rx={2} fill={panelMid} stroke={panelDark} strokeWidth={1} opacity={0.95} />
+            <rect x={x + 6} y={panelTop + 8} width={50} height={panelH - 16} rx={1.5} fill={panelFill} opacity={0.55} />
+            <line x1={x + 31} y1={panelTop + 10} x2={x + 31} y2={panelTop + panelH - 10} stroke={panelDark} strokeWidth={0.8} opacity={0.22} />
+          </g>
+        )
+      })}
+      {Array.from({ length: Math.ceil(roomWidth / 64) + 1 }).map((_, i) => (
+        <rect key={`stile-${i}`} x={i * 64} y={panelTop} width={4} height={panelH} fill={panelDark} opacity={0.4} />
+      ))}
+      <rect x={0} y={startY} width={roomWidth} height={railH} fill={trimColor} stroke={S} strokeWidth={1.5} />
+      <rect x={0} y={startY} width={roomWidth} height={2.5} fill={adjustColor(trimColor, 16)} opacity={0.55} />
+      <line x1={0} y1={startY + railH - 1} x2={roomWidth} y2={startY + railH - 1} stroke={panelDark} strokeWidth={1} opacity={0.35} />
+    </>
+  )
+}
+
+export function WainscotingPreviewSwatch({
+  wainscotingId,
+  trimColor,
+}: {
+  wainscotingId: WainscotingId
+  trimColor: string
+}) {
+  return (
+    <svg viewBox="0 0 40 28" width={40} height={28} aria-hidden="true">
+      <rect width={40} height={28} rx={6} fill="#FFF8F0" stroke={S} strokeWidth={1.5} />
+      <rect x={4} y={4} width={32} height={10} fill="#E8E0D8" rx={1} />
+      {wainscotingId === 'wainscoting' ? (
+        <g transform="translate(0, 14)">
+          <WallWainscoting trimColor={trimColor} wallLineY={14} roomWidth={40} startY={0} />
+        </g>
+      ) : (
+        <rect x={4} y={14} width={32} height={10} fill="#EDE6DC" rx={1} />
+      )}
+    </svg>
   )
 }
 

@@ -147,8 +147,6 @@ export function BigBoathouseToca() {
     <TocaWrap>
       <TocaShadow cx={52} cy={84} rx={46} />
 
-      {/* Water ripple under hull */}
-      <ellipse cx={52} cy={83} rx={48} ry={3} fill={TOCA.ocean} opacity={0.35} />
       <path
         d="M 4 81 Q 28 78 52 81 Q 76 84 98 80"
         fill="none"

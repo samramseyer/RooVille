@@ -315,7 +315,6 @@ export function StiltHouseToca() {
       <TocaDoor x={39} y={46} width={20} height={24} color={TOCA.terracotta} />
       <TocaRoundWindow cx={28} cy={52} r={7} />
       <TocaRoundWindow cx={72} cy={52} r={7} />
-      <ellipse cx={50} cy={91} rx={30} ry={3} fill={TOCA.ocean} opacity={0.45} />
       <GumLeaf x={14} y={36} />
     </TocaWrap>
   )
@@ -411,7 +410,6 @@ export function SmallBoathouseToca() {
       <CorrugatedRoof points="6,34 37,12 68,34" fill={TOCA.tinRed} />
       <rect x={26} y={44} width={24} height={22} rx={6} fill={TOCA.ochre} stroke={TOCA.stroke} strokeWidth={2} />
       <TocaRoundWindow cx={20} cy={46} r={6} />
-      <ellipse cx={62} cy={62} rx={8} ry={3} fill={TOCA.ocean} opacity={0.4} />
     </TocaWrap>
   )
 }

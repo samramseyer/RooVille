@@ -1,4 +1,4 @@
-import type { Avatar, AvatarHairStyleId, AvatarNecklaceId, AvatarSunglassesId } from '../types'
+import type { Avatar, AvatarHairStyleId, AvatarNecklaceId, AvatarShoesId, AvatarSunglassesId } from '../types'
 import { migrateBodyShape, BODY_SHAPES, OUTFIT_STYLES } from './avatarBody'
 
 export { BODY_SHAPES, OUTFIT_STYLES } from './avatarBody'
@@ -46,6 +46,8 @@ export const ACCENT_COLORS = [
   '#5D4037',
 ]
 
+export const SHOE_COLORS = ACCENT_COLORS
+
 export const HAIR_STYLES: { id: AvatarHairStyleId; label: string }[] = [
   { id: 'wavy', label: 'Wavy' },
   { id: 'long', label: 'Long straight' },
@@ -80,6 +82,15 @@ export const NECKLACES: { id: AvatarNecklaceId; label: string }[] = [
   { id: 'surf', label: 'Surf choker' },
 ]
 
+export const SHOES: { id: AvatarShoesId; label: string }[] = [
+  { id: 'sneakers', label: 'Sneakers' },
+  { id: 'sandals', label: 'Sandals' },
+  { id: 'flip-flops', label: 'Flip-flops' },
+  { id: 'boots', label: 'Boots' },
+  { id: 'boat', label: 'Boat shoes' },
+  { id: 'barefoot', label: 'Barefoot' },
+]
+
 export const PETS: { id: Avatar['pet']; label: string }[] = [
   { id: 'none', label: 'No pet' },
   { id: 'dog', label: 'Puppy' },
@@ -103,9 +114,11 @@ export const DEFAULT_AVATAR: Avatar = {
   outfitStyle: 'hoodie',
   outfitColor: OUTFIT_COLORS[1],
   accentColor: ACCENT_COLORS[0],
+  shoeColor: SHOE_COLORS[3],
   hat: 'none',
   sunglasses: 'none',
   necklace: 'none',
+  shoes: 'sneakers',
   pet: 'none',
   vehicle: 'none',
 }
@@ -124,6 +137,7 @@ const HAIR_STYLE_IDS = new Set(HAIR_STYLES.map((style) => style.id))
 const HAT_IDS = new Set(HATS.map((hat) => hat.id))
 const SUNGLASSES_IDS = new Set(SUNGLASSES.map((item) => item.id))
 const NECKLACE_IDS = new Set(NECKLACES.map((item) => item.id))
+const SHOES_IDS = new Set(SHOES.map((item) => item.id))
 
 const LEGACY_HAIR: Record<string, AvatarHairStyleId> = {
   pigtails: 'ponytail',
@@ -140,6 +154,12 @@ export function sanitizeAvatar(raw: Partial<Avatar> & { gender?: string; accesso
     typeof raw?.accentColor === 'string' && ACCENT_COLORS.includes(raw.accentColor)
       ? raw.accentColor
       : DEFAULT_AVATAR.accentColor
+  const shoeColor =
+    typeof raw?.shoeColor === 'string' && SHOE_COLORS.includes(raw.shoeColor)
+      ? raw.shoeColor
+      : typeof raw?.accentColor === 'string' && SHOE_COLORS.includes(raw.accentColor)
+        ? raw.accentColor
+        : DEFAULT_AVATAR.shoeColor
 
   const rawHair = raw?.hairStyle as string | undefined
   const hairStyle =
@@ -172,12 +192,17 @@ export function sanitizeAvatar(raw: Partial<Avatar> & { gender?: string; accesso
     hairColor,
     outfitColor,
     accentColor,
+    shoeColor,
     outfitStyle:
       raw?.outfitStyle && OUTFIT_STYLE_IDS.has(raw.outfitStyle) ? raw.outfitStyle : DEFAULT_AVATAR.outfitStyle,
     hairStyle,
     hat: HAT_IDS.has(raw?.hat as Avatar['hat']) ? (raw!.hat as Avatar['hat']) : DEFAULT_AVATAR.hat,
     sunglasses,
     necklace,
+    shoes:
+      typeof raw?.shoes === 'string' && SHOES_IDS.has(raw.shoes)
+        ? raw.shoes
+        : DEFAULT_AVATAR.shoes,
     pet: PET_IDS.has(raw?.pet as Avatar['pet']) ? (raw!.pet as Avatar['pet']) : DEFAULT_AVATAR.pet,
     vehicle: VEHICLE_IDS.has(raw?.vehicle as Avatar['vehicle'])
       ? (raw!.vehicle as Avatar['vehicle'])
