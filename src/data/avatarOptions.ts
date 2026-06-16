@@ -84,3 +84,38 @@ export function sanitizeAvatarName(raw: unknown): string {
   const trimmed = raw.trim().slice(0, 20)
   return trimmed || DEFAULT_AVATAR.name
 }
+
+const PET_IDS = new Set(PETS.map((pet) => pet.id))
+const VEHICLE_IDS = new Set(VEHICLES.map((vehicle) => vehicle.id))
+const HAIR_STYLE_IDS = new Set(HAIR_STYLES.map((style) => style.id))
+const HAT_IDS = new Set(HATS.map((hat) => hat.id))
+const ACCESSORY_IDS = new Set(ACCESSORIES.map((accessory) => accessory.id))
+
+export function sanitizeAvatar(raw: Partial<Avatar> | undefined): Avatar {
+  const skinTone = typeof raw?.skinTone === 'string' && SKIN_TONES.includes(raw.skinTone) ? raw.skinTone : DEFAULT_AVATAR.skinTone
+  const hairColor = typeof raw?.hairColor === 'string' && HAIR_COLORS.includes(raw.hairColor) ? raw.hairColor : DEFAULT_AVATAR.hairColor
+  const outfitColor =
+    typeof raw?.outfitColor === 'string' && OUTFIT_COLORS.includes(raw.outfitColor)
+      ? raw.outfitColor
+      : DEFAULT_AVATAR.outfitColor
+
+  return {
+    ...DEFAULT_AVATAR,
+    ...raw,
+    name: sanitizeAvatarName(raw?.name),
+    skinTone,
+    hairColor,
+    outfitColor,
+    hairStyle: HAIR_STYLE_IDS.has(raw?.hairStyle as Avatar['hairStyle'])
+      ? (raw!.hairStyle as Avatar['hairStyle'])
+      : DEFAULT_AVATAR.hairStyle,
+    hat: HAT_IDS.has(raw?.hat as Avatar['hat']) ? (raw!.hat as Avatar['hat']) : DEFAULT_AVATAR.hat,
+    accessory: ACCESSORY_IDS.has(raw?.accessory as Avatar['accessory'])
+      ? (raw!.accessory as Avatar['accessory'])
+      : DEFAULT_AVATAR.accessory,
+    pet: PET_IDS.has(raw?.pet as Avatar['pet']) ? (raw!.pet as Avatar['pet']) : DEFAULT_AVATAR.pet,
+    vehicle: VEHICLE_IDS.has(raw?.vehicle as Avatar['vehicle'])
+      ? (raw!.vehicle as Avatar['vehicle'])
+      : DEFAULT_AVATAR.vehicle,
+  }
+}

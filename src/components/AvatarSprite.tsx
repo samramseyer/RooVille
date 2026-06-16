@@ -6,16 +6,15 @@ interface AvatarSpriteProps {
   className?: string
 }
 
-function PetSprite({ pet, size }: { pet: Avatar['pet']; size: number }) {
-  const s = size / 80
+function PetSprite({ pet }: { pet: Avatar['pet'] }) {
   if (pet === 'none') return null
 
-  const x = 68 * s
-  const y = 55 * s
+  const x = 68
+  const y = 55
 
   if (pet === 'dog') {
     return (
-      <g transform={`translate(${x}, ${y}) scale(${s})`}>
+      <g transform={`translate(${x}, ${y})`}>
         <ellipse cx="0" cy="8" rx="10" ry="8" fill="#C4956A" />
         <circle cx="8" cy="0" r="7" fill="#C4956A" />
         <ellipse cx="12" cy="2" rx="4" ry="3" fill="#C4956A" />
@@ -26,7 +25,7 @@ function PetSprite({ pet, size }: { pet: Avatar['pet']; size: number }) {
   }
   if (pet === 'cat') {
     return (
-      <g transform={`translate(${x}, ${y}) scale(${s})`}>
+      <g transform={`translate(${x}, ${y})`}>
         <ellipse cx="0" cy="8" rx="9" ry="7" fill="#F39C12" />
         <circle cx="7" cy="0" r="6" fill="#F39C12" />
         <polygon points="2,-6 4,-12 6,-6" fill="#F39C12" />
@@ -37,7 +36,7 @@ function PetSprite({ pet, size }: { pet: Avatar['pet']; size: number }) {
   }
   if (pet === 'kangaroo') {
     return (
-      <g transform={`translate(${x}, ${y}) scale(${s})`}>
+      <g transform={`translate(${x}, ${y})`}>
         <ellipse cx="0" cy="6" rx="7" ry="9" fill="#C4956A" />
         <circle cx="0" cy="-4" r="5" fill="#C4956A" />
         <ellipse cx="-6" cy="4" rx="3" ry="5" fill="#C4956A" />
@@ -46,7 +45,7 @@ function PetSprite({ pet, size }: { pet: Avatar['pet']; size: number }) {
   }
   if (pet === 'parrot') {
     return (
-      <g transform={`translate(${x - 5 * s}, ${y - 15 * s}) scale(${s})`}>
+      <g transform={`translate(${x - 5}, ${y - 15})`}>
         <ellipse cx="0" cy="0" rx="6" ry="5" fill="#E74C3C" />
         <circle cx="4" cy="-2" r="4" fill="#E74C3C" />
         <polygon points="8,-2 14,0 8,2" fill="#F39C12" />
@@ -58,13 +57,12 @@ function PetSprite({ pet, size }: { pet: Avatar['pet']; size: number }) {
   return null
 }
 
-function VehicleSprite({ vehicle, size, outfitColor }: { vehicle: Avatar['vehicle']; size: number; outfitColor: string }) {
+function VehicleSprite({ vehicle, outfitColor }: { vehicle: Avatar['vehicle']; outfitColor: string }) {
   if (vehicle === 'none') return null
-  const s = size / 80
 
   if (vehicle === 'bike') {
     return (
-      <g transform={`translate(${20 * s}, ${82 * s}) scale(${s})`}>
+      <g transform="translate(20, 82)">
         <circle cx="10" cy="12" r="8" fill="none" stroke="#2C3E50" strokeWidth="2" />
         <circle cx="50" cy="12" r="8" fill="none" stroke="#2C3E50" strokeWidth="2" />
         <line x1="10" y1="12" x2="30" y2="0" stroke="#2C3E50" strokeWidth="2" />
@@ -76,7 +74,7 @@ function VehicleSprite({ vehicle, size, outfitColor }: { vehicle: Avatar['vehicl
   }
   if (vehicle === 'surfboard') {
     return (
-      <g transform={`translate(${5 * s}, ${75 * s}) scale(${s})`}>
+      <g transform="translate(5, 75)">
         <ellipse cx="8" cy="15" rx="6" ry="22" fill="#E74C3C" stroke="#C0392B" strokeWidth="1" />
         <ellipse cx="8" cy="15" rx="3" ry="18" fill="#FF6B6B" opacity="0.4" />
       </g>
@@ -97,7 +95,7 @@ export function AvatarSprite({ avatar, size = 80, className }: AvatarSpriteProps
       className={className}
       aria-label={`Avatar ${avatar.name}`}
     >
-      <VehicleSprite vehicle={avatar.vehicle} size={size} outfitColor={avatar.outfitColor} />
+      <VehicleSprite vehicle={avatar.vehicle} outfitColor={avatar.outfitColor} />
 
       {/* Body / outfit */}
       <ellipse cx="40" cy="72" rx="18" ry="22" fill={avatar.outfitColor} />
@@ -209,7 +207,7 @@ export function AvatarSprite({ avatar, size = 80, className }: AvatarSpriteProps
         </>
       )}
 
-      <PetSprite pet={avatar.pet} size={size} />
+      <PetSprite pet={avatar.pet} />
     </svg>
   )
 }
