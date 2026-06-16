@@ -1009,17 +1009,7 @@ export function getRoomDefaultOpenings(roomDef: InteriorRoomDef): InteriorOpenin
   }
 
   if (roomDef.variant === 'balcony') {
-    return [
-      {
-        id: 'balcony-rail',
-        kind: 'window',
-        x: 120,
-        y: 24,
-        width: 400,
-        height: 140,
-        windowStyleId: 'picture',
-      },
-    ]
+    return []
   }
 
   if (roomDef.variant === 'zoo-topdown') {

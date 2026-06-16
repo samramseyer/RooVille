@@ -20,6 +20,7 @@ import {
 } from '../data/interiorOpenings'
 import { ensureLivingRoomExitDoor } from '../data/interiorExitDoor'
 import { resolveInteriorStyle } from '../data/interiorStyles'
+import { getBuildingCatalogDefaultStyle } from '../data/buildingInteriorCatalog'
 import { getBuildingInteriorLayout, getRoomDef, getRoomFloorLabel, type RoomNavLink } from '../data/interiorLayouts'
 import {
   getRawRoomState,
@@ -119,7 +120,10 @@ export function BuildingInterior({
     : liveItem.interior ?? []
   const interiorStyle = layout
     ? resolveRoomInteriorStyle(liveItem, layout, currentRoomId, theme)
-    : resolveInteriorStyle(liveItem.interiorStyle, theme)
+    : resolveInteriorStyle(
+        { ...getBuildingCatalogDefaultStyle(building.id), ...liveItem.interiorStyle },
+        theme,
+      )
   const interiorOpeningsRaw = layout
     ? resolveRoomOpenings(liveItem, layout, currentRoomId, theme, interiorStyle)
     : resolveStoredOpenings(theme, interiorStyle, liveItem.interiorOpenings)
@@ -693,7 +697,7 @@ export function BuildingInterior({
 
   const quickFurnishRoom = () => {
     if (!roomDef || interiorItems.length > 2) return
-    const newItems = getQuickFurnishItems(roomDef.name)
+    const newItems = getQuickFurnishItems(roomDef.name, building.id)
     persistRoomData({ interior: [...interiorItems, ...newItems] })
     if (soundOn) playPlaceSound()
   }
@@ -819,6 +823,7 @@ export function BuildingInterior({
           }}
           editMode={(selectedInteriorId !== null || selectedOpeningId !== null) && !placementMode}
           paletteMode={paletteMode}
+          buildingId={building.id}
         />
 
         <div className="interior-room-container">

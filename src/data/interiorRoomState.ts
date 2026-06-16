@@ -5,6 +5,7 @@ import {
   getRoomDef,
   getRoomDefaultOpenings,
 } from './interiorLayouts'
+import { getBuildingCatalogDefaultStyle } from './buildingInteriorCatalog'
 import { ensureLivingRoomExitDoor } from './interiorExitDoor'
 import { resolveInteriorOpenings } from './interiorOpenings'
 import { resolveInteriorStyle } from './interiorStyles'
@@ -74,9 +75,10 @@ export function resolveRoomInteriorStyle(
 ) {
   const roomDef = getRoomDef(layout, roomId)
   const raw = getRawRoomState(item, roomId, layout.defaultRoomId)
+  const catalogStyle = getBuildingCatalogDefaultStyle(item.buildingId)
   const base = resolveInteriorStyle(raw.interiorStyle, theme)
-  if (!roomDef?.defaultStyle) return base
-  return resolveInteriorStyle({ ...roomDef.defaultStyle, ...raw.interiorStyle }, theme)
+  if (!roomDef?.defaultStyle && !catalogStyle) return base
+  return resolveInteriorStyle({ ...catalogStyle, ...roomDef?.defaultStyle, ...raw.interiorStyle }, theme)
 }
 
 export function resolveRoomOpenings(
@@ -100,6 +102,10 @@ export function resolveRoomOpenings(
 
   if (roomId === layout.defaultRoomId) {
     openings = ensureLivingRoomExitDoor(openings, theme, style)
+  }
+
+  if (roomDef?.variant === 'balcony') {
+    openings = openings.filter((o) => o.id !== 'balcony-rail')
   }
 
   return openings

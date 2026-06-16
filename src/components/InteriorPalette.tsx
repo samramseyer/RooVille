@@ -1,29 +1,29 @@
 import { useEffect, useState } from 'react'
 import type { FurnitureCategory, FurnitureDef } from '../data/interiorFurniture'
 import { FURNITURE_CATEGORIES, getFurniture, getFurnitureByCategory } from '../data/interiorFurniture'
+import {
+  filterCabinetColors,
+  filterCountertopMaterials,
+  filterDoorStyles,
+  filterFloorPaints,
+  filterFloorTypes,
+  filterTrimColors,
+  filterTrimProfiles,
+  filterWainscoting,
+  filterWallPaints,
+  filterWallpapers,
+  filterWindowStyles,
+  getBuildingInteriorCatalog,
+  getFurnitureForBuilding,
+} from '../data/buildingInteriorCatalog'
 import type { InteriorTheme } from '../data/enterableBuildings'
+import type { CountertopMaterial } from '../data/interiorCabinetStyles'
 import {
-  CABINET_COLORS,
-  COUNTERTOP_MATERIALS,
-  type CountertopMaterial,
-} from '../data/interiorCabinetStyles'
-import {
-  FLOOR_PAINT_COLORS,
-  FLOOR_TYPES,
   getFloorColor,
   getWallpaperColor,
-  WALLPAPERS,
-  WALL_PAINT_COLORS,
   type FloorTypeId,
   type WallpaperId,
 } from '../data/interiorStyles'
-import {
-  DOOR_STYLES,
-  TRIM_COLORS,
-  TRIM_PROFILES,
-  WAINSCOTING_OPTIONS,
-  WINDOW_STYLES,
-} from '../data/interiorTrimStyles'
 import { OPENING_SCALE_OPTIONS } from '../data/interiorOpenings'
 import { WINDOW_VIEW_OPTIONS, type WindowViewId } from '../data/interiorWindowView'
 import type { InteriorStyle, InteriorOpening, OpeningScaleId, WindowViewSetting, WindowStyleId, DoorStyleId } from '../types'
@@ -57,6 +57,8 @@ interface InteriorPaletteProps {
   activeTab?: PaletteTab | null
   /** Restrict tabs: decorate = furniture only, design = walls/openings/trim. */
   paletteMode?: InteriorPaletteMode
+  /** When set, limits furniture and design options to this house's unique catalog. */
+  buildingId?: string
 }
 
 const WINDOW_VIEW_LABELS: Record<WindowViewId, string> = {
@@ -84,8 +86,26 @@ export function InteriorPalette({
   editMode,
   activeTab,
   paletteMode = 'full',
+  buildingId,
 }: InteriorPaletteProps) {
+  const catalog = buildingId ? getBuildingInteriorCatalog(buildingId) : null
+  const wallPaints = filterWallPaints(catalog)
+  const floorPaints = filterFloorPaints(catalog)
+  const wallpapers = filterWallpapers(catalog)
+  const floorTypes = filterFloorTypes(catalog)
+  const trimColors = filterTrimColors(catalog)
+  const windowStyles = filterWindowStyles(catalog)
+  const doorStyles = filterDoorStyles(catalog)
+  const trimProfiles = filterTrimProfiles(catalog)
+  const wainscotingOptions = filterWainscoting(catalog)
+  const cabinetColors = filterCabinetColors(catalog)
+  const countertopMaterials = filterCountertopMaterials(catalog)
+  const visibleCategories = catalog
+    ? FURNITURE_CATEGORIES.filter((cat) => getFurnitureForBuilding(buildingId!, cat.id).length > 0)
+    : FURNITURE_CATEGORIES
+
   const [tab, setTab] = useState<PaletteTab>(paletteMode === 'design' ? 'walls' : 'furniture')
+  const [furnitureCategory, setFurnitureCategory] = useState<FurnitureCategory>('furniture')
 
   useEffect(() => {
     if (activeTab) setTab(activeTab)
@@ -95,8 +115,16 @@ export function InteriorPalette({
     if (paletteMode === 'decorate' && tab !== 'furniture') setTab('furniture')
     if (paletteMode === 'design' && tab === 'furniture') setTab('walls')
   }, [paletteMode, tab])
-  const [furnitureCategory, setFurnitureCategory] = useState<FurnitureCategory>('furniture')
-  const categoryItems = getFurnitureByCategory(furnitureCategory)
+
+  useEffect(() => {
+    if (visibleCategories.length > 0 && !visibleCategories.some((c) => c.id === furnitureCategory)) {
+      setFurnitureCategory(visibleCategories[0]!.id)
+    }
+  }, [buildingId, furnitureCategory, visibleCategories])
+
+  const categoryItems = buildingId
+    ? getFurnitureForBuilding(buildingId, furnitureCategory)
+    : getFurnitureByCategory(furnitureCategory)
   const selectedFurnitureDef = selectedFurnitureId ? getFurniture(selectedFurnitureId) : undefined
   const placementHint = editMode
     ? 'Tap Done below to finish moving furniture.'
@@ -154,7 +182,12 @@ export function InteriorPalette({
 
   return (
     <aside className={`interior-palette${editMode ? ' palette-dimmed' : ''}`}>
-      <h3 className="palette-title">{paletteMode === 'design' ? 'Design' : 'Decorate'}</h3>
+      <h3 className="palette-title">
+        {catalog ? `${catalog.collectionName} · ${paletteMode === 'design' ? 'Design' : 'Decorate'}` : paletteMode === 'design' ? 'Design' : 'Decorate'}
+      </h3>
+      {catalog && (
+        <p className="palette-hint palette-collection-note">Unique options for this house type only.</p>
+      )}
 
       <nav className="interior-palette-tabs interior-palette-tabs-4">
         {(paletteMode === 'full' || paletteMode === 'decorate') && (
@@ -197,7 +230,7 @@ export function InteriorPalette({
         <>
           <p className="palette-hint">{placementHint}</p>
           <div className="interior-furniture-categories">
-            {FURNITURE_CATEGORIES.map((category) => (
+            {visibleCategories.map((category) => (
               <button
                 key={category.id}
                 type="button"
@@ -215,7 +248,7 @@ export function InteriorPalette({
                 <h4 className="interior-style-heading">Cabinet colour</h4>
                 <p className="interior-style-note">Applies to all kitchen and bathroom cabinets in this room.</p>
                 <div className="interior-color-row">
-                  {CABINET_COLORS.map((paint) => (
+                  {cabinetColors.map((paint) => (
                     <button
                       key={paint.id}
                       type="button"
@@ -232,7 +265,7 @@ export function InteriorPalette({
                 <h4 className="interior-style-heading">Countertop material</h4>
                 <p className="interior-style-note">Used on cabinets, islands, and countertop slabs.</p>
                 <div className="interior-wallpaper-grid">
-                  {COUNTERTOP_MATERIALS.map((option) => (
+                  {countertopMaterials.map((option) => (
                     <button
                       key={option.id}
                       type="button"
@@ -285,7 +318,7 @@ export function InteriorPalette({
           <section className="interior-style-section">
             <h4 className="interior-style-heading">Wallpaper</h4>
             <div className="interior-wallpaper-grid">
-              {WALLPAPERS.map((wp) => (
+              {wallpapers.map((wp) => (
                 <button
                   key={wp.id}
                   type="button"
@@ -307,7 +340,7 @@ export function InteriorPalette({
             <section className="interior-style-section">
               <h4 className="interior-style-heading">Wall paint</h4>
               <div className="interior-color-row">
-                {WALL_PAINT_COLORS.map((paint) => (
+                {wallPaints.map((paint) => (
                   <button
                     key={paint.id}
                     type="button"
@@ -323,10 +356,10 @@ export function InteriorPalette({
           ) : (
             <section className="interior-style-section">
               <h4 className="interior-style-heading">
-                {WALLPAPERS.find((w) => w.id === style.wallpaperId)?.name ?? 'Pattern'} colour
+                {wallpapers.find((w) => w.id === style.wallpaperId)?.name ?? 'Pattern'} colour
               </h4>
               <div className="interior-color-row">
-                {WALL_PAINT_COLORS.map((paint) => {
+                {wallPaints.map((paint) => {
                   const activeColor = getWallpaperColor(style, style.wallpaperId)
                   return (
                     <button
@@ -356,7 +389,7 @@ export function InteriorPalette({
               <h4 className="interior-style-heading">Plain wall paint</h4>
               <p className="interior-style-note">Used when you switch back to plain walls.</p>
               <div className="interior-color-row">
-                {WALL_PAINT_COLORS.map((paint) => (
+                {wallPaints.map((paint) => (
                   <button
                     key={`plain-${paint.id}`}
                     type="button"
@@ -374,7 +407,7 @@ export function InteriorPalette({
           <section className="interior-style-section">
             <h4 className="interior-style-heading">Flooring</h4>
             <div className="interior-wallpaper-grid">
-              {FLOOR_TYPES.map((ft) => (
+              {floorTypes.map((ft) => (
                 <button
                   key={ft.id}
                   type="button"
@@ -396,7 +429,7 @@ export function InteriorPalette({
             <section className="interior-style-section">
               <h4 className="interior-style-heading">Floor paint</h4>
               <div className="interior-color-row">
-                {FLOOR_PAINT_COLORS.map((paint) => (
+                {floorPaints.map((paint) => (
                   <button
                     key={paint.id}
                     type="button"
@@ -412,10 +445,10 @@ export function InteriorPalette({
           ) : (
             <section className="interior-style-section">
               <h4 className="interior-style-heading">
-                {FLOOR_TYPES.find((f) => f.id === style.floorTypeId)?.name ?? 'Floor'} colour
+                {floorTypes.find((f) => f.id === style.floorTypeId)?.name ?? 'Floor'} colour
               </h4>
               <div className="interior-color-row">
-                {FLOOR_PAINT_COLORS.map((paint) => {
+                {floorPaints.map((paint) => {
                   const activeColor = getFloorColor(style, style.floorTypeId)
                   return (
                     <button
@@ -445,7 +478,7 @@ export function InteriorPalette({
               <h4 className="interior-style-heading">Painted floor colour</h4>
               <p className="interior-style-note">Used when you switch back to painted floors.</p>
               <div className="interior-color-row">
-                {FLOOR_PAINT_COLORS.map((paint) => (
+                {floorPaints.map((paint) => (
                   <button
                     key={`floor-paint-${paint.id}`}
                     type="button"
@@ -539,7 +572,7 @@ export function InteriorPalette({
               </p>
             )}
             <div className="interior-wallpaper-grid">
-              {WINDOW_STYLES.map((option) => (
+              {windowStyles.map((option) => (
                 <button
                   key={option.id}
                   type="button"
@@ -594,7 +627,7 @@ export function InteriorPalette({
               </p>
             )}
             <div className="interior-wallpaper-grid">
-              {DOOR_STYLES.map((option) => (
+              {doorStyles.map((option) => (
                 <button
                   key={option.id}
                   type="button"
@@ -624,7 +657,7 @@ export function InteriorPalette({
             <h4 className="interior-style-heading">Base trim</h4>
             <p className="interior-style-note">Baseboard along the wall and floor line.</p>
             <div className="interior-wallpaper-grid">
-              {TRIM_PROFILES.map((option) => (
+              {trimProfiles.map((option) => (
                 <button
                   key={option.id}
                   type="button"
@@ -643,7 +676,7 @@ export function InteriorPalette({
             <h4 className="interior-style-heading">Window &amp; door casing</h4>
             <p className="interior-style-note">Outer frame moulding around openings.</p>
             <div className="interior-wallpaper-grid">
-              {TRIM_PROFILES.map((option) => (
+              {trimProfiles.map((option) => (
                 <button
                   key={option.id}
                   type="button"
@@ -662,7 +695,7 @@ export function InteriorPalette({
             <h4 className="interior-style-heading">Wall wainscoting</h4>
             <p className="interior-style-note">Raised panels and chair rail on the lower wall.</p>
             <div className="interior-wallpaper-grid">
-              {WAINSCOTING_OPTIONS.map((option) => (
+              {wainscotingOptions.map((option) => (
                 <button
                   key={option.id}
                   type="button"
@@ -681,7 +714,7 @@ export function InteriorPalette({
             <h4 className="interior-style-heading">Trim colour</h4>
             <p className="interior-style-note">Frames, baseboards, wainscoting, and doors.</p>
             <div className="interior-color-row">
-              {TRIM_COLORS.map((paint) => (
+              {trimColors.map((paint) => (
                 <button
                   key={paint.id}
                   type="button"
