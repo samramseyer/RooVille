@@ -24,6 +24,7 @@ const TOCA_VIEWBOXES: Record<string, string> = {
   marina: '0 0 110 62',
   jetty: '0 0 100 48',
   'kangaroo-pen': '0 0 100 80',
+  'petting-zoo': '0 0 180 115',
   'koala-tree': '0 0 70 90',
   'bird-aviary': '0 0 85 75',
   'croc-pool': '0 0 95 70',

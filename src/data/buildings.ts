@@ -49,10 +49,7 @@ export const BUILDINGS: BuildingDef[] = [
   { id: 'small-boathouse', name: 'Small Boathouse', category: 'boathouses', emoji: '🛖', width: 75, height: 70 },
   { id: 'big-boathouse', name: 'Big Boathouse', category: 'boathouses', emoji: '🏚️', width: 100, height: 85 },
 
-  { id: 'kangaroo-pen', name: 'Kangaroo Pen', category: 'zoos', emoji: '🦘', width: 100, height: 80 },
-  { id: 'koala-tree', name: 'Koala Tree', category: 'zoos', emoji: '🐨', width: 70, height: 90 },
-  { id: 'bird-aviary', name: 'Bird Aviary', category: 'zoos', emoji: '🦜', width: 85, height: 75 },
-  { id: 'croc-pool', name: 'Croc Pool', category: 'zoos', emoji: '🐊', width: 95, height: 70 },
+  { id: 'petting-zoo', name: 'Petting Zoo', category: 'zoos', emoji: '🦁', width: 185, height: 125 },
 
   { id: 'palm-tree', name: 'Palm Tree', category: 'decor', emoji: '🌴', width: 50, height: 80 },
   { id: 'gum-tree', name: 'Gum Tree', category: 'decor', emoji: '🌳', width: 55, height: 85 },

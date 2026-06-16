@@ -3,7 +3,7 @@ import { ROOM_HEIGHT, ROOM_WIDTH } from './interiorOpenings'
 
 export type FurniturePlacement = 'floor' | 'wall' | 'both'
 
-export type FurnitureCategory = 'furniture' | 'kitchen-cabinets' | 'appliances' | 'bathroom-accessories' | 'patio' | 'countertops'
+export type FurnitureCategory = 'furniture' | 'kitchen-cabinets' | 'appliances' | 'bathroom-accessories' | 'patio' | 'countertops' | 'exhibits'
 
 export interface FurnitureCategoryDef {
   id: FurnitureCategory
@@ -18,6 +18,10 @@ export const FURNITURE_CATEGORIES: FurnitureCategoryDef[] = [
   { id: 'appliances', name: 'Appliances', emoji: '🍳' },
   { id: 'bathroom-accessories', name: 'Bathroom', emoji: '🛁' },
   { id: 'patio', name: 'Patio', emoji: '🌴' },
+]
+
+export const ZOO_EXHIBIT_CATEGORIES: FurnitureCategoryDef[] = [
+  { id: 'exhibits', name: 'Animals & Exhibits', emoji: '🦓' },
 ]
 
 const SIZE_LIMITS: Record<string, { minW: number; minH: number; maxW: number; maxH: number }> = {
@@ -195,6 +199,21 @@ export const INTERIOR_FURNITURE: FurnitureDef[] = [
   { id: 'patio-lantern', name: 'Lantern', emoji: '🏮', width: 28, height: 42, category: 'patio' },
   { id: 'patio-tiki-torch', name: 'Tiki Torch', emoji: '🔥', width: 22, height: 55, category: 'patio' },
   { id: 'patio-wind-chimes', name: 'Wind Chimes', emoji: '🎐', width: 24, height: 38, category: 'patio', placement: 'wall' },
+
+  { id: 'exhibit-kangaroo', name: 'Kangaroo Pen', emoji: '🦘', width: 80, height: 70, category: 'exhibits' },
+  { id: 'exhibit-goat', name: 'Goat Pen', emoji: '🐐', width: 75, height: 65, category: 'exhibits' },
+  { id: 'exhibit-horse', name: 'Horse Pen', emoji: '🐴', width: 85, height: 70, category: 'exhibits' },
+  { id: 'exhibit-sheep', name: 'Sheep Pen', emoji: '🐑', width: 75, height: 65, category: 'exhibits' },
+  { id: 'exhibit-llama', name: 'Llama Pen', emoji: '🦙', width: 80, height: 70, category: 'exhibits' },
+  { id: 'exhibit-rabbit', name: 'Rabbit Pen', emoji: '🐰', width: 65, height: 55, category: 'exhibits' },
+  { id: 'exhibit-pig', name: 'Pig Pen', emoji: '🐷', width: 80, height: 70, category: 'exhibits' },
+  { id: 'exhibit-parrot', name: 'Bird Aviary', emoji: '🦜', width: 75, height: 65, category: 'exhibits' },
+  { id: 'exhibit-donkey', name: 'Donkey Pen', emoji: '🫏', width: 80, height: 70, category: 'exhibits' },
+  { id: 'exhibit-empty-pen', name: 'Empty Pen', emoji: '🪵', width: 75, height: 65, category: 'exhibits' },
+  { id: 'exhibit-food-stand', name: 'Food Stand', emoji: '🍴', width: 55, height: 45, category: 'exhibits' },
+  { id: 'exhibit-restroom', name: 'Restrooms', emoji: '🚻', width: 50, height: 40, category: 'exhibits' },
+  { id: 'exhibit-gift-shop', name: 'Gift Shop', emoji: '🐾', width: 55, height: 45, category: 'exhibits' },
+  { id: 'exhibit-tree', name: 'Tree', emoji: '🌳', width: 45, height: 45, category: 'exhibits' },
 ]
 
 export function getFurnitureByCategory(category: FurnitureCategory): FurnitureDef[] {

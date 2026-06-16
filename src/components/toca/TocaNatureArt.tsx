@@ -246,8 +246,12 @@ export function ShellsToca() {
   )
 }
 
+import { PettingZooToca } from './TocaPettingZooArt'
+
 export function getTocaNatureArt(id: string): ReactNode | null {
   switch (id) {
+    case 'petting-zoo':
+      return <PettingZooToca />
     case 'kangaroo-pen':
       return <KangarooPenToca />
     case 'koala-tree':

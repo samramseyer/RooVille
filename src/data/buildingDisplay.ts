@@ -11,6 +11,7 @@ const GROUND_Y_BY_ID: Partial<Record<string, number>> = {
   marina: 54,
   jetty: 44,
   lighthouse: 116,
+  'petting-zoo': 108,
 }
 
 const DOCK_GROUND_HORIZONTAL: Partial<Record<string, number>> = {

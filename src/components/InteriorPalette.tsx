@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FurnitureCategory, FurnitureDef } from '../data/interiorFurniture'
 import { FURNITURE_CATEGORIES, getFurniture, getFurnitureByCategory } from '../data/interiorFurniture'
+import type { InteriorTheme } from '../data/enterableBuildings'
 import {
   CABINET_COLORS,
   COUNTERTOP_MATERIALS,
@@ -35,6 +36,7 @@ import { WallpaperPreviewSwatch } from './InteriorWallpaperPatterns'
 export type PaletteTab = 'furniture' | 'walls' | 'openings' | 'trim'
 
 interface InteriorPaletteProps {
+  theme?: InteriorTheme
   style: InteriorStyle
   resolvedWindowView: WindowViewId
   selectedOpening?: InteriorOpening | null
@@ -60,6 +62,7 @@ const WINDOW_VIEW_LABELS: Record<WindowViewId, string> = {
 }
 
 export function InteriorPalette({
+  theme = 'home',
   style,
   resolvedWindowView,
   selectedOpening,
@@ -106,6 +109,34 @@ export function InteriorPalette({
   const countertopMaterial = style.countertopMaterial ?? 'wood'
   const showCabinetFinishes =
     furnitureCategory === 'kitchen-cabinets' || furnitureCategory === 'countertops'
+
+  if (theme === 'zoo') {
+    const exhibitItems = getFurnitureByCategory('exhibits')
+    return (
+      <aside className={`interior-palette${editMode ? ' palette-dimmed' : ''}`}>
+        <h3 className="palette-title">Exhibits</h3>
+        <p className="palette-hint">
+          {selectedFurnitureDef
+            ? `Placing: ${selectedFurnitureDef.name} — tap an empty pen on the map`
+            : 'Pick an animal or exhibit, then tap the map to place it'}
+        </p>
+        <div className="interior-furniture-grid">
+          {exhibitItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`interior-furniture-btn${selectedFurnitureId === item.id ? ' selected' : ''}`}
+              onClick={() => onSelectFurniture(item)}
+              title={item.name}
+            >
+              <InteriorFurnitureArt id={item.id} emoji={item.emoji} />
+              <span>{item.emoji}</span>
+            </button>
+          ))}
+        </div>
+      </aside>
+    )
+  }
 
   return (
     <aside className={`interior-palette${editMode ? ' palette-dimmed' : ''}`}>

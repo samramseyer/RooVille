@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { BuildingDef, DoorStyleId, GameState, InteriorItem, InteriorOpening, InteriorRoomState, PlacedItem, WindowStyleId } from '../types'
 import type { FurnitureDef } from '../data/interiorFurniture'
 import { getFurniture, getFurnitureDimensions, isFloorLayerFurniture, isResizableFurniture, clampFurnitureDimensions, clampFurniturePosition } from '../data/interiorFurniture'
-import { getInteriorTheme } from '../data/enterableBuildings'
+import { getInteriorTheme, type InteriorTheme } from '../data/enterableBuildings'
 import {
   clampDoorOpening,
   clampOpening,
@@ -48,10 +48,11 @@ const AVATAR_RADIUS = 28
 type PlacementMode = 'window' | 'door' | null
 type DragMode = 'avatar' | 'furniture' | 'opening' | 'resize-opening' | 'resize-furniture' | null
 
-function clampAvatarPosition(x: number, y: number) {
+function clampAvatarPosition(x: number, y: number, theme: InteriorTheme = 'home') {
+  const floorTop = theme === 'zoo' ? AVATAR_RADIUS : FLOOR_TOP + AVATAR_RADIUS
   return {
     x: Math.max(AVATAR_RADIUS, Math.min(ROOM_WIDTH - AVATAR_RADIUS, x)),
-    y: Math.max(FLOOR_TOP + AVATAR_RADIUS, Math.min(ROOM_HEIGHT - AVATAR_RADIUS, y)),
+    y: Math.max(floorTop, Math.min(ROOM_HEIGHT - AVATAR_RADIUS, y)),
   }
 }
 
@@ -110,9 +111,11 @@ export function BuildingInterior({
     ? resolveRoomOpenings(liveItem, layout, currentRoomId, theme, interiorStyle)
     : resolveStoredOpenings(theme, interiorStyle, liveItem.interiorOpenings)
   const interiorOpenings: InteriorOpening[] =
-    !layout || currentRoomId === layout.defaultRoomId
-      ? ensureLivingRoomExitDoor(interiorOpeningsRaw, theme, interiorStyle)
-      : interiorOpeningsRaw
+    theme === 'zoo'
+      ? interiorOpeningsRaw
+      : !layout || currentRoomId === layout.defaultRoomId
+        ? ensureLivingRoomExitDoor(interiorOpeningsRaw, theme, interiorStyle)
+        : interiorOpeningsRaw
   const windowView = roomDef?.forceOceanView
     ? 'ocean'
     : resolveWindowView(liveItem, building, gameState.items, mapSize, interiorStyle.windowViewId)
@@ -297,7 +300,7 @@ export function BuildingInterior({
     if (!coords) return
 
     if (dragMode === 'avatar') {
-      const clamped = clampAvatarPosition(coords.x - dragOffset.current.x, coords.y - dragOffset.current.y)
+      const clamped = clampAvatarPosition(coords.x - dragOffset.current.x, coords.y - dragOffset.current.y, theme)
       persistAvatarPosition(clamped)
       return
     }
@@ -605,9 +608,11 @@ export function BuildingInterior({
   const isPlacing = !!selectedFurniture || !!placementMode
   const townExitDoor = getTownExitDoor(interiorOpenings)
   const nearTownExitDoor =
-    townExitDoor !== null &&
-    isLivingAreaRoom(layout ?? null, currentRoomId) &&
-    isAvatarNearExitDoor(avatarPosition, townExitDoor)
+    theme === 'zoo'
+      ? avatarPosition.y > 350 && Math.abs(avatarPosition.x - ROOM_WIDTH / 2) < 110
+      : townExitDoor !== null &&
+        isLivingAreaRoom(layout ?? null, currentRoomId) &&
+        isAvatarNearExitDoor(avatarPosition, townExitDoor)
 
   return (
     <div className="building-interior">
@@ -634,7 +639,8 @@ export function BuildingInterior({
         </div>
         {selectedFurniture && !selectedInteriorId && !selectedOpeningId && (
           <div className="placement-hint interior-placement-hint">
-            Placing: {selectedFurniture.name} — tap anywhere in the room (homes, shops, boats & boathouses)
+            Placing: {selectedFurniture.name} —{' '}
+            {theme === 'zoo' ? 'tap the map to place animals & exhibits' : 'tap anywhere in the room (homes, shops, boats & boathouses)'}
             <button type="button" className="btn btn-ghost btn-small" onClick={() => setSelectedFurniture(null)}>
               Cancel
             </button>
@@ -652,6 +658,7 @@ export function BuildingInterior({
 
       <div className="interior-body">
         <InteriorPalette
+          theme={theme}
           style={interiorStyle}
           resolvedWindowView={windowView}
           selectedOpening={selectedOpening ?? null}
@@ -723,7 +730,7 @@ export function BuildingInterior({
 
           <div
             ref={roomRef}
-            className={`interior-room interior-room--${theme}${roomDef ? ` interior-room--${roomDef.variant === 'lantern-deck' ? 'lantern-deck' : roomDef.floor}` : ''}${isPlacing && !selectedInteriorId && !selectedOpeningId ? ' placing-mode' : ''}`}
+            className={`interior-room interior-room--${theme}${roomDef?.variant === 'zoo-topdown' ? ' interior-room--zoo-topdown' : roomDef ? ` interior-room--${roomDef.variant === 'lantern-deck' ? 'lantern-deck' : roomDef.floor}` : ''}${isPlacing && !selectedInteriorId && !selectedOpeningId ? ' placing-mode' : ''}`}
             onPointerDown={handleRoomPointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={stopDrag}
@@ -745,34 +752,35 @@ export function BuildingInterior({
               <InteriorRoomNav links={roomDef.nav} onNavigate={switchRoom} />
             )}
 
-            {interiorOpenings.map((opening) => (
-              <InteriorOpeningView
-                key={opening.id}
-                opening={opening}
-                theme={theme}
-                defaultWindowStyleId={windowStyleId}
-                defaultDoorStyleId={doorStyleId}
-                trimColor={trimColor}
-                windowView={windowView}
-                casingProfile={casingTrimProfile}
-                selected={opening.id === selectedOpeningId}
-                exitReady={
-                  isTownExitDoor(opening, interiorOpenings, layout ?? null, currentRoomId) && nearTownExitDoor
-                }
-                onPointerDown={(e) => startOpeningDrag(e, opening)}
-                onResizePointerDown={(e) => startOpeningResize(e, opening)}
-                onPointerMove={handlePointerMove}
-                onPointerUp={finishOpeningPointer}
-              />
-            ))}
+            {theme !== 'zoo' &&
+              interiorOpenings.map((opening) => (
+                <InteriorOpeningView
+                  key={opening.id}
+                  opening={opening}
+                  theme={theme}
+                  defaultWindowStyleId={windowStyleId}
+                  defaultDoorStyleId={doorStyleId}
+                  trimColor={trimColor}
+                  windowView={windowView}
+                  casingProfile={casingTrimProfile}
+                  selected={opening.id === selectedOpeningId}
+                  exitReady={
+                    isTownExitDoor(opening, interiorOpenings, layout ?? null, currentRoomId) && nearTownExitDoor
+                  }
+                  onPointerDown={(e) => startOpeningDrag(e, opening)}
+                  onResizePointerDown={(e) => startOpeningResize(e, opening)}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={finishOpeningPointer}
+                />
+              ))}
 
-            {nearTownExitDoor && townExitDoor && (
+            {nearTownExitDoor && (theme === 'zoo' || townExitDoor) && (
               <button
                 type="button"
                 className="exit-building-btn"
                 style={{
-                  left: `${((townExitDoor.x + townExitDoor.width / 2) / ROOM_WIDTH) * 100}%`,
-                  top: `${(townExitDoor.y / ROOM_HEIGHT) * 100}%`,
+                  left: `${((theme === 'zoo' ? ROOM_WIDTH / 2 : (townExitDoor!.x + townExitDoor!.width / 2)) / ROOM_WIDTH) * 100}%`,
+                  top: `${((theme === 'zoo' ? 430 : townExitDoor!.y) / ROOM_HEIGHT) * 100}%`,
                 }}
                 onClick={onExit}
               >

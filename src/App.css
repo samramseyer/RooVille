@@ -2069,6 +2069,19 @@ button {
   box-shadow: inset 0 0 0 3px rgba(183, 74, 66, 0.35);
 }
 
+.interior-room--zoo-topdown {
+  box-shadow: inset 0 0 0 3px rgba(104, 159, 56, 0.35);
+  background: #7cb342;
+}
+
+.interior-room--zoo-topdown .interior-room-svg {
+  opacity: 1;
+}
+
+.interior-room--zoo-topdown .interior-avatar-wrap {
+  z-index: 12;
+}
+
 .lighthouse-lantern-art {
   animation: lantern-glow 2.4s ease-in-out infinite;
 }

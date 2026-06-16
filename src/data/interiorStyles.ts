@@ -102,18 +102,21 @@ const THEME_WALL_DEFAULTS: Record<InteriorTheme, string> = {
   home: '#FFF0E0',
   shop: '#FFF8F0',
   boat: '#E8D5A3',
+  zoo: '#7CB342',
 }
 
 const THEME_FLOOR_DEFAULTS: Record<InteriorTheme, string> = {
   home: '#E8C872',
   shop: '#D5DBDB',
   boat: '#C4956A',
+  zoo: '#7CB342',
 }
 
 const THEME_FLOOR_TYPE_DEFAULTS: Record<InteriorTheme, FloorTypeId> = {
   home: 'wood-planks',
   shop: 'tile',
   boat: 'wood-planks',
+  zoo: 'paint',
 }
 
 function buildDefaultWallpaperColors(wallColor: string): Record<PatternWallpaperId, string> {

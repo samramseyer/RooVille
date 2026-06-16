@@ -4,13 +4,15 @@ import { getPlacedDisplayPosition, getPlacedDisplaySize } from './buildingDispla
 
 const ENTERABLE_CATEGORIES: BuildingCategory[] = ['houses', 'businesses', 'boats', 'boathouses']
 
-export type InteriorTheme = 'home' | 'shop' | 'boat'
+export type InteriorTheme = 'home' | 'shop' | 'boat' | 'zoo'
 
 export function isEnterableBuilding(building: BuildingDef): boolean {
+  if (building.id === 'petting-zoo') return true
   return ENTERABLE_CATEGORIES.includes(building.category)
 }
 
 export function getInteriorTheme(building: BuildingDef): InteriorTheme {
+  if (building.id === 'petting-zoo') return 'zoo'
   if (building.category === 'boats') return 'boat'
   if (building.category === 'businesses') return 'shop'
   return 'home'

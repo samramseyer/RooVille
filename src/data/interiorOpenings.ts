@@ -43,12 +43,17 @@ const THEME_WINDOWS: Record<InteriorTheme, { left: OpeningRect; right: OpeningRe
     left: { x: 92, y: 62, width: 56, height: 56 },
     right: { x: 492, y: 62, width: 56, height: 56 },
   },
+  zoo: {
+    left: { x: 0, y: 0, width: 0, height: 0 },
+    right: { x: 0, y: 0, width: 0, height: 0 },
+  },
 }
 
 const THEME_DOOR: Record<InteriorTheme, OpeningRect> = {
   home: { x: 280, y: 430, width: 80, height: 50 },
   shop: { x: 280, y: 430, width: 80, height: 50 },
   boat: { x: 280, y: 430, width: 80, height: 50 },
+  zoo: { x: 268, y: 418, width: 104, height: 48 },
 }
 
 export function clampOpeningScale(scale: number): number {
@@ -164,6 +169,9 @@ export function getOpeningDoorStyle(
 }
 
 export function getDefaultOpenings(theme: InteriorTheme, style: InteriorStyle): InteriorOpening[] {
+  if (theme === 'zoo') {
+    return []
+  }
   const windowScale = style.windowScale ?? 1
   const doorScale = style.doorScale ?? 1
   const windowStyle = style.windowStyleId ?? sanitizeWindowStyleId(undefined, theme)

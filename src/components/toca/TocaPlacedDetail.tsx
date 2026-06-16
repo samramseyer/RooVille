@@ -13,7 +13,7 @@ const BEACH_HOUSE_IDS = new Set([
   'blue-beach-house',
 ])
 
-const NO_GROUND_DETAIL_IDS = new Set([...BEACH_HOUSE_IDS, 'lighthouse'])
+const NO_GROUND_DETAIL_IDS = new Set([...BEACH_HOUSE_IDS, 'lighthouse', 'petting-zoo'])
 
 function parseViewBox(viewBox: string) {
   const parts = viewBox.split(/\s+/).map(Number)

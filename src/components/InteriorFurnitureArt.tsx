@@ -1,5 +1,7 @@
 import { LighthouseLanternDeckBackground } from './InteriorLighthouseLanternArt'
 import type { InteriorRoomVariant } from '../data/interiorLayouts'
+import { PettingZooMapArt } from './PettingZooMapArt'
+import { renderZooExhibitArt } from './InteriorZooExhibitArt'
 import type { InteriorTheme } from '../data/enterableBuildings'
 import type { WindowViewId } from '../data/interiorWindowView'
 import {
@@ -701,7 +703,9 @@ function renderInteriorFurnitureArt(id: string, emoji?: string) {
       return <PatioTikiTorchArt />
     case 'patio-wind-chimes':
       return <PatioWindChimesArt />
-    default:
+    default: {
+      const exhibit = renderZooExhibitArt(id)
+      if (exhibit) return exhibit
       return (
         <FurnSvg viewBox="0 0 40 40">
           {emoji ? (
@@ -713,6 +717,7 @@ function renderInteriorFurnitureArt(id: string, emoji?: string) {
           )}
         </FurnSvg>
       )
+    }
   }
 }
 
@@ -734,7 +739,15 @@ export function InteriorRoomBackground({
     return <BalconyRoomBackground style={style} />
   }
 
+  if (variant === 'zoo-topdown') {
+    return <PettingZooInteriorBackground />
+  }
+
   return <StandardRoomBackground theme={theme} style={style} />
+}
+
+function PettingZooInteriorBackground() {
+  return <PettingZooMapArt mode="interior" />
 }
 
 function BalconyRoomBackground({ style }: { style: InteriorStyle }) {

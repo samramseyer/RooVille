@@ -2,7 +2,7 @@ import type { InteriorOpening, InteriorStyle } from '../types'
 
 export type NavDirection = 'left' | 'right' | 'up' | 'down'
 export type InteriorRoomFloor = 'downstairs' | 'upstairs' | 'outdoor'
-export type InteriorRoomVariant = 'standard' | 'balcony' | 'lantern-deck'
+export type InteriorRoomVariant = 'standard' | 'balcony' | 'lantern-deck' | 'zoo-topdown'
 
 export interface RoomNavLink {
   direction: NavDirection
@@ -457,7 +457,31 @@ export const STILT_HOUSE_LAYOUT: BuildingInteriorLayout = {
   rooms: STILT_HOUSE_ROOMS,
 }
 
-const LAYOUTS: BuildingInteriorLayout[] = [BIG_BOATHOUSE_LAYOUT, LIGHTHOUSE_LAYOUT, STILT_HOUSE_LAYOUT]
+export const PETTING_ZOO_LAYOUT: BuildingInteriorLayout = {
+  buildingId: 'petting-zoo',
+  defaultRoomId: 'petting-zoo-ground',
+  rooms: [
+    {
+      id: 'petting-zoo-ground',
+      name: 'Petting Zoo',
+      emoji: '🦓',
+      floor: 'outdoor',
+      floorLabel: 'Petting zoo map',
+      variant: 'zoo-topdown',
+      defaultAvatar: { x: 320, y: 400 },
+      defaultStyle: {
+        wallColor: '#7CB342',
+        floorColor: '#7CB342',
+        wallpaperId: 'none',
+        floorTypeId: 'paint',
+        trimColor: '#8D6E63',
+      },
+      nav: [],
+    },
+  ],
+}
+
+const LAYOUTS: BuildingInteriorLayout[] = [BIG_BOATHOUSE_LAYOUT, LIGHTHOUSE_LAYOUT, STILT_HOUSE_LAYOUT, PETTING_ZOO_LAYOUT]
 
 export function getBuildingInteriorLayout(buildingId: string): BuildingInteriorLayout | null {
   return LAYOUTS.find((layout) => layout.buildingId === buildingId) ?? null
@@ -484,6 +508,10 @@ export function getRoomDefaultOpenings(roomDef: InteriorRoomDef): InteriorOpenin
         windowStyleId: 'picture',
       },
     ]
+  }
+
+  if (roomDef.variant === 'zoo-topdown') {
+    return []
   }
 
   if (roomDef.id === 'lighthouse-ground') {

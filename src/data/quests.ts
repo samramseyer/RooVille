@@ -11,8 +11,8 @@ export const QUESTS: QuestDef[] = [
   {
     id: 'zoo-keeper',
     title: 'Zoo Keeper',
-    description: 'Build a zoo with 3 different animals',
-    hint: 'Kangaroos, koalas, crocs, and birds all count!',
+    description: 'Place a Petting Zoo and add 3 animal exhibits inside',
+    hint: 'Enter the zoo and place kangaroos, goats, horses, and more!',
   },
   {
     id: 'harbour-master',
@@ -50,13 +50,41 @@ function countByCategory(items: PlacedItem[], category: string): number {
   return items.filter((item) => getBuilding(item.buildingId)?.category === category).length
 }
 
+function countZooKeeperProgress(items: PlacedItem[]): number {
+  let best = 0
+  for (const item of items) {
+    const building = getBuilding(item.buildingId)
+    if (!building) continue
+
+    if (item.buildingId === 'petting-zoo') {
+      const room = item.interiorRooms?.['petting-zoo-ground']
+      const interior = room?.interior ?? item.interior ?? []
+      const animalExhibits = new Set(
+        interior
+          .map((entry) => entry.furnitureId)
+          .filter(
+            (id) =>
+              id.startsWith('exhibit-') &&
+              id !== 'exhibit-empty-pen' &&
+              id !== 'exhibit-tree' &&
+              !id.includes('food') &&
+              !id.includes('restroom') &&
+              !id.includes('gift'),
+          ),
+      )
+      best = Math.max(best, animalExhibits.size, 1)
+      continue
+    }
+
+    if (building.category === 'zoos') {
+      best = Math.max(best, 1)
+    }
+  }
+  return best
+}
+
 function countUniqueZooAnimals(items: PlacedItem[]): number {
-  const zooIds = new Set(
-    items
-      .filter((item) => getBuilding(item.buildingId)?.category === 'zoos')
-      .map((item) => item.buildingId),
-  )
-  return zooIds.size
+  return countZooKeeperProgress(items)
 }
 
 export function checkQuest(questId: string, items: PlacedItem[]): boolean {

@@ -60,18 +60,21 @@ const THEME_TRIM_DEFAULTS: Record<InteriorTheme, string> = {
   home: '#C4956A',
   shop: '#48B5B0',
   boat: '#8B6914',
+  zoo: '#8D6E63',
 }
 
 const THEME_WINDOW_DEFAULTS: Record<InteriorTheme, WindowStyleId> = {
   home: 'classic',
   shop: 'wide',
   boat: 'porthole',
+  zoo: 'classic',
 }
 
 const THEME_DOOR_DEFAULTS: Record<InteriorTheme, DoorStyleId> = {
   home: 'panel',
   shop: 'glass',
   boat: 'hatch',
+  zoo: 'coastal',
 }
 
 export function sanitizeWindowStyleId(raw: unknown, theme: InteriorTheme): WindowStyleId {
