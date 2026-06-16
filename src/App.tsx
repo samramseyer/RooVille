@@ -4,6 +4,7 @@ import { Welcome } from './components/Welcome'
 import { AvatarCreator } from './components/AvatarCreator'
 import { CoastalWorld } from './components/CoastalWorld'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { InstallAppProvider } from './context/InstallAppContext'
 import { useGameSave } from './hooks/useGameSave'
 import { useSoundToggle } from './hooks/useSoundToggle'
 import { sanitizeAvatar } from './data/avatarOptions'
@@ -18,6 +19,7 @@ function App() {
 
   return (
     <ErrorBoundary onResetSave={resetGame}>
+      <InstallAppProvider>
       <div className="app">
       {screen === 'welcome' && (
         <Welcome
@@ -60,6 +62,7 @@ function App() {
         />
       )}
       </div>
+      </InstallAppProvider>
     </ErrorBoundary>
   )
 }

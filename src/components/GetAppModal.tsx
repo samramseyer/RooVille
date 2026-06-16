@@ -1,12 +1,11 @@
 import { useCallback, useState } from 'react'
-import { useInstallApp } from '../hooks/useInstallApp'
+import { useInstallApp } from '../context/InstallAppContext'
 
 interface GetAppModalProps {
-  open: boolean
   onClose: () => void
 }
 
-export function GetAppModal({ open, onClose }: GetAppModalProps) {
+export function GetAppModal({ onClose }: GetAppModalProps) {
   const {
     install,
     isIos,
@@ -30,8 +29,6 @@ export function GetAppModal({ open, onClose }: GetAppModalProps) {
       window.prompt('Copy this link and open it on your phone:', playUrl)
     }
   }, [playUrl])
-
-  if (!open) return null
 
   return (
     <div className="get-app-overlay" onClick={onClose} role="presentation">

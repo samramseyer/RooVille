@@ -684,7 +684,7 @@ export function CoastalWorld({
           }}
         />
       )}
-      <GetAppModal open={showGetApp} onClose={() => setShowGetApp(false)} />
+      {showGetApp && <GetAppModal onClose={() => setShowGetApp(false)} />}
 
       <div className="world-body">
         {isMobile && mobilePanel === 'build' && (

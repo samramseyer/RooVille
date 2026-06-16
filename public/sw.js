@@ -1,7 +1,6 @@
-const CACHE_NAME = 'rooville-shell-v3'
+const CACHE_NAME = 'rooville-shell-v4'
+
 const SHELL = [
-  './',
-  './index.html',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -24,13 +23,17 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-function isCacheableAsset(pathname) {
+function isNavigationRequest(request, url) {
   return (
-    pathname.includes('/assets/') ||
-    pathname.endsWith('.png') ||
-    pathname.endsWith('.svg') ||
-    pathname.endsWith('.webmanifest')
+    request.mode === 'navigate' ||
+    url.pathname.endsWith('.html') ||
+    url.pathname === '/' ||
+    url.pathname.endsWith('/')
   )
+}
+
+function isHashedAsset(pathname) {
+  return pathname.includes('/assets/')
 }
 
 self.addEventListener('fetch', (event) => {
@@ -38,20 +41,48 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   if (url.origin !== self.location.origin) return
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request)
+  if (isNavigationRequest(event.request, url)) {
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
-          if (response.ok && isCacheableAsset(url.pathname)) {
+          if (response.ok) {
             const copy = response.clone()
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
           }
           return response
         })
-        .catch(() => cached)
+        .catch(() => caches.match(event.request).then((cached) => cached ?? caches.match('./index.html'))),
+    )
+    return
+  }
 
-      if (cached) return cached
-      return network
-    }),
+  if (isHashedAsset(url.pathname)) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        const network = fetch(event.request)
+          .then((response) => {
+            if (response.ok) {
+              const copy = response.clone()
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
+            }
+            return response
+          })
+          .catch(() => cached)
+        return cached ?? network
+      }),
+    )
+    return
+  }
+
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const copy = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
+        }
+        return response
+      })
+      .catch(() => caches.match(event.request)),
   )
 })

@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Capacitor } from '@capacitor/core'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -28,26 +35,49 @@ export function isMobileDevice(): boolean {
   return isIosDevice() || isAndroidDevice()
 }
 
-export function getPlayUrl(): string {
-  const { origin, pathname } = window.location
-  return `${origin}${pathname}`.replace(/\/$/, '') || origin
+function isNativeCapacitorApp(): boolean {
+  if (typeof window === 'undefined') return false
+  const cap = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
+  return cap?.isNativePlatform?.() ?? false
 }
 
-export function useInstallApp() {
+export function getPlayUrl(): string {
+  const { origin, pathname } = window.location
+  const path = pathname.replace(/\/$/, '')
+  return path ? `${origin}${path}` : origin
+}
+
+export interface InstallAppContextValue {
+  showMobileBanner: boolean
+  install: () => Promise<boolean>
+  dismissBanner: () => void
+  isIos: boolean
+  isAndroid: boolean
+  isMobile: boolean
+  hasNativeInstall: boolean
+  canOfferInstall: boolean
+  installed: boolean
+  nativeApp: boolean
+  playUrl: string
+}
+
+const InstallAppContext = createContext<InstallAppContextValue | null>(null)
+
+export function InstallAppProvider({ children }: { children: ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [bannerDismissed, setBannerDismissed] = useState(
     () => localStorage.getItem(DISMISS_KEY) === '1',
   )
   const [mobileDevice, setMobileDevice] = useState(false)
-  const [installed, setInstalled] = useState(isStandaloneApp)
-  const [nativeApp, setNativeApp] = useState(Capacitor.isNativePlatform())
+  const [installed, setInstalled] = useState(() => isStandaloneApp())
+  const [nativeApp, setNativeApp] = useState(() => isNativeCapacitorApp())
 
   useEffect(() => {
     setMobileDevice(isMobileDevice())
     setInstalled(isStandaloneApp())
-    setNativeApp(Capacitor.isNativePlatform())
+    setNativeApp(isNativeCapacitorApp())
 
-    if (Capacitor.isNativePlatform() || isStandaloneApp()) return
+    if (isNativeCapacitorApp() || isStandaloneApp()) return
 
     const installHandler = (e: Event) => {
       e.preventDefault()
@@ -85,17 +115,39 @@ export function useInstallApp() {
   const showMobileBanner =
     canOfferInstall && !bannerDismissed && (mobileDevice || !!deferredPrompt)
 
-  return {
-    showMobileBanner,
-    install,
-    dismissBanner,
-    isIos: isIosDevice(),
-    isAndroid: isAndroidDevice(),
-    isMobile: mobileDevice,
-    hasNativeInstall: !!deferredPrompt,
-    canOfferInstall,
-    installed,
-    nativeApp,
-    playUrl: getPlayUrl(),
+  const value = useMemo<InstallAppContextValue>(
+    () => ({
+      showMobileBanner,
+      install,
+      dismissBanner,
+      isIos: isIosDevice(),
+      isAndroid: isAndroidDevice(),
+      isMobile: mobileDevice,
+      hasNativeInstall: !!deferredPrompt,
+      canOfferInstall,
+      installed,
+      nativeApp,
+      playUrl: getPlayUrl(),
+    }),
+    [
+      showMobileBanner,
+      install,
+      dismissBanner,
+      mobileDevice,
+      deferredPrompt,
+      canOfferInstall,
+      installed,
+      nativeApp,
+    ],
+  )
+
+  return <InstallAppContext.Provider value={value}>{children}</InstallAppContext.Provider>
+}
+
+export function useInstallApp(): InstallAppContextValue {
+  const ctx = useContext(InstallAppContext)
+  if (!ctx) {
+    throw new Error('useInstallApp must be used within InstallAppProvider')
   }
+  return ctx
 }

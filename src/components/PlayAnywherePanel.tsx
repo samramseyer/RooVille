@@ -1,4 +1,4 @@
-import { useInstallApp } from '../hooks/useInstallApp'
+import { useInstallApp } from '../context/InstallAppContext'
 
 interface PlayAnywherePanelProps {
   onGetApp: () => void

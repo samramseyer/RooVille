@@ -59,7 +59,7 @@ export function Welcome({
         </div>
         <PlayAnywherePanel onGetApp={() => setShowGetApp(true)} />
       </div>
-      <GetAppModal open={showGetApp} onClose={() => setShowGetApp(false)} />
+      {showGetApp && <GetAppModal onClose={() => setShowGetApp(false)} />}
     </div>
   )
 }
