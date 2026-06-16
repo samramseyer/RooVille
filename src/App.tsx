@@ -6,6 +6,7 @@ import { CoastalWorld } from './components/CoastalWorld'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { useGameSave } from './hooks/useGameSave'
 import { useSoundToggle } from './hooks/useSoundToggle'
+import { sanitizeAvatar } from './data/avatarOptions'
 import './App.css'
 
 function App() {
@@ -32,7 +33,9 @@ function App() {
       {screen === 'avatar' && (
         <AvatarCreator
           avatar={gameState.avatar}
-          onChange={(avatar) => updateGameState((prev) => ({ ...prev, avatar }))}
+          onChange={(avatar) =>
+            updateGameState((prev) => ({ ...prev, avatar: sanitizeAvatar(avatar) }))
+          }
           onDone={() => setScreen('play')}
           onBack={() => setScreen('welcome')}
         />

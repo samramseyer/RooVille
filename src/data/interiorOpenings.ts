@@ -123,6 +123,40 @@ export const WALL_BOTTOM = 200
 export const DEFAULT_NEW_WINDOW = { width: 80, height: 60 }
 export const DEFAULT_NEW_DOOR = { width: 80, height: 50 }
 
+/** Starting size when placing a window style on the wall (like hanging a picture). */
+export function getDefaultWindowSize(styleId: WindowStyleId): { width: number; height: number } {
+  switch (styleId) {
+    case 'porthole':
+    case 'rounded':
+      return { width: 64, height: 64 }
+    case 'picture':
+      return { width: 100, height: 72 }
+    case 'wide':
+    case 'bay':
+      return { width: 120, height: 64 }
+    case 'minimal':
+      return { width: 72, height: 48 }
+    case 'colonial':
+      return { width: 88, height: 64 }
+    default:
+      return { ...DEFAULT_NEW_WINDOW }
+  }
+}
+
+export function getScaledWindowSize(
+  styleId: WindowStyleId,
+  scaleId: OpeningScaleId,
+): { width: number; height: number } {
+  const base = getDefaultWindowSize(styleId)
+  const scale = WINDOW_SCALE_PRESETS[scaleId] / WINDOW_SCALE_PRESETS.medium
+  return clampWindowOpening({
+    x: 0,
+    y: 0,
+    width: Math.round(base.width * scale),
+    height: Math.round(base.height * scale),
+  })
+}
+
 export const MIN_OPENING = { window: { width: 28, height: 28 }, door: { width: 36, height: 36 } }
 export const MAX_OPENING = { window: { width: 280, height: 180 }, door: { width: 200, height: 120 } }
 
@@ -146,6 +180,91 @@ export function clampOpening(opening: InteriorOpening): InteriorOpening {
   const rect =
     opening.kind === 'window' ? clampWindowOpening(opening) : clampDoorOpening(opening)
   return { ...opening, ...rect }
+}
+
+const OPENING_WALL_INSET = 8
+
+export type OpeningWallFace = 'north' | 'south' | 'east' | 'west'
+
+function detectWallFromCenter(centerX: number, centerY: number): OpeningWallFace {
+  const dNorth = centerY
+  const dSouth = ROOM_HEIGHT - centerY
+  const dWest = centerX
+  const dEast = ROOM_WIDTH - centerX
+  const min = Math.min(dNorth, dSouth, dWest, dEast)
+  if (min === dNorth) return 'north'
+  if (min === dSouth) return 'south'
+  if (min === dWest) return 'west'
+  return 'east'
+}
+
+/** Which wall an opening is mounted on (from its position). */
+export function getOpeningWallFace(
+  opening: Pick<InteriorOpening, 'x' | 'y' | 'width' | 'height'>,
+): OpeningWallFace {
+  return detectWallFromCenter(
+    opening.x + opening.width / 2,
+    opening.y + opening.height / 2,
+  )
+}
+
+/** Snap a window or door onto a wall; slide along that wall (like moving a picture). */
+export function snapOpeningToWall(
+  centerX: number,
+  centerY: number,
+  width: number,
+  height: number,
+  kind: 'window' | 'door',
+  lockWall?: OpeningWallFace,
+): OpeningRect {
+  const clamp = kind === 'window' ? clampWindowOpening : clampDoorOpening
+  const wall = lockWall ?? detectWallFromCenter(centerX, centerY)
+
+  const slideX = () =>
+    Math.max(
+      OPENING_WALL_INSET,
+      Math.min(ROOM_WIDTH - width - OPENING_WALL_INSET, centerX - width / 2),
+    )
+  const slideY = () =>
+    Math.max(
+      OPENING_WALL_INSET,
+      Math.min(WALL_BOTTOM - height - OPENING_WALL_INSET, centerY - height / 2),
+    )
+
+  switch (wall) {
+    case 'north':
+      return clamp({ x: slideX(), y: slideY(), width, height })
+    case 'west':
+      return clamp({ x: OPENING_WALL_INSET, y: slideY(), width, height })
+    case 'east':
+      return clamp({ x: ROOM_WIDTH - width - OPENING_WALL_INSET, y: slideY(), width, height })
+    case 'south':
+      if (kind === 'door') {
+        return clamp({
+          x: slideX(),
+          y: ROOM_HEIGHT - height - OPENING_WALL_INSET,
+          width,
+          height,
+        })
+      }
+      return clamp({ x: slideX(), y: slideY(), width, height })
+  }
+}
+
+/** Keep a window on its wall after move or resize. */
+export function finalizeWindowOnWall(
+  opening: Pick<InteriorOpening, 'x' | 'y' | 'width' | 'height'>,
+  wall?: OpeningWallFace,
+): OpeningRect {
+  const face = wall ?? getOpeningWallFace(opening)
+  return snapOpeningToWall(
+    opening.x + opening.width / 2,
+    opening.y + opening.height / 2,
+    opening.width,
+    opening.height,
+    'window',
+    face,
+  )
 }
 
 export function getOpeningWindowStyle(

@@ -364,13 +364,17 @@ button {
 }
 
 .avatar-preview-bg {
-  background: linear-gradient(180deg, var(--sky) 40%, var(--sand) 40%, var(--sand) 70%, var(--ocean) 70%);
+  background: linear-gradient(180deg, #E8EEF4 0%, #F0F0F0 55%, #E0E0E0 100%);
   border-radius: 20px;
   padding: 2rem 1.5rem 1rem;
-  border: 3px solid var(--sand-dark);
+  border: 3px solid #D0D0D0;
   width: 100%;
   display: flex;
   justify-content: center;
+}
+
+.avatar-sprite {
+  filter: drop-shadow(0 4px 8px rgba(44, 36, 32, 0.12));
 }
 
 .name-input-label {
@@ -1918,6 +1922,37 @@ button {
 
 .interior-room.placing-mode {
   cursor: crosshair;
+}
+
+.interior-room.placing-mode--window {
+  cursor: cell;
+}
+
+.interior-room.placing-mode--door {
+  cursor: crosshair;
+}
+
+.opening-place-section {
+  border-bottom: 1px solid rgba(78, 52, 46, 0.12);
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.opening-selected-banner {
+  background: rgba(72, 181, 176, 0.12);
+  border-radius: 10px;
+  padding: 0.5rem 0.65rem;
+}
+
+.opening-style-section + .opening-style-section {
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(78, 52, 46, 0.1);
+}
+
+.interior-wallpaper-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .interior-room-svg {

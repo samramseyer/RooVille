@@ -1,4 +1,7 @@
-import type { Avatar } from '../types'
+import type { Avatar, AvatarHairStyleId } from '../types'
+import { migrateBodyShape, BODY_SHAPES, OUTFIT_STYLES } from './avatarBody'
+
+export { BODY_SHAPES, OUTFIT_STYLES } from './avatarBody'
 
 export const SKIN_TONES = [
   '#FFDFC4',
@@ -16,27 +19,40 @@ export const HAIR_COLORS = [
   '#8B4513',
   '#D4A017',
   '#E6BE8A',
-  '#FF6B6B',
-  '#9B59B6',
-  '#3498DB',
+  '#B55239',
+  '#6B5B4A',
+  '#1A1A1A',
 ]
 
 export const OUTFIT_COLORS = [
+  '#EFEFEF',
+  '#E4E4E4',
+  '#D8D8D8',
+  '#B8C4CE',
+  '#C8D8E8',
+  '#E8D8C8',
+  '#D0E0D0',
+  '#F5E6D3',
+]
+
+export const ACCENT_COLORS = [
+  '#FF7A28',
+  '#FF5722',
+  '#F39C12',
   '#E74C3C',
   '#3498DB',
   '#2ECC71',
-  '#F39C12',
   '#9B59B6',
-  '#1ABC9C',
-  '#FF69B4',
-  '#FFD700',
+  '#5D4037',
 ]
 
-export const HAIR_STYLES: { id: Avatar['hairStyle']; label: string }[] = [
+export const HAIR_STYLES: { id: AvatarHairStyleId; label: string }[] = [
+  { id: 'wavy', label: 'Wavy' },
+  { id: 'long', label: 'Long straight' },
   { id: 'short', label: 'Short' },
-  { id: 'long', label: 'Long' },
   { id: 'curly', label: 'Curly' },
-  { id: 'pigtails', label: 'Pigtails' },
+  { id: 'bob', label: 'Bob' },
+  { id: 'ponytail', label: 'Ponytail' },
   { id: 'bun', label: 'Bun' },
 ]
 
@@ -69,11 +85,14 @@ export const VEHICLES: { id: Avatar['vehicle']; label: string }[] = [
 
 export const DEFAULT_AVATAR: Avatar = {
   name: 'Explorer',
-  skinTone: SKIN_TONES[2],
-  hairStyle: 'long',
-  hairColor: HAIR_COLORS[3],
+  bodyShape: 'average',
+  skinTone: SKIN_TONES[1],
+  hairStyle: 'wavy',
+  hairColor: HAIR_COLORS[1],
+  outfitStyle: 'hoodie',
   outfitColor: OUTFIT_COLORS[1],
-  hat: 'sunhat',
+  accentColor: ACCENT_COLORS[0],
+  hat: 'none',
   accessory: 'none',
   pet: 'none',
   vehicle: 'none',
@@ -85,30 +104,50 @@ export function sanitizeAvatarName(raw: unknown): string {
   return trimmed || DEFAULT_AVATAR.name
 }
 
+const BODY_SHAPE_IDS = new Set(BODY_SHAPES.map((s) => s.id))
+const OUTFIT_STYLE_IDS = new Set(OUTFIT_STYLES.map((s) => s.id))
 const PET_IDS = new Set(PETS.map((pet) => pet.id))
 const VEHICLE_IDS = new Set(VEHICLES.map((vehicle) => vehicle.id))
 const HAIR_STYLE_IDS = new Set(HAIR_STYLES.map((style) => style.id))
 const HAT_IDS = new Set(HATS.map((hat) => hat.id))
 const ACCESSORY_IDS = new Set(ACCESSORIES.map((accessory) => accessory.id))
 
-export function sanitizeAvatar(raw: Partial<Avatar> | undefined): Avatar {
+const LEGACY_HAIR: Record<string, AvatarHairStyleId> = {
+  pigtails: 'ponytail',
+}
+
+export function sanitizeAvatar(raw: Partial<Avatar> & { gender?: string } | undefined): Avatar {
   const skinTone = typeof raw?.skinTone === 'string' && SKIN_TONES.includes(raw.skinTone) ? raw.skinTone : DEFAULT_AVATAR.skinTone
   const hairColor = typeof raw?.hairColor === 'string' && HAIR_COLORS.includes(raw.hairColor) ? raw.hairColor : DEFAULT_AVATAR.hairColor
   const outfitColor =
     typeof raw?.outfitColor === 'string' && OUTFIT_COLORS.includes(raw.outfitColor)
       ? raw.outfitColor
       : DEFAULT_AVATAR.outfitColor
+  const accentColor =
+    typeof raw?.accentColor === 'string' && ACCENT_COLORS.includes(raw.accentColor)
+      ? raw.accentColor
+      : DEFAULT_AVATAR.accentColor
+
+  const rawHair = raw?.hairStyle as string | undefined
+  const hairStyle =
+    rawHair && HAIR_STYLE_IDS.has(rawHair as AvatarHairStyleId)
+      ? (rawHair as AvatarHairStyleId)
+      : rawHair && LEGACY_HAIR[rawHair]
+        ? LEGACY_HAIR[rawHair]
+        : DEFAULT_AVATAR.hairStyle
 
   return {
     ...DEFAULT_AVATAR,
-    ...raw,
     name: sanitizeAvatarName(raw?.name),
+    bodyShape:
+      raw?.bodyShape && BODY_SHAPE_IDS.has(raw.bodyShape) ? raw.bodyShape : migrateBodyShape(raw),
     skinTone,
     hairColor,
     outfitColor,
-    hairStyle: HAIR_STYLE_IDS.has(raw?.hairStyle as Avatar['hairStyle'])
-      ? (raw!.hairStyle as Avatar['hairStyle'])
-      : DEFAULT_AVATAR.hairStyle,
+    accentColor,
+    outfitStyle:
+      raw?.outfitStyle && OUTFIT_STYLE_IDS.has(raw.outfitStyle) ? raw.outfitStyle : DEFAULT_AVATAR.outfitStyle,
+    hairStyle,
     hat: HAT_IDS.has(raw?.hat as Avatar['hat']) ? (raw!.hat as Avatar['hat']) : DEFAULT_AVATAR.hat,
     accessory: ACCESSORY_IDS.has(raw?.accessory as Avatar['accessory'])
       ? (raw!.accessory as Avatar['accessory'])

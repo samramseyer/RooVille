@@ -1,15 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { BuildingDef, DoorStyleId, GameState, InteriorItem, InteriorOpening, InteriorRoomState, PlacedItem, WindowStyleId } from '../types'
+import type { BuildingDef, DoorStyleId, GameState, InteriorItem, InteriorOpening, InteriorRoomState, OpeningScaleId, PlacedItem, WindowStyleId } from '../types'
 import type { FurnitureDef } from '../data/interiorFurniture'
 import { getFurniture, getFurnitureDimensions, isFloorLayerFurniture, isResizableFurniture, clampFurnitureDimensions, clampFurniturePosition } from '../data/interiorFurniture'
 import { getInteriorTheme, type InteriorTheme } from '../data/enterableBuildings'
+import { WINDOW_STYLES } from '../data/interiorTrimStyles'
 import {
   clampDoorOpening,
   clampOpening,
   clampWindowOpening,
   DEFAULT_NEW_DOOR,
-  DEFAULT_NEW_WINDOW,
+  finalizeWindowOnWall,
+  getDefaultWindowSize,
+  getOpeningWallFace,
+  getOpeningWindowStyle,
+  getScaledWindowSize,
   resolveStoredOpenings,
+  snapOpeningToWall,
+  type OpeningWallFace,
 } from '../data/interiorOpenings'
 import { ensureLivingRoomExitDoor } from '../data/interiorExitDoor'
 import { resolveInteriorStyle } from '../data/interiorStyles'
@@ -82,6 +89,7 @@ export function BuildingInterior({
   const [selectedInteriorId, setSelectedInteriorId] = useState<string | null>(null)
   const [selectedOpeningId, setSelectedOpeningId] = useState<string | null>(null)
   const [placementMode, setPlacementMode] = useState<PlacementMode>(null)
+  const [placementWindowStyle, setPlacementWindowStyle] = useState<WindowStyleId | null>(null)
   const [paletteTab, setPaletteTab] = useState<PaletteTab | null>(null)
   const [dragMode, setDragMode] = useState<DragMode>(null)
 
@@ -98,6 +106,7 @@ export function BuildingInterior({
   const pointerMoved = useRef(false)
   const draggingFurnitureId = useRef<string | null>(null)
   const draggingOpeningId = useRef<string | null>(null)
+  const dragWallLock = useRef<OpeningWallFace | null>(null)
   const resizeSnapshot = useRef({ x: 0, y: 0, width: 0, height: 0, pointerX: 0, pointerY: 0 })
 
   const roomDef = layout ? getRoomDef(layout, currentRoomId) : undefined
@@ -200,16 +209,16 @@ export function BuildingInterior({
   }
 
   const placeOpening = (kind: 'window' | 'door', x: number, y: number) => {
-    const defaults = kind === 'window' ? DEFAULT_NEW_WINDOW : DEFAULT_NEW_DOOR
+    const styleForWindow = placementWindowStyle ?? windowStyleId
+    const defaults =
+      kind === 'window' ? getDefaultWindowSize(styleForWindow) : DEFAULT_NEW_DOOR
+    const rect = snapOpeningToWall(x, y, defaults.width, defaults.height, kind)
     const draft: InteriorOpening = {
       id: crypto.randomUUID(),
       kind,
-      x: x - defaults.width / 2,
-      y: y - defaults.height / 2,
-      width: defaults.width,
-      height: defaults.height,
+      ...rect,
       ...(kind === 'window'
-        ? { windowStyleId: windowStyleId }
+        ? { windowStyleId: styleForWindow }
         : { doorStyleId: doorStyleId }),
     }
     const placed = clampOpening(draft)
@@ -245,7 +254,13 @@ export function BuildingInterior({
     persistOpenings(
       interiorOpenings.map((item) => {
         if (item.id !== id) return item
-        return clampOpening({ ...item, ...patch })
+        const merged = { ...item, ...patch }
+        if (merged.kind === 'window') {
+          const wall = dragWallLock.current ?? getOpeningWallFace(merged)
+          const rect = finalizeWindowOnWall(merged, wall)
+          return clampOpening({ ...merged, ...rect })
+        }
+        return clampOpening(merged)
       }),
     )
   }
@@ -263,9 +278,29 @@ export function BuildingInterior({
     if (opening?.kind === 'window') {
       updateOpening(opening.id, { windowStyleId: styleId })
       if (soundOn) playPlaceSound()
-    } else {
-      applyStyleChange({ windowStyleId: styleId })
+      return
     }
+    applyStyleChange({ windowStyleId: styleId })
+    setPlacementWindowStyle(styleId)
+    setPlacementMode('window')
+    setPaletteTab('openings')
+    setSelectedFurniture(null)
+    setSelectedInteriorId(null)
+    setSelectedOpeningId(null)
+    if (soundOn) playPlaceSound()
+  }
+
+  const scaleSelectedWindow = (scaleId: OpeningScaleId) => {
+    const opening = interiorOpenings.find((o) => o.id === selectedOpeningId)
+    if (!opening || opening.kind !== 'window') return
+    const styleId = getOpeningWindowStyle(opening, windowStyleId, theme)
+    const { width, height } = getScaledWindowSize(styleId, scaleId)
+    const wall = getOpeningWallFace(opening)
+    const centerX = opening.x + opening.width / 2
+    const centerY = opening.y + opening.height / 2
+    const rect = snapOpeningToWall(centerX, centerY, width, height, 'window', wall)
+    updateOpening(opening.id, rect)
+    if (soundOn) playPlaceSound()
   }
 
   const applyDoorStyleChoice = (styleId: DoorStyleId) => {
@@ -338,19 +373,17 @@ export function BuildingInterior({
       pointerMoved.current = true
       const opening = interiorOpenings.find((item) => item.id === draggingOpeningId.current)
       if (!opening) return
-      const pos =
-        opening.kind === 'window'
-          ? clampWindowOpening({
-              ...opening,
-              x: coords.x - dragOffset.current.x,
-              y: coords.y - dragOffset.current.y,
-            })
-          : clampDoorOpening({
-              ...opening,
-              x: coords.x - dragOffset.current.x,
-              y: coords.y - dragOffset.current.y,
-            })
-      updateOpening(opening.id, pos)
+      const rawX = coords.x - dragOffset.current.x
+      const rawY = coords.y - dragOffset.current.y
+      const snapped = snapOpeningToWall(
+        rawX + opening.width / 2,
+        rawY + opening.height / 2,
+        opening.width,
+        opening.height,
+        opening.kind,
+        dragWallLock.current ?? undefined,
+      )
+      updateOpening(opening.id, snapped)
       return
     }
 
@@ -361,21 +394,25 @@ export function BuildingInterior({
       const snap = resizeSnapshot.current
       const dw = coords.x - snap.pointerX
       const dh = coords.y - snap.pointerY
-      const next =
-        opening.kind === 'window'
-          ? clampWindowOpening({
-              x: snap.x,
-              y: snap.y,
-              width: snap.width + dw,
-              height: snap.height + dh,
-            })
-          : clampDoorOpening({
-              x: snap.x,
-              y: snap.y,
-              width: snap.width + dw,
-              height: snap.height + dh,
-            })
-      updateOpening(opening.id, next)
+      if (opening.kind === 'window') {
+        const sized = clampWindowOpening({
+          x: snap.x,
+          y: snap.y,
+          width: snap.width + dw,
+          height: snap.height + dh,
+        })
+        const wall = dragWallLock.current ?? getOpeningWallFace(opening)
+        const rect = finalizeWindowOnWall(sized, wall)
+        updateOpening(opening.id, rect)
+      } else {
+        const next = clampDoorOpening({
+          x: snap.x,
+          y: snap.y,
+          width: snap.width + dw,
+          height: snap.height + dh,
+        })
+        updateOpening(opening.id, next)
+      }
       return
     }
 
@@ -408,6 +445,7 @@ export function BuildingInterior({
     setDragMode(null)
     draggingFurnitureId.current = null
     draggingOpeningId.current = null
+    dragWallLock.current = null
   }
 
   const startAvatarDrag = (e: React.PointerEvent) => {
@@ -443,20 +481,21 @@ export function BuildingInterior({
     const coords = getCoords(e.clientX, e.clientY)
     if (!coords) return
 
-    if (placementMode === 'window' || placementMode === 'door') {
-      placeOpening(placementMode, coords.x, coords.y)
-      return
+    if (placementMode) {
+      setPlacementMode(null)
     }
 
     dragOffset.current = { x: coords.x - opening.x, y: coords.y - opening.y }
     dragStart.current = { x: e.clientX, y: e.clientY }
     pointerMoved.current = false
     draggingOpeningId.current = opening.id
+    dragWallLock.current = getOpeningWallFace(opening)
     const exitDoorTap =
       isTownExitDoor(opening, interiorOpenings, layout ?? null, currentRoomId) &&
       isAvatarNearExitDoor(avatarPosition, opening)
     if (!exitDoorTap) {
       setSelectedOpeningId(opening.id)
+      setPaletteTab('openings')
     }
     setSelectedInteriorId(null)
     setSelectedFurniture(null)
@@ -480,7 +519,10 @@ export function BuildingInterior({
     dragStart.current = { x: e.clientX, y: e.clientY }
     pointerMoved.current = false
     draggingOpeningId.current = opening.id
+    dragWallLock.current =
+      opening.kind === 'window' ? getOpeningWallFace(opening) : null
     setSelectedOpeningId(opening.id)
+    setPaletteTab('openings')
     setDragMode('resize-opening')
     e.currentTarget.setPointerCapture(e.pointerId)
   }
@@ -648,7 +690,9 @@ export function BuildingInterior({
         )}
         {placementMode && (
           <div className="placement-hint interior-placement-hint">
-            Tap anywhere in the room to place a {placementMode}
+            {placementMode === 'window'
+              ? `Tap a wall to place your ${WINDOW_STYLES.find((s) => s.id === (placementWindowStyle ?? windowStyleId))?.name.toLowerCase() ?? 'window'} — drag to move, corner to resize`
+              : 'Tap the floor wall to place a door'}
             <button type="button" className="btn btn-ghost btn-small" onClick={() => setPlacementMode(null)}>
               Cancel
             </button>
@@ -674,7 +718,9 @@ export function BuildingInterior({
           selectedFurnitureId={selectedFurniture?.id ?? null}
           placementMode={placementMode}
           activeTab={paletteTab}
+          onScaleSelectedWindow={scaleSelectedWindow}
           onStartPlaceWindow={() => {
+            setPlacementWindowStyle(windowStyleId)
             setPlacementMode('window')
             setPaletteTab('openings')
             setSelectedFurniture(null)
@@ -730,7 +776,7 @@ export function BuildingInterior({
 
           <div
             ref={roomRef}
-            className={`interior-room interior-room--${theme}${roomDef?.variant === 'zoo-topdown' ? ' interior-room--zoo-topdown' : roomDef ? ` interior-room--${roomDef.variant === 'lantern-deck' ? 'lantern-deck' : roomDef.floor}` : ''}${isPlacing && !selectedInteriorId && !selectedOpeningId ? ' placing-mode' : ''}`}
+            className={`interior-room interior-room--${theme}${roomDef?.variant === 'zoo-topdown' ? ' interior-room--zoo-topdown' : roomDef ? ` interior-room--${roomDef.variant === 'lantern-deck' ? 'lantern-deck' : roomDef.floor}` : ''}${isPlacing && !selectedInteriorId && !selectedOpeningId ? ' placing-mode' : ''}${placementMode === 'window' ? ' placing-mode--window' : ''}${placementMode === 'door' ? ' placing-mode--door' : ''}`}
             onPointerDown={handleRoomPointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={stopDrag}

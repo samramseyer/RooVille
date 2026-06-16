@@ -13,12 +13,19 @@ export type BuildingCategory =
   | 'zoos'
   | 'decor'
 
+export type AvatarBodyShapeId = 'slim' | 'average' | 'athletic' | 'curvy'
+export type AvatarOutfitStyleId = 'hoodie' | 'tshirt' | 'dress' | 'overalls' | 'coastal'
+export type AvatarHairStyleId = 'wavy' | 'long' | 'short' | 'curly' | 'bob' | 'ponytail' | 'bun'
+
 export interface Avatar {
   name: string
+  bodyShape: AvatarBodyShapeId
   skinTone: string
-  hairStyle: 'short' | 'long' | 'curly' | 'pigtails' | 'bun'
+  hairStyle: AvatarHairStyleId
   hairColor: string
+  outfitStyle: AvatarOutfitStyleId
   outfitColor: string
+  accentColor: string
   hat: 'none' | 'sunhat' | 'cap' | 'bucket'
   accessory: 'none' | 'sunglasses' | 'shell-necklace'
   pet: 'none' | 'dog' | 'cat' | 'kangaroo' | 'parrot'

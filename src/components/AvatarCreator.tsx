@@ -1,11 +1,16 @@
+import { useCallback, useEffect, useState } from 'react'
 import type { Avatar } from '../types'
 import {
   ACCESSORIES,
+  ACCENT_COLORS,
+  BODY_SHAPES,
   HAIR_COLORS,
   HAIR_STYLES,
   HATS,
   OUTFIT_COLORS,
+  OUTFIT_STYLES,
   PETS,
+  sanitizeAvatar,
   sanitizeAvatarName,
   SKIN_TONES,
   VEHICLES,
@@ -80,7 +85,23 @@ function OptionPicker<T extends string>({
 }
 
 export function AvatarCreator({ avatar, onChange, onDone, onBack }: AvatarCreatorProps) {
-  const patch = (partial: Partial<Avatar>) => onChange({ ...avatar, ...partial })
+  const [draft, setDraft] = useState(() => sanitizeAvatar(avatar))
+
+  useEffect(() => {
+    setDraft(sanitizeAvatar(avatar))
+  }, [avatar])
+
+  const patch = useCallback(
+    (partial: Partial<Avatar>) => {
+      setDraft((current) => {
+        const merged: Partial<Avatar> = { ...current, ...partial }
+        const next = sanitizeAvatar(merged)
+        onChange(next)
+        return next
+      })
+    },
+    [onChange],
+  )
 
   return (
     <div className="avatar-creator">
@@ -95,14 +116,14 @@ export function AvatarCreator({ avatar, onChange, onDone, onBack }: AvatarCreato
       <div className="avatar-creator-body">
         <div className="avatar-preview-panel">
           <div className="avatar-preview-bg">
-            <AvatarSprite avatar={avatar} size={160} />
+            <AvatarSprite key={draft.hairStyle} avatar={draft} size={200} />
           </div>
           <label className="name-input-label">
             Your name
             <input
               type="text"
               className="name-input"
-              value={avatar.name}
+              value={draft.name}
               maxLength={20}
               onChange={(e) => patch({ name: sanitizeAvatarName(e.target.value) })}
               placeholder="Enter your name"
@@ -111,52 +132,60 @@ export function AvatarCreator({ avatar, onChange, onDone, onBack }: AvatarCreato
         </div>
 
         <div className="avatar-options-panel">
+          <OptionPicker
+            label="Body shape"
+            options={BODY_SHAPES}
+            selected={draft.bodyShape}
+            onSelect={(bodyShape) => patch({ bodyShape })}
+          />
+          <OptionPicker
+            label="Outfit"
+            options={OUTFIT_STYLES}
+            selected={draft.outfitStyle}
+            onSelect={(outfitStyle) => patch({ outfitStyle })}
+          />
           <ColorPicker
             label="Skin tone"
             colors={SKIN_TONES}
-            selected={avatar.skinTone}
+            selected={draft.skinTone}
             onSelect={(skinTone) => patch({ skinTone })}
           />
           <OptionPicker
             label="Hair style"
             options={HAIR_STYLES}
-            selected={avatar.hairStyle}
+            selected={draft.hairStyle}
             onSelect={(hairStyle) => patch({ hairStyle })}
           />
           <ColorPicker
             label="Hair color"
             colors={HAIR_COLORS}
-            selected={avatar.hairColor}
+            selected={draft.hairColor}
             onSelect={(hairColor) => patch({ hairColor })}
           />
           <ColorPicker
             label="Outfit color"
             colors={OUTFIT_COLORS}
-            selected={avatar.outfitColor}
+            selected={draft.outfitColor}
             onSelect={(outfitColor) => patch({ outfitColor })}
           />
-          <OptionPicker
-            label="Hat"
-            options={HATS}
-            selected={avatar.hat}
-            onSelect={(hat) => patch({ hat })}
+          <ColorPicker
+            label="Shoes & accents"
+            colors={ACCENT_COLORS}
+            selected={draft.accentColor}
+            onSelect={(accentColor) => patch({ accentColor })}
           />
+          <OptionPicker label="Hat" options={HATS} selected={draft.hat} onSelect={(hat) => patch({ hat })} />
           <OptionPicker
             label="Accessory"
             options={ACCESSORIES}
-            selected={avatar.accessory}
+            selected={draft.accessory}
             onSelect={(accessory) => patch({ accessory })}
           />
-          <OptionPicker
-            label="Pet companion"
-            options={PETS}
-            selected={avatar.pet}
-            onSelect={(pet) => patch({ pet })}
-          />
+          <OptionPicker label="Pet companion" options={PETS} selected={draft.pet} onSelect={(pet) => patch({ pet })} />
           <OptionPicker
             label="Getting around"
             options={VEHICLES}
-            selected={avatar.vehicle}
+            selected={draft.vehicle}
             onSelect={(vehicle) => patch({ vehicle })}
           />
         </div>

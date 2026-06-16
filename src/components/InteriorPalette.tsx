@@ -23,8 +23,9 @@ import {
   TRIM_PROFILES,
   WINDOW_STYLES,
 } from '../data/interiorTrimStyles'
+import { OPENING_SCALE_OPTIONS } from '../data/interiorOpenings'
 import { WINDOW_VIEW_OPTIONS, type WindowViewId } from '../data/interiorWindowView'
-import type { InteriorStyle, InteriorOpening, WindowViewSetting, WindowStyleId, DoorStyleId } from '../types'
+import type { InteriorStyle, InteriorOpening, OpeningScaleId, WindowViewSetting, WindowStyleId, DoorStyleId } from '../types'
 import { DoorStylePreviewSwatch, WindowStylePreviewSwatch } from './InteriorDoorsTrim'
 import { FloorPreviewSwatch } from './InteriorFloorPatterns'
 import { InteriorFurnitureArt } from './InteriorFurnitureArt'
@@ -44,6 +45,7 @@ interface InteriorPaletteProps {
   onStyleChange: (patch: Partial<InteriorStyle>) => void
   onSelectWindowStyle: (styleId: WindowStyleId) => void
   onSelectDoorStyle: (styleId: DoorStyleId) => void
+  onScaleSelectedWindow?: (scaleId: OpeningScaleId) => void
   selectedFurnitureId: string | null
   placementMode?: 'window' | 'door' | null
   onStartPlaceWindow?: () => void
@@ -70,6 +72,7 @@ export function InteriorPalette({
   onStyleChange,
   onSelectWindowStyle,
   onSelectDoorStyle,
+  onScaleSelectedWindow,
   selectedFurnitureId,
   placementMode,
   onStartPlaceWindow,
@@ -444,20 +447,15 @@ export function InteriorPalette({
 
       {tab === 'openings' && (
         <>
-          <p className="palette-hint">
-            {selectedOpening?.kind === 'window'
-              ? 'Pick a style below for this window, or tap ＋ Window to add another.'
-              : selectedOpening?.kind === 'door'
-                ? 'Pick a style below for this door, or tap ＋ Door to add another.'
-                : placementMode === 'window'
-                  ? 'Tap anywhere in the room to place a new window.'
-                  : placementMode === 'door'
-                    ? 'Tap anywhere in the room to place a new door.'
-                    : 'Tap a window or door to restyle it, or tap ＋ to add more.'}
-          </p>
-
-          <section className="interior-style-section">
-            <h4 className="interior-style-heading">Add to room</h4>
+          <section className="interior-style-section opening-place-section">
+            <h4 className="interior-style-heading">Place on wall</h4>
+            <p className="palette-hint">
+              {placementMode === 'window'
+                ? 'Tap a wall in the room — then drag along the wall or use the corner handle to resize.'
+                : placementMode === 'door'
+                  ? 'Tap the bottom wall to place a door.'
+                  : 'Pick a window style below to place it, or tap ＋ Window for a classic window.'}
+            </p>
             <div className="opening-place-row">
               <button
                 type="button"
@@ -476,17 +474,52 @@ export function InteriorPalette({
             </div>
           </section>
 
-          <section className="interior-style-section">
-            <h4 className="interior-style-heading">
-              {selectedOpening?.kind === 'window' ? 'This window' : 'Window style'}
-            </h4>
-            {!selectedOpening && (
+          {selectedOpening?.kind === 'window' && (
+            <section className="interior-style-section opening-selected-banner">
+              <h4 className="interior-style-heading">Selected window</h4>
               <p className="interior-style-note">
-                Tap a window in the room to change just that one, or pick a default for new windows.
+                Drag anywhere along the wall · corner handle to resize · style presets below.
               </p>
-            )}
-            {selectedOpening?.kind === 'door' && (
+              {onScaleSelectedWindow && (
+                <>
+                  <p className="interior-style-note interior-style-note--tight">Quick size</p>
+                  <div className="opening-place-row">
+                    {OPENING_SCALE_OPTIONS.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className="btn btn-small opening-place-btn"
+                        onClick={() => onScaleSelectedWindow(option.id)}
+                        title={option.name}
+                      >
+                        {option.emoji} {option.name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
+
+          {selectedOpening?.kind === 'door' && (
+            <section className="interior-style-section opening-selected-banner">
+              <h4 className="interior-style-heading">Selected door</h4>
+              <p className="interior-style-note">
+                Drag to move · corner to resize · pick a door style below.
+              </p>
+            </section>
+          )}
+
+          <section className="interior-style-section opening-style-section">
+            <h4 className="interior-style-heading">Window style</h4>
+            {selectedOpening?.kind === 'window' ? (
+              <p className="interior-style-note">Style for the window you selected in the room.</p>
+            ) : selectedOpening?.kind === 'door' ? (
               <p className="interior-style-note">Select a window in the room to change its style.</p>
+            ) : (
+              <p className="interior-style-note">
+                Tap any style to place it on a wall like a picture — all styles move and resize the same way.
+              </p>
             )}
             <div className="interior-wallpaper-grid">
               {WINDOW_STYLES.map((option) => (
@@ -496,6 +529,7 @@ export function InteriorPalette({
                   className={`interior-wallpaper-btn${activeWindowStyle === option.id ? ' selected' : ''}`}
                   onClick={() => onSelectWindowStyle(option.id)}
                   title={option.name}
+                  disabled={selectedOpening?.kind === 'door'}
                 >
                   <WindowStylePreviewSwatch
                     windowStyleId={option.id}
@@ -508,39 +542,7 @@ export function InteriorPalette({
             </div>
           </section>
 
-          <section className="interior-style-section">
-            <h4 className="interior-style-heading">
-              {selectedOpening?.kind === 'door' ? 'This door' : 'Door style'}
-            </h4>
-            {!selectedOpening && (
-              <p className="interior-style-note">
-                Tap a door in the room to change just that one, or pick a default for new doors.
-              </p>
-            )}
-            {selectedOpening?.kind === 'window' && (
-              <p className="interior-style-note">Select a door in the room to change its style.</p>
-            )}
-            <div className="interior-wallpaper-grid">
-              {DOOR_STYLES.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  className={`interior-wallpaper-btn${activeDoorStyle === option.id ? ' selected' : ''}`}
-                  onClick={() => onSelectDoorStyle(option.id)}
-                  title={option.name}
-                >
-                  <DoorStylePreviewSwatch
-                    doorStyleId={option.id}
-                    trimColor={trimColor}
-                    casingProfile={casingTrimProfile}
-                  />
-                  <span>{option.emoji}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section className="interior-style-section interior-style-subsection">
+          <section className="interior-style-section interior-style-subsection opening-style-section">
             <h4 className="interior-style-heading">Window view</h4>
             <p className="interior-style-note">
               {(style.windowViewId ?? 'auto') === 'auto'
@@ -557,6 +559,38 @@ export function InteriorPalette({
                   title={option.name}
                 >
                   <WindowViewPreviewSwatch view={option.id} />
+                  <span>{option.emoji}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="interior-style-section opening-style-section">
+            <h4 className="interior-style-heading">Door style</h4>
+            {selectedOpening?.kind === 'door' ? (
+              <p className="interior-style-note">Style for the door you selected in the room.</p>
+            ) : selectedOpening?.kind === 'window' ? (
+              <p className="interior-style-note">Select a door in the room to change its style.</p>
+            ) : (
+              <p className="interior-style-note">
+                Tap a door in the room, or pick a default style for new doors.
+              </p>
+            )}
+            <div className="interior-wallpaper-grid">
+              {DOOR_STYLES.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={`interior-wallpaper-btn${activeDoorStyle === option.id ? ' selected' : ''}`}
+                  onClick={() => onSelectDoorStyle(option.id)}
+                  title={option.name}
+                  disabled={selectedOpening?.kind === 'window'}
+                >
+                  <DoorStylePreviewSwatch
+                    doorStyleId={option.id}
+                    trimColor={trimColor}
+                    casingProfile={casingTrimProfile}
+                  />
                   <span>{option.emoji}</span>
                 </button>
               ))}
