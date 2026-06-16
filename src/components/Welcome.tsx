@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { CoastalTownBackground } from './CoastalTownBackground'
+import { GetAppModal } from './GetAppModal'
+import { PlayAnywherePanel } from './PlayAnywherePanel'
 import { SoundToggle } from './SoundToggle'
 
 interface WelcomeProps {
@@ -18,6 +21,8 @@ export function Welcome({
   soundEnabled,
   onToggleSound,
 }: WelcomeProps) {
+  const [showGetApp, setShowGetApp] = useState(false)
+
   return (
     <div className="welcome">
       <CoastalTownBackground />
@@ -30,7 +35,9 @@ export function Welcome({
         </div>
         <h1>RooVille</h1>
         <p className="welcome-tagline">Build your dream coastal town on the Australian shore!</p>
-        <p className="welcome-safe">Your own private town — no internet, no strangers, just fun.</p>
+        <p className="welcome-safe">
+          Play online in your browser, or install on a phone — your town saves on each device you use.
+        </p>
         <div className="welcome-features">
           <span>🏖️ Beaches</span>
           <span>🏠 Houses</span>
@@ -50,7 +57,9 @@ export function Welcome({
             </>
           )}
         </div>
+        <PlayAnywherePanel onGetApp={() => setShowGetApp(true)} />
       </div>
+      <GetAppModal open={showGetApp} onClose={() => setShowGetApp(false)} />
     </div>
   )
 }

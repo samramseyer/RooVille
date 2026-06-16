@@ -1,25 +1,36 @@
 {
   "name": "RooVille — Coastal Town Builder",
   "short_name": "RooVille",
-  "description": "Build and decorate your coastal town",
-  "start_url": "/",
-  "scope": "/",
+  "description": "Build and decorate your coastal town — play free in your browser or install on your phone.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "browser"],
   "orientation": "any",
   "background_color": "#87CEEB",
   "theme_color": "#20B2AA",
+  "categories": ["games", "kids", "entertainment"],
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon.svg",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
 }

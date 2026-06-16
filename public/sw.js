@@ -1,5 +1,13 @@
-const CACHE_NAME = 'rooville-shell-v1'
-const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/favicon.svg']
+const CACHE_NAME = 'rooville-shell-v3'
+const SHELL = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './favicon.svg',
+  './icon.svg',
+]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -9,11 +17,21 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))),
-    ).then(() => self.clients.claim()),
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim()),
   )
 })
+
+function isCacheableAsset(pathname) {
+  return (
+    pathname.includes('/assets/') ||
+    pathname.endsWith('.png') ||
+    pathname.endsWith('.svg') ||
+    pathname.endsWith('.webmanifest')
+  )
+}
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
@@ -24,14 +42,16 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cached) => {
       const network = fetch(event.request)
         .then((response) => {
-          if (response.ok && url.pathname.startsWith('/assets/')) {
+          if (response.ok && isCacheableAsset(url.pathname)) {
             const copy = response.clone()
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
           }
           return response
         })
         .catch(() => cached)
-      return cached ?? network
+
+      if (cached) return cached
+      return network
     }),
   )
 })

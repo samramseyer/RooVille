@@ -4,9 +4,10 @@ interface MobileHeaderMenuProps {
   onEditAvatar: () => void
   onNewTown: () => void
   onHelp: () => void
+  onGetApp: () => void
 }
 
-export function MobileHeaderMenu({ onEditAvatar, onNewTown, onHelp }: MobileHeaderMenuProps) {
+export function MobileHeaderMenu({ onEditAvatar, onNewTown, onHelp, onGetApp }: MobileHeaderMenuProps) {
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -34,6 +35,9 @@ export function MobileHeaderMenu({ onEditAvatar, onNewTown, onHelp }: MobileHead
       </button>
       {open && (
         <div className="mobile-header-menu-dropdown" role="menu">
+          <button type="button" role="menuitem" onClick={() => { setOpen(false); onGetApp() }}>
+            📱 Get on phone
+          </button>
           <button type="button" role="menuitem" onClick={() => { setOpen(false); onHelp() }}>
             ❓ Help
           </button>

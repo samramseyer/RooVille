@@ -43,6 +43,7 @@ import { NewTownModal } from './NewTownModal'
 import { UndoToast } from './UndoToast'
 import { MobileWorldNav, type MobilePanel } from './MobileWorldNav'
 import { MobileHeaderMenu } from './MobileHeaderMenu'
+import { GetAppButton, GetAppModal } from './GetAppModal'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { checkQuest } from './QuestPanel'
 import {
@@ -187,6 +188,7 @@ export function CoastalWorld({
   const [placementTip, setPlacementTip] = useState<string | null>(null)
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('map')
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
+  const [showGetApp, setShowGetApp] = useState(false)
   const dragOffset = useRef({ x: 0, y: 0 })
   const dragStart = useRef({ x: 0, y: 0 })
   const pointerMoved = useRef(false)
@@ -646,10 +648,12 @@ export function CoastalWorld({
           <button type="button" className="btn btn-ghost btn-small world-header-help-desktop" onClick={() => setShowTutorial(true)}>
             Help
           </button>
+          <GetAppButton compact onClick={() => setShowGetApp(true)} />
           <MobileHeaderMenu
             onHelp={() => setShowTutorial(true)}
             onEditAvatar={onEditAvatar}
             onNewTown={() => setShowNewTownModal(true)}
+            onGetApp={() => setShowGetApp(true)}
           />
           <button type="button" className="btn btn-ghost world-header-btn-desktop" onClick={onEditAvatar}>
             Edit Avatar
@@ -680,6 +684,7 @@ export function CoastalWorld({
           }}
         />
       )}
+      <GetAppModal open={showGetApp} onClose={() => setShowGetApp(false)} />
 
       <div className="world-body">
         {isMobile && mobilePanel === 'build' && (
