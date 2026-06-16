@@ -132,6 +132,9 @@ export function migrateSave(raw: Partial<GameState>): GameState {
   let activeInteriorId = typeof raw.activeInteriorId === 'string' ? raw.activeInteriorId : null
   if (activeInteriorId && !items.some((item) => item.id === activeInteriorId)) {
     activeInteriorId = null
+  } else if (activeInteriorId) {
+    // Always resume on the overworld after refresh — avoids dropping into interior with no context.
+    activeInteriorId = null
   }
 
   let avatarPosition = raw.avatarPosition ?? INITIAL_GAME_STATE.avatarPosition

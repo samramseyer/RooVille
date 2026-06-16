@@ -142,8 +142,9 @@ export function itemPositionFromDisplay(
   const { width, height } = getPlacedDisplaySize(building, itemScale)
   const offsetX = (building.width - width) / 2
   const offsetY = building.height - height
+  const sink = getPlacedMapSink(building)
   return {
     x: displayLeft - offsetX,
-    y: displayTop - offsetY,
+    y: displayTop - offsetY - sink,
   }
 }

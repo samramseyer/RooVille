@@ -24,7 +24,9 @@ export function isStandaloneApp(): boolean {
 }
 
 export function isIosDevice(): boolean {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent)
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) return true
+  // iPadOS 13+ often reports as Mac; treat touch Mac as mobile for install hints.
+  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1
 }
 
 export function isAndroidDevice(): boolean {
@@ -32,7 +34,8 @@ export function isAndroidDevice(): boolean {
 }
 
 export function isMobileDevice(): boolean {
-  return isIosDevice() || isAndroidDevice()
+  if (isIosDevice() || isAndroidDevice()) return true
+  return window.matchMedia('(max-width: 900px)').matches
 }
 
 function isNativeCapacitorApp(): boolean {

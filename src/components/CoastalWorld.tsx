@@ -194,6 +194,7 @@ export function CoastalWorld({
   const pointerMoved = useRef(false)
   const draggingItemId = useRef<string | null>(null)
   const moveSnapshot = useRef<{ itemId: string; x: number; y: number } | null>(null)
+  const dragEndPosition = useRef<{ itemId: string; x: number; y: number } | null>(null)
   const undoTimerRef = useRef<number | null>(null)
   const { phase, localTimeLabel } = useDayNightCycle()
   const weather = useLocalWeather()
@@ -288,17 +289,28 @@ export function CoastalWorld({
     )
     if (newlyCompleted.length === 0) return
 
-    onUpdate((prev) => ({
-      ...prev,
-      completedQuests: [...prev.completedQuests, ...newlyCompleted.map((q) => q.id)],
-    }))
+    onUpdate((prev) => {
+      const ids = newlyCompleted.map((q) => q.id).filter((id) => !prev.completedQuests.includes(id))
+      if (ids.length === 0) return prev
+      return { ...prev, completedQuests: [...prev.completedQuests, ...ids] }
+    })
+  }, [gameState.items, gameState.completedQuests, onUpdate])
 
-    const titles = newlyCompleted.map((q) => q.title).join(', ')
+  const prevCompletedQuests = useRef(gameState.completedQuests)
+  useEffect(() => {
+    const prev = prevCompletedQuests.current
+    const added = gameState.completedQuests.filter((id) => !prev.includes(id))
+    prevCompletedQuests.current = gameState.completedQuests
+    if (added.length === 0) return
+
+    const titles = QUESTS.filter((q) => added.includes(q.id))
+      .map((q) => q.title)
+      .join(', ')
     setCelebration(`Quest complete: ${titles}!`)
     if (soundOn) playQuestCompleteSound()
     const timer = setTimeout(() => setCelebration(null), 4000)
     return () => clearTimeout(timer)
-  }, [gameState.items, gameState.completedQuests, onUpdate, soundOn])
+  }, [gameState.completedQuests, soundOn])
 
   const getCoords = (clientX: number, clientY: number) => {
     const rect = mapRef.current?.getBoundingClientRect()
@@ -404,6 +416,7 @@ export function CoastalWorld({
             nextX = snapped.x
             nextY = snapped.y
           }
+          dragEndPosition.current = { itemId: item.id, x: nextX, y: nextY }
           return { ...item, x: nextX, y: nextY }
         }),
       }))
@@ -446,13 +459,19 @@ export function CoastalWorld({
   const finishItemPointer = () => {
     if (pointerMoved.current && draggingItemId.current && moveSnapshot.current) {
       const snap = moveSnapshot.current
+      const end = dragEndPosition.current
+      const endX = end?.itemId === snap.itemId ? end.x : undefined
+      const endY = end?.itemId === snap.itemId ? end.y : undefined
       const item = gameState.items.find((i) => i.id === snap.itemId)
-      if (item && (item.x !== snap.x || item.y !== snap.y)) {
+      const finalX = endX ?? item?.x
+      const finalY = endY ?? item?.y
+      if (finalX !== undefined && finalY !== undefined && (finalX !== snap.x || finalY !== snap.y)) {
         showUndo({ type: 'move', itemId: snap.itemId, x: snap.x, y: snap.y })
       }
     } else if (!pointerMoved.current && draggingItemId.current) {
       selectItem(draggingItemId.current)
     }
+    dragEndPosition.current = null
     moveSnapshot.current = null
     stopDrag()
   }
@@ -560,7 +579,7 @@ export function CoastalWorld({
     : null
   const activeInteriorDef = activeInteriorItem ? getBuilding(activeInteriorItem.buildingId) : null
   const nearbyEnterable =
-    !selectedBuilding && !selectedItemId && !gameState.activeInteriorId
+    !selectedBuilding && !gameState.activeInteriorId
       ? findNearbyEnterable(gameState.avatarPosition, gameState.items)
       : null
 
@@ -627,7 +646,7 @@ export function CoastalWorld({
           <h2>RooVille</h2>
           <span className="player-name player-name--mobile-compact">👋 {gameState.avatar.name}</span>
           {lastSavedAt && (
-            <span className={`save-indicator save-indicator--desktop${saveFlash ? ' save-indicator-flash' : ''}`} aria-live="polite">
+            <span className={`save-indicator${saveFlash ? ' save-indicator-flash' : ''}`} aria-live="polite">
               {saveFlash ? 'Saved!' : `Saved ${formatSavedTime(lastSavedAt)}`}
             </span>
           )}
@@ -761,6 +780,15 @@ export function CoastalWorld({
                   <span className="placement-rotation-label"> ({roadRotationLabel(selectedItem.rotation)})</span>
                 )}
               </span>
+              {isEnterableBuilding(selectedDef) && (
+                <button
+                  type="button"
+                  className="btn btn-small btn-enter"
+                  onClick={() => enterBuilding(selectedItem.id)}
+                >
+                  🚪 Enter
+                </button>
+              )}
               <button type="button" className="btn btn-small" onClick={() => rotateItem(selectedItem.id, -90)}>
                 ↺ Left
               </button>

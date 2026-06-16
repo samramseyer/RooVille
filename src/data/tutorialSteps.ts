@@ -10,7 +10,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 'build',
     title: 'Build your town',
     emoji: '🏠',
-    body: 'Open the Build Menu on the left, pick a category, then tap something and tap the map to place it.',
+    body: 'Open Build (bottom bar on phone, left panel on desktop), pick a category, tap an item, then tap the map to place it.',
   },
   {
     id: 'edit',
@@ -28,7 +28,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: 'interior',
     title: 'Decorate inside',
     emoji: '🛋️',
-    body: 'Tap a building and choose Go inside, or walk nearby and tap Enter. Use Furniture, Walls, and Trim tabs to customize.',
+    body: 'Walk up to a building and tap Enter, or select it and tap Go inside. On phone, use the Map tab first to walk around. Customize with Furniture, Walls, and Trim.',
   },
   {
     id: 'quests',

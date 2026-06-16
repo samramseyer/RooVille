@@ -18,7 +18,13 @@ import {
   snapOpeningToWall,
   type OpeningWallFace,
 } from '../data/interiorOpenings'
-import { ensureLivingRoomExitDoor } from '../data/interiorExitDoor'
+import {
+  ensureLivingRoomExitDoor,
+  getTownExitDoor,
+  isAvatarNearExitDoor,
+  isLivingAreaRoom,
+  isTownExitDoor,
+} from '../data/interiorExitDoor'
 import { resolveInteriorStyle } from '../data/interiorStyles'
 import { getBuildingCatalogDefaultStyle } from '../data/buildingInteriorCatalog'
 import { getBuildingInteriorLayout, getRoomDef, getRoomFloorLabel, type RoomNavLink } from '../data/interiorLayouts'
@@ -31,12 +37,6 @@ import {
   resolveRoomInteriorStyle,
   resolveRoomOpenings,
 } from '../data/interiorRoomState'
-import {
-  getTownExitDoor,
-  isAvatarNearExitDoor,
-  isLivingAreaRoom,
-  isTownExitDoor,
-} from '../data/interiorExitDoor'
 import { resolveWindowView } from '../data/interiorWindowView'
 import { playDeleteSound, playPlaceSound, playRotateSound } from '../audio/sounds'
 import { getQuickFurnishItems } from '../data/quickFurnish'
@@ -242,6 +242,13 @@ export function BuildingInterior({
   }
 
   const deleteOpening = (id: string) => {
+    const target = interiorOpenings.find((item) => item.id === id)
+    if (
+      target &&
+      isTownExitDoor(target, interiorOpenings, layout, currentRoomId)
+    ) {
+      return
+    }
     persistOpenings(interiorOpenings.filter((item) => item.id !== id))
     setSelectedOpeningId(null)
     if (soundOn) playDeleteSound()

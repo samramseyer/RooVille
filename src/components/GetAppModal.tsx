@@ -135,6 +135,7 @@ export function GetAppButton({ onClick, compact }: GetAppButtonProps) {
       type="button"
       className={`btn btn-ghost btn-small get-app-btn${compact ? ' get-app-btn--compact' : ''}`}
       onClick={onClick}
+      aria-label="Get RooVille on your phone"
     >
       📱 {compact ? 'Get app' : 'Get on phone'}
     </button>

@@ -72,7 +72,7 @@ function countZooKeeperProgress(items: PlacedItem[]): number {
               !id.includes('gift'),
           ),
       )
-      best = Math.max(best, animalExhibits.size, 1)
+      best = Math.max(best, animalExhibits.size)
       continue
     }
 
@@ -114,14 +114,11 @@ export function getQuestProgress(questId: string, items: PlacedItem[]): { curren
       return { current: Math.min(countByCategory(items, 'houses'), 1), target: 1 }
     case 'zoo-keeper':
       return { current: Math.min(countUniqueZooAnimals(items), 3), target: 3 }
-    case 'harbour-master':
-      return {
-        current: Math.min(
-          (countByCategory(items, 'docks') >= 1 ? 1 : 0) + countByCategory(items, 'boats'),
-          3,
-        ),
-        target: 3,
-      }
+    case 'harbour-master': {
+      const hasDock = countByCategory(items, 'docks') >= 1 ? 1 : 0
+      const boats = Math.min(countByCategory(items, 'boats'), 2)
+      return { current: hasDock + boats, target: 3 }
+    }
     case 'shop-owner':
       return { current: Math.min(countByCategory(items, 'businesses'), 2), target: 2 }
     case 'decorator':
