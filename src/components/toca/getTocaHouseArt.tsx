@@ -4,8 +4,8 @@ import { getBeachCabinArt } from './TocaBeachCabinArt'
 import { getLighthouseArt } from './TocaLighthouseArt'
 import { getVictorianHouseArt } from './TocaVictorianHouseArt'
 import { getStatelyHouseArt } from './TocaStatelyHouseArt'
+import { getBigBoathouseArt } from './TocaBigBoathouseArt'
 import {
-  BigBoathouseToca,
   CafeToca,
   FishChipsToca,
   IceCreamToca,
@@ -29,6 +29,9 @@ export function getTocaHouseArt(id: string): ReactNode | null {
   const lighthouse = getLighthouseArt(id)
   if (lighthouse) return lighthouse
 
+  const bigBoathouse = getBigBoathouseArt(id)
+  if (bigBoathouse) return bigBoathouse
+
   switch (id) {
     case 'surf-shop':
       return <SurfShopToca />
@@ -40,8 +43,6 @@ export function getTocaHouseArt(id: string): ReactNode | null {
       return <CafeToca />
     case 'small-boathouse':
       return <SmallBoathouseToca />
-    case 'big-boathouse':
-      return <BigBoathouseToca />
     default:
       return null
   }

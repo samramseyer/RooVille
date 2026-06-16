@@ -415,17 +415,3 @@ export function SmallBoathouseToca() {
     </TocaWrap>
   )
 }
-
-export function BigBoathouseToca() {
-  return (
-    <TocaWrap>
-      <TocaShadow rx={40} />
-      <TocaBody x={8} y={30} width={84} height={48} fill={TOCA.corrugatedDark} rx={12} />
-      <CorrugatedRoof points="4,32 50,8 96,32" fill={TOCA.corrugated} />
-      <rect x={34} y={44} width={32} height={34} rx={8} fill={TOCA.ochre} stroke={TOCA.stroke} strokeWidth={2} />
-      <TocaRoundWindow cx={20} cy={48} r={8} />
-      <TocaRoundWindow cx={80} cy={48} r={8} />
-      <TinyKangaroo x={88} y={58} />
-    </TocaWrap>
-  )
-}
