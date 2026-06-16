@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { Avatar } from '../types'
 import {
-  ACCESSORIES,
+  NECKLACES,
+  SUNGLASSES,
   ACCENT_COLORS,
   BODY_SHAPES,
   HAIR_COLORS,
@@ -87,15 +88,10 @@ function OptionPicker<T extends string>({
 export function AvatarCreator({ avatar, onChange, onDone, onBack }: AvatarCreatorProps) {
   const [draft, setDraft] = useState(() => sanitizeAvatar(avatar))
 
-  useEffect(() => {
-    setDraft(sanitizeAvatar(avatar))
-  }, [avatar])
-
   const patch = useCallback(
     (partial: Partial<Avatar>) => {
       setDraft((current) => {
-        const merged: Partial<Avatar> = { ...current, ...partial }
-        const next = sanitizeAvatar(merged)
+        const next = sanitizeAvatar({ ...current, ...partial })
         onChange(next)
         return next
       })
@@ -116,7 +112,7 @@ export function AvatarCreator({ avatar, onChange, onDone, onBack }: AvatarCreato
       <div className="avatar-creator-body">
         <div className="avatar-preview-panel">
           <div className="avatar-preview-bg">
-            <AvatarSprite key={draft.hairStyle} avatar={draft} size={200} />
+            <AvatarSprite avatar={draft} size={200} />
           </div>
           <label className="name-input-label">
             Your name
@@ -176,10 +172,16 @@ export function AvatarCreator({ avatar, onChange, onDone, onBack }: AvatarCreato
           />
           <OptionPicker label="Hat" options={HATS} selected={draft.hat} onSelect={(hat) => patch({ hat })} />
           <OptionPicker
-            label="Accessory"
-            options={ACCESSORIES}
-            selected={draft.accessory}
-            onSelect={(accessory) => patch({ accessory })}
+            label="Sunglasses"
+            options={SUNGLASSES}
+            selected={draft.sunglasses}
+            onSelect={(sunglasses) => patch({ sunglasses })}
+          />
+          <OptionPicker
+            label="Necklace"
+            options={NECKLACES}
+            selected={draft.necklace}
+            onSelect={(necklace) => patch({ necklace })}
           />
           <OptionPicker label="Pet companion" options={PETS} selected={draft.pet} onSelect={(pet) => patch({ pet })} />
           <OptionPicker

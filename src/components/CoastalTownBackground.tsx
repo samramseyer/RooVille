@@ -1,3 +1,4 @@
+import { WelcomeBeachKangaroo } from './WelcomeBeachKangaroo'
 import { YachtPaths, yachtTransform } from './YachtArt'
 
 export function CoastalTownBackground() {
@@ -328,11 +329,7 @@ export function CoastalTownBackground() {
         {/* Small kangaroo on near beach */}
         <g className="welcome-beach-roo">
           <g transform="translate(290, 555) scale(0.7)">
-            <ellipse cx="0" cy="8" rx="14" ry="18" fill="#C4956A" />
-            <circle cx="0" cy="-12" r="10" fill="#C4956A" />
-            <ellipse cx="-14" cy="0" rx="5" ry="8" fill="#C4956A" />
-            <path d="M -8 18 L -12 32 M 8 18 L 12 32" stroke="#C4956A" strokeWidth="4" strokeLinecap="round" />
-            <circle cx="-3" cy="-14" r="2" fill="#2C3E50" />
+            <WelcomeBeachKangaroo />
           </g>
         </g>
 

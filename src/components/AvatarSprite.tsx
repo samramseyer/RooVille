@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import type { Avatar } from '../types'
 import { getBodyMetrics, getHeadLayout } from '../data/avatarBody'
-import { TOCA } from './toca/TocaHouseArt'
+import { PetCompanionSprite } from './PetCompanionArt'
 import { adjustColor } from './toca/tocaShading'
 
 interface AvatarSpriteProps {
@@ -384,15 +384,190 @@ function HairFront({
   }
 }
 
+function SunglassesLayer({
+  style,
+  eyeL,
+  eyeR,
+  eyeY,
+}: {
+  style: Avatar['sunglasses']
+  eyeL: number
+  eyeR: number
+  eyeY: number
+}) {
+  if (style === 'none') return null
+
+  if (style === 'aviator') {
+    return (
+      <g opacity={0.92}>
+        <path
+          d={`M ${eyeL - 5} ${eyeY - 2} Q ${eyeL} ${eyeY + 4} ${eyeL + 5} ${eyeY - 2} Q ${eyeL} ${eyeY - 4} ${eyeL - 5} ${eyeY - 2} Z`}
+          fill="#1A2838"
+          stroke="#C8A040"
+          strokeWidth={0.7}
+        />
+        <path
+          d={`M ${eyeR - 5} ${eyeY - 2} Q ${eyeR} ${eyeY + 4} ${eyeR + 5} ${eyeY - 2} Q ${eyeR} ${eyeY - 4} ${eyeR - 5} ${eyeY - 2} Z`}
+          fill="#1A2838"
+          stroke="#C8A040"
+          strokeWidth={0.7}
+        />
+        <line x1={eyeL + 5} y1={eyeY - 1} x2={eyeR - 5} y2={eyeY - 1} stroke="#C8A040" strokeWidth={0.8} />
+      </g>
+    )
+  }
+
+  if (style === 'round') {
+    return (
+      <g opacity={0.9}>
+        <circle cx={eyeL} cy={eyeY} r={4.2} fill="#222" stroke="#888" strokeWidth={0.6} />
+        <circle cx={eyeR} cy={eyeY} r={4.2} fill="#222" stroke="#888" strokeWidth={0.6} />
+        <line x1={eyeL + 4.2} y1={eyeY} x2={eyeR - 4.2} y2={eyeY} stroke="#888" strokeWidth={0.7} />
+      </g>
+    )
+  }
+
+  if (style === 'sport') {
+    return (
+      <path
+        d={`M ${eyeL - 6} ${eyeY - 2.5} Q ${(eyeL + eyeR) / 2} ${eyeY - 5} ${eyeR + 6} ${eyeY - 2.5} L ${eyeR + 6} ${eyeY + 2.5} Q ${(eyeL + eyeR) / 2} ${eyeY + 1} ${eyeL - 6} ${eyeY + 2.5} Z`}
+        fill="#111"
+        opacity={0.88}
+        stroke="#333"
+        strokeWidth={0.5}
+      />
+    )
+  }
+
+  return (
+    <g opacity={0.85}>
+      <rect x={eyeL - 5} y={eyeY - 3} width={11} height={7} rx={2.5} fill="#222" />
+      <rect x={eyeR - 6} y={eyeY - 3} width={11} height={7} rx={2.5} fill="#222" />
+      <line x1={eyeL + 6} y1={eyeY} x2={eyeR - 6} y2={eyeY} stroke="#222" strokeWidth={1.2} />
+    </g>
+  )
+}
+
+function NecklaceLayer({
+  style,
+  cx,
+  cy,
+}: {
+  style: Avatar['necklace']
+  cx: number
+  cy: number
+}) {
+  if (style === 'none') return null
+
+  const chain = (
+    <path
+      d={`M ${cx - 11} ${cy + 15} Q ${cx} ${cy + 19} ${cx + 11} ${cy + 15}`}
+      fill="none"
+      stroke="#E8D8C0"
+      strokeWidth={0.8}
+    />
+  )
+
+  if (style === 'shell') {
+    return (
+      <>
+        {chain}
+        <circle cx={cx - 5} cy={cy + 16} r={1.6} fill="#FFF8DC" />
+        <circle cx={cx} cy={cy + 17.5} r={2} fill="#FFEFD5" />
+        <circle cx={cx + 5} cy={cy + 16} r={1.6} fill="#FFF8DC" />
+      </>
+    )
+  }
+
+  if (style === 'bead') {
+    const beads = [-8, -4, 0, 4, 8]
+    const colors = ['#E74C3C', '#3498DB', '#F39C12', '#2ECC71', '#9B59B6']
+    return (
+      <>
+        {chain}
+        {beads.map((offset, i) => (
+          <circle key={offset} cx={cx + offset} cy={cy + 16.8} r={1.5} fill={colors[i]} />
+        ))}
+      </>
+    )
+  }
+
+  if (style === 'starfish') {
+    return (
+      <>
+        {chain}
+        <path
+          d={`M ${cx} ${cy + 14.5} L ${cx + 1.2} ${cy + 16.3} L ${cx + 3.2} ${cy + 16.5} L ${cx + 1.8} ${cy + 17.8} L ${cx + 2.2} ${cy + 19.8} L ${cx} ${cy + 18.6} L ${cx - 2.2} ${cy + 19.8} L ${cx - 1.8} ${cy + 17.8} L ${cx - 3.2} ${cy + 16.5} L ${cx - 1.2} ${cy + 16.3} Z`}
+          fill="#FF9A6C"
+          stroke="#E07040"
+          strokeWidth={0.35}
+        />
+      </>
+    )
+  }
+
+  if (style === 'pearl') {
+    return (
+      <>
+        {chain}
+        {[-6, -3, 0, 3, 6].map((offset) => (
+          <circle key={offset} cx={cx + offset} cy={cy + 16.8} r={1.4} fill="#FFF8F0" stroke="#E8E0D8" strokeWidth={0.3} />
+        ))}
+        <circle cx={cx} cy={cy + 18.2} r={2.1} fill="#FFFFFF" stroke="#E8E0D8" strokeWidth={0.35} />
+      </>
+    )
+  }
+
+  if (style === 'surf') {
+    return (
+      <>
+        <path
+          d={`M ${cx - 10} ${cy + 14.5} Q ${cx} ${cy + 16.5} ${cx + 10} ${cy + 14.5}`}
+          fill="none"
+          stroke="#8B6914"
+          strokeWidth={1.4}
+          strokeLinecap="round"
+        />
+        <circle cx={cx - 5} cy={cy + 15.2} r={1.3} fill="#48B5B0" />
+        <circle cx={cx} cy={cy + 15.8} r={1.5} fill="#F5E6D3" />
+        <circle cx={cx + 5} cy={cy + 15.2} r={1.3} fill="#48B5B0" />
+      </>
+    )
+  }
+
+  return null
+}
+
+function FaceAccessories({
+  sunglasses,
+  necklace,
+}: {
+  sunglasses: Avatar['sunglasses']
+  necklace: Avatar['necklace']
+}) {
+  const cx = 50
+  const cy = 36
+  const eyeY = 37.5
+  const eyeL = cx - 6
+  const eyeR = cx + 6
+
+  return (
+    <g>
+      <SunglassesLayer style={sunglasses} eyeL={eyeL} eyeR={eyeR} eyeY={eyeY} />
+      <NecklaceLayer style={necklace} cx={cx} cy={cy} />
+    </g>
+  )
+}
+
 function RealisticFace({
   id,
   hairColor,
-  accessory,
+  sunglasses,
   metrics,
 }: {
   id: string
   hairColor: string
-  accessory: Avatar['accessory']
+  sunglasses: Avatar['sunglasses']
   metrics: ReturnType<typeof getBodyMetrics>
 }) {
   const skin = `url(#${id}-skin)`
@@ -404,18 +579,7 @@ function RealisticFace({
   const eyeH = 6 * eyeScale
   const eyeL = cx - 6
   const eyeR = cx + 6
-
-  if (accessory === 'sunglasses') {
-    return (
-      <g>
-        <ellipse cx={cx} cy={cy} rx={headRx} ry={headRy} fill={skin} />
-        <rect x={eyeL - 5} y={eyeY - 3} width={11} height={7} rx={2.5} fill="#222" opacity={0.85} />
-        <rect x={eyeR - 6} y={eyeY - 3} width={11} height={7} rx={2.5} fill="#222" opacity={0.85} />
-        <line x1={eyeL + 6} y1={eyeY} x2={eyeR - 6} y2={eyeY} stroke="#222" strokeWidth={1.2} />
-        <path d={`M ${cx - 4} ${cy + 12} Q ${cx} ${cy + 14} ${cx + 4} ${cy + 12}`} fill="none" stroke="#B07060" strokeWidth={1} strokeLinecap="round" opacity={0.7} />
-      </g>
-    )
-  }
+  const wearingSunglasses = sunglasses !== 'none'
 
   const renderEye = (ex: number) => (
     <g key={ex}>
@@ -438,17 +602,9 @@ function RealisticFace({
     <g>
       <ellipse cx={cx} cy={cy} rx={headRx} ry={headRy} fill={skin} />
       <ellipse cx={cx} cy={cy - 3} rx={headRx * 0.5} ry={headRy * 0.32} fill="#FFFFFF" opacity={0.07} />
-      {renderEye(eyeL)}
-      {renderEye(eyeR)}
+      {!wearingSunglasses && renderEye(eyeL)}
+      {!wearingSunglasses && renderEye(eyeR)}
       <path d={`M ${cx - 3.5} ${cy + 11} Q ${cx} ${cy + 13} ${cx + 3.5} ${cy + 11}`} fill="none" stroke="#B07060" strokeWidth={0.9} strokeLinecap="round" opacity={0.65} />
-      {accessory === 'shell-necklace' && (
-        <>
-          <path d={`M ${cx - 11} ${cy + 15} Q ${cx} ${cy + 19} ${cx + 11} ${cy + 15}`} fill="none" stroke="#E8D8C0" strokeWidth={0.8} />
-          <circle cx={cx - 5} cy={cy + 16} r={1.6} fill="#FFF8DC" />
-          <circle cx={cx} cy={cy + 17.5} r={2} fill="#FFEFD5" />
-          <circle cx={cx + 5} cy={cy + 16} r={1.6} fill="#FFF8DC" />
-        </>
-      )}
     </g>
   )
 }
@@ -459,24 +615,35 @@ function LegsAndShoes({
   onVehicle,
   shoeStyle,
   accentColor,
+  legStartY,
+  bareLegs,
 }: {
   gradId: string
   metrics: ReturnType<typeof getBodyMetrics>
   onVehicle: boolean
   shoeStyle: 'sneakers' | 'sandals' | 'boots'
   accentColor: string
+  /** When set, legs render from this Y instead of the hip (e.g. dress hem). */
+  legStartY?: number
+  /** Bare skin below legStartY instead of denim. */
+  bareLegs?: boolean
 }) {
   if (onVehicle) return null
   const { hip, torsoBottom, legLength } = metrics
-  const legTop = torsoBottom - 1
-  const ankle = legTop + legLength
+  const legTop = legStartY ?? torsoBottom - 1
+  const ankle = torsoBottom - 1 + legLength
   const denim = `url(#${gradId}-denim)`
   const accent = `url(#${gradId}-accent)`
+  const legFill = bareLegs ? `url(#${gradId}-skin)` : denim
+  const legOuter = bareLegs ? 4.5 : hip + 1
+  const legInnerTop = bareLegs ? 3 : 3.5
+  const legInnerAnkle = bareLegs ? 2 : 2
+  const legOuterAnkle = bareLegs ? 4.5 : 5
 
   return (
     <>
-      <path d={`M ${50 - hip + 1} ${legTop} L ${50 - 5} ${ankle} L ${50 - 2} ${ankle} L ${50 - 3.5} ${legTop} Z`} fill={denim} />
-      <path d={`M ${50 + hip - 1} ${legTop} L ${50 + 5} ${ankle} L ${50 + 2} ${ankle} L ${50 + 3.5} ${legTop} Z`} fill={denim} />
+      <path d={`M ${50 - legOuter} ${legTop} L ${50 - legOuterAnkle} ${ankle} L ${50 - legInnerAnkle} ${ankle} L ${50 - legInnerTop} ${legTop} Z`} fill={legFill} />
+      <path d={`M ${50 + legOuter} ${legTop} L ${50 + legOuterAnkle} ${ankle} L ${50 + legInnerAnkle} ${ankle} L ${50 + legInnerTop} ${legTop} Z`} fill={legFill} />
       {shoeStyle === 'sneakers' && (
         <>
           <path d={`M ${50 - 8} ${ankle} L ${50 - 9} ${ankle + 5} L ${50 - 1} ${ankle + 5.5} L ${50 - 1} ${ankle} Z`} fill={accent} />
@@ -517,8 +684,11 @@ function OutfitLayer({
   const { outfitStyle, outfitColor, accentColor, skinTone } = avatar
   const cloth = `url(#${gradId}-cloth)`
   const shade = adjustColor(outfitColor, -14)
-  const { shoulder, waist, torsoBottom } = metrics
+  const { shoulder, waist, hip, torsoBottom, legLength } = metrics
   const top = 54
+  const legTop = torsoBottom - 1
+  const dressHem = legTop + legLength * 0.72
+  const dressHemWidth = hip + 5
 
   const arms = (
     <>
@@ -539,12 +709,20 @@ function OutfitLayer({
     return (
       <g>
         <path
-          d={`M ${50 - shoulder} ${top} L ${50 - waist - 2} ${torsoBottom + 8} Q 50 ${torsoBottom + 12} ${50 + waist + 2} ${torsoBottom + 8} L ${50 + shoulder} ${top} Q 50 ${top - 4} ${50 - shoulder} ${top} Z`}
+          d={`M ${50 - shoulder} ${top} L ${50 - dressHemWidth} ${dressHem} Q 50 ${dressHem + 3} ${50 + dressHemWidth} ${dressHem} L ${50 + shoulder} ${top} Q 50 ${top - 4} ${50 - shoulder} ${top} Z`}
           fill={cloth}
         />
         <path d={`M ${50 - shoulder + 2} ${top} Q 50 ${top + 2} ${50 + shoulder - 2} ${top}`} fill="#FFFFFF" opacity={0.12} />
         {arms}
-        <LegsAndShoes gradId={gradId} metrics={metrics} onVehicle={onVehicle} shoeStyle="sandals" accentColor={accentColor} />
+        <LegsAndShoes
+          gradId={gradId}
+          metrics={metrics}
+          onVehicle={onVehicle}
+          shoeStyle="sandals"
+          accentColor={accentColor}
+          legStartY={dressHem}
+          bareLegs
+        />
       </g>
     )
   }
@@ -685,41 +863,6 @@ function HatLayer({ hat, metrics }: { hat: Avatar['hat']; metrics: ReturnType<ty
   return null
 }
 
-function PetSprite({ pet }: { pet: Avatar['pet'] }) {
-  if (pet === 'none') return null
-  const x = 76
-  const y = 78
-  if (pet === 'dog') {
-    return (
-      <g transform={`translate(${x}, ${y})`} opacity={0.9}>
-        <ellipse cx={0} cy={8} rx={8} ry={6} fill="#B8956A" />
-        <ellipse cx={7} cy={1} rx={5.5} ry={5.5} fill="#C9A67A" />
-        <circle cx={9} cy={0} r={1.1} fill="#333" />
-      </g>
-    )
-  }
-  if (pet === 'cat') {
-    return (
-      <g transform={`translate(${x}, ${y})`} opacity={0.9}>
-        <ellipse cx={0} cy={8} rx={7} ry={5.5} fill="#E09030" />
-        <ellipse cx={6} cy={1} rx={4.5} ry={4.5} fill="#F0A848" />
-      </g>
-    )
-  }
-  if (pet === 'kangaroo') {
-    return (
-      <g transform={`translate(${x}, ${y})`} opacity={0.9}>
-        <ellipse cx={0} cy={7} rx={5.5} ry={7} fill={TOCA.ochre} />
-      </g>
-    )
-  }
-  return (
-    <g transform={`translate(${x - 3}, ${y - 6})`} opacity={0.9}>
-      <ellipse cx={0} cy={0} rx={4.5} ry={3.5} fill="#D04040" />
-    </g>
-  )
-}
-
 function VehicleSprite({ vehicle, accentColor }: { vehicle: Avatar['vehicle']; accentColor: string }) {
   if (vehicle === 'none') return null
   if (vehicle === 'bike') {
@@ -780,7 +923,7 @@ export function AvatarSprite({ avatar, size = 80, className }: AvatarSpriteProps
       <RealisticFace
         id={gradId}
         hairColor={avatar.hairColor}
-        accessory={avatar.accessory}
+        sunglasses={avatar.sunglasses ?? 'none'}
         metrics={metrics}
       />
       <HairFront
@@ -795,7 +938,8 @@ export function AvatarSprite({ avatar, size = 80, className }: AvatarSpriteProps
         <PonytailTail id={gradId} metrics={metrics} hairEnd={hairEnd} />
       )}
       <HatLayer hat={avatar.hat} metrics={metrics} />
-      <PetSprite pet={avatar.pet} />
+      <FaceAccessories sunglasses={avatar.sunglasses ?? 'none'} necklace={avatar.necklace ?? 'none'} />
+      <PetCompanionSprite pet={avatar.pet} footY={footY} />
     </svg>
   )
 }

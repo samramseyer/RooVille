@@ -32,6 +32,7 @@ function App() {
 
       {screen === 'avatar' && (
         <AvatarCreator
+          key="avatar-creator"
           avatar={gameState.avatar}
           onChange={(avatar) =>
             updateGameState((prev) => ({ ...prev, avatar: sanitizeAvatar(avatar) }))

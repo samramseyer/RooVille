@@ -17,6 +17,9 @@ export type AvatarBodyShapeId = 'slim' | 'average' | 'athletic' | 'curvy'
 export type AvatarOutfitStyleId = 'hoodie' | 'tshirt' | 'dress' | 'overalls' | 'coastal'
 export type AvatarHairStyleId = 'wavy' | 'long' | 'short' | 'curly' | 'bob' | 'ponytail' | 'bun'
 
+export type AvatarSunglassesId = 'none' | 'classic' | 'aviator' | 'round' | 'sport'
+export type AvatarNecklaceId = 'none' | 'shell' | 'bead' | 'starfish' | 'pearl' | 'surf'
+
 export interface Avatar {
   name: string
   bodyShape: AvatarBodyShapeId
@@ -27,7 +30,8 @@ export interface Avatar {
   outfitColor: string
   accentColor: string
   hat: 'none' | 'sunhat' | 'cap' | 'bucket'
-  accessory: 'none' | 'sunglasses' | 'shell-necklace'
+  sunglasses: AvatarSunglassesId
+  necklace: AvatarNecklaceId
   pet: 'none' | 'dog' | 'cat' | 'kangaroo' | 'parrot'
   vehicle: 'none' | 'bike' | 'surfboard'
 }

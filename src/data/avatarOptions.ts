@@ -1,4 +1,4 @@
-import type { Avatar, AvatarHairStyleId } from '../types'
+import type { Avatar, AvatarHairStyleId, AvatarNecklaceId, AvatarSunglassesId } from '../types'
 import { migrateBodyShape, BODY_SHAPES, OUTFIT_STYLES } from './avatarBody'
 
 export { BODY_SHAPES, OUTFIT_STYLES } from './avatarBody'
@@ -63,10 +63,21 @@ export const HATS: { id: Avatar['hat']; label: string }[] = [
   { id: 'bucket', label: 'Bucket hat' },
 ]
 
-export const ACCESSORIES: { id: Avatar['accessory']; label: string }[] = [
+export const SUNGLASSES: { id: AvatarSunglassesId; label: string }[] = [
   { id: 'none', label: 'None' },
-  { id: 'sunglasses', label: 'Sunnies' },
-  { id: 'shell-necklace', label: 'Shell necklace' },
+  { id: 'classic', label: 'Classic' },
+  { id: 'aviator', label: 'Aviator' },
+  { id: 'round', label: 'Round' },
+  { id: 'sport', label: 'Sport wrap' },
+]
+
+export const NECKLACES: { id: AvatarNecklaceId; label: string }[] = [
+  { id: 'none', label: 'None' },
+  { id: 'shell', label: 'Shell' },
+  { id: 'bead', label: 'Bead' },
+  { id: 'starfish', label: 'Starfish' },
+  { id: 'pearl', label: 'Pearl' },
+  { id: 'surf', label: 'Surf choker' },
 ]
 
 export const PETS: { id: Avatar['pet']; label: string }[] = [
@@ -93,7 +104,8 @@ export const DEFAULT_AVATAR: Avatar = {
   outfitColor: OUTFIT_COLORS[1],
   accentColor: ACCENT_COLORS[0],
   hat: 'none',
-  accessory: 'none',
+  sunglasses: 'none',
+  necklace: 'none',
   pet: 'none',
   vehicle: 'none',
 }
@@ -110,13 +122,14 @@ const PET_IDS = new Set(PETS.map((pet) => pet.id))
 const VEHICLE_IDS = new Set(VEHICLES.map((vehicle) => vehicle.id))
 const HAIR_STYLE_IDS = new Set(HAIR_STYLES.map((style) => style.id))
 const HAT_IDS = new Set(HATS.map((hat) => hat.id))
-const ACCESSORY_IDS = new Set(ACCESSORIES.map((accessory) => accessory.id))
+const SUNGLASSES_IDS = new Set(SUNGLASSES.map((item) => item.id))
+const NECKLACE_IDS = new Set(NECKLACES.map((item) => item.id))
 
 const LEGACY_HAIR: Record<string, AvatarHairStyleId> = {
   pigtails: 'ponytail',
 }
 
-export function sanitizeAvatar(raw: Partial<Avatar> & { gender?: string } | undefined): Avatar {
+export function sanitizeAvatar(raw: Partial<Avatar> & { gender?: string; accessory?: string } | undefined): Avatar {
   const skinTone = typeof raw?.skinTone === 'string' && SKIN_TONES.includes(raw.skinTone) ? raw.skinTone : DEFAULT_AVATAR.skinTone
   const hairColor = typeof raw?.hairColor === 'string' && HAIR_COLORS.includes(raw.hairColor) ? raw.hairColor : DEFAULT_AVATAR.hairColor
   const outfitColor =
@@ -136,6 +149,20 @@ export function sanitizeAvatar(raw: Partial<Avatar> & { gender?: string } | unde
         ? LEGACY_HAIR[rawHair]
         : DEFAULT_AVATAR.hairStyle
 
+  const legacyAccessory = raw?.accessory
+  const sunglasses: AvatarSunglassesId =
+    typeof raw?.sunglasses === 'string' && SUNGLASSES_IDS.has(raw.sunglasses)
+      ? raw.sunglasses
+      : legacyAccessory === 'sunglasses'
+        ? 'classic'
+        : DEFAULT_AVATAR.sunglasses
+  const necklace: AvatarNecklaceId =
+    typeof raw?.necklace === 'string' && NECKLACE_IDS.has(raw.necklace)
+      ? raw.necklace
+      : legacyAccessory === 'shell-necklace'
+        ? 'shell'
+        : DEFAULT_AVATAR.necklace
+
   return {
     ...DEFAULT_AVATAR,
     name: sanitizeAvatarName(raw?.name),
@@ -149,9 +176,8 @@ export function sanitizeAvatar(raw: Partial<Avatar> & { gender?: string } | unde
       raw?.outfitStyle && OUTFIT_STYLE_IDS.has(raw.outfitStyle) ? raw.outfitStyle : DEFAULT_AVATAR.outfitStyle,
     hairStyle,
     hat: HAT_IDS.has(raw?.hat as Avatar['hat']) ? (raw!.hat as Avatar['hat']) : DEFAULT_AVATAR.hat,
-    accessory: ACCESSORY_IDS.has(raw?.accessory as Avatar['accessory'])
-      ? (raw!.accessory as Avatar['accessory'])
-      : DEFAULT_AVATAR.accessory,
+    sunglasses,
+    necklace,
     pet: PET_IDS.has(raw?.pet as Avatar['pet']) ? (raw!.pet as Avatar['pet']) : DEFAULT_AVATAR.pet,
     vehicle: VEHICLE_IDS.has(raw?.vehicle as Avatar['vehicle'])
       ? (raw!.vehicle as Avatar['vehicle'])
