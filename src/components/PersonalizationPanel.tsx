@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import type { Avatar } from '../types'
 import { sanitizeAvatarName } from '../data/avatarOptions'
 import { AvatarSprite } from './AvatarSprite'
@@ -12,6 +13,8 @@ interface PersonalizationPanelProps {
   onNameChange: (name: string) => void
   onEditAvatar: () => void
   onSaveNow: () => void
+  onExportSave?: () => void
+  onImportSave?: (file: File, onDone: (ok: boolean) => void) => void
 }
 
 function formatSavedTime(date: Date): string {
@@ -28,7 +31,20 @@ export function PersonalizationPanel({
   onNameChange,
   onEditAvatar,
   onSaveNow,
+  onExportSave,
+  onImportSave,
 }: PersonalizationPanelProps) {
+  const importRef = useRef<HTMLInputElement>(null)
+  const [importMessage, setImportMessage] = useState<string | null>(null)
+
+  const handleImport = (file: File | undefined) => {
+    if (!file || !onImportSave) return
+    onImportSave(file, (ok) => {
+      setImportMessage(ok ? 'Save imported!' : 'Could not read that file.')
+      window.setTimeout(() => setImportMessage(null), 3000)
+    })
+  }
+
   return (
     <div className="personalization-panel">
       <div className="personalization-preview">
@@ -74,6 +90,37 @@ export function PersonalizationPanel({
         <button type="button" className="btn btn-secondary btn-small personalization-save-btn" onClick={onSaveNow}>
           Save now
         </button>
+        {(onExportSave || onImportSave) && (
+          <div className="save-backup-row">
+            {onExportSave && (
+              <button type="button" className="btn btn-ghost btn-small" onClick={onExportSave}>
+                Export save
+              </button>
+            )}
+            {onImportSave && (
+              <>
+                <input
+                  ref={importRef}
+                  type="file"
+                  accept="application/json,.json"
+                  className="sr-only"
+                  onChange={(e) => {
+                    handleImport(e.target.files?.[0])
+                    e.target.value = ''
+                  }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-small"
+                  onClick={() => importRef.current?.click()}
+                >
+                  Import save
+                </button>
+              </>
+            )}
+          </div>
+        )}
+        {importMessage && <p className="import-message">{importMessage}</p>}
       </section>
 
       <section className="personalization-section">

@@ -38,11 +38,13 @@ import {
 } from '../data/interiorExitDoor'
 import { resolveWindowView, type MapSize } from '../data/interiorWindowView'
 import { playDeleteSound, playPlaceSound, playRotateSound } from '../audio/sounds'
+import { getQuickFurnishItems } from '../data/quickFurnish'
 import { AvatarSprite } from './AvatarSprite'
 import { InteriorFurnitureItemView } from './InteriorFurnitureItemView'
 import { InteriorRoomBackground } from './InteriorFurnitureArt'
 import { InteriorOpeningView } from './InteriorOpeningView'
-import { InteriorPalette, type PaletteTab } from './InteriorPalette'
+import { InteriorPalette, type InteriorPaletteMode, type PaletteTab } from './InteriorPalette'
+import { InteriorRoomMap } from './InteriorRoomMap'
 import { InteriorRoomNav } from './InteriorRoomNav'
 import { SoundToggle } from './SoundToggle'
 
@@ -54,6 +56,7 @@ const AVATAR_RADIUS = 28
 
 type PlacementMode = 'window' | 'door' | null
 type DragMode = 'avatar' | 'furniture' | 'opening' | 'resize-opening' | 'resize-furniture' | null
+type InteriorMode = 'decorate' | 'design'
 
 function clampAvatarPosition(x: number, y: number, theme: InteriorTheme = 'home') {
   const floorTop = theme === 'zoo' ? AVATAR_RADIUS : FLOOR_TOP + AVATAR_RADIUS
@@ -91,6 +94,7 @@ export function BuildingInterior({
   const [placementMode, setPlacementMode] = useState<PlacementMode>(null)
   const [placementWindowStyle, setPlacementWindowStyle] = useState<WindowStyleId | null>(null)
   const [paletteTab, setPaletteTab] = useState<PaletteTab | null>(null)
+  const [interiorMode, setInteriorMode] = useState<InteriorMode>('decorate')
   const [dragMode, setDragMode] = useState<DragMode>(null)
 
   const liveItem = gameState.items.find((i) => i.id === placedItem.id) ?? placedItem
@@ -644,6 +648,58 @@ export function BuildingInterior({
     if (soundOn) playPlaceSound()
   }
 
+  const switchToRoomId = (targetRoomId: string) => {
+    if (!layout || targetRoomId === currentRoomId) return
+    const targetRoom = getRoomDef(layout, targetRoomId)
+    if (!targetRoom) return
+
+    let nextSpawn = targetRoom.defaultAvatar ?? DEFAULT_AVATAR_INTERIOR
+
+    onUpdate((prev) => {
+      const item = prev.items.find((entry) => entry.id === placedItem.id)
+      if (!item) return prev
+
+      const currentRoomState = getRawRoomState(item, currentRoomId, layout.defaultRoomId)
+      const savedRooms = {
+        ...item.interiorRooms,
+        [currentRoomId]: {
+          ...currentRoomState,
+          interiorAvatarPosition: avatarPosition,
+        },
+      }
+
+      const targetState = savedRooms[targetRoomId]
+      nextSpawn = targetState?.interiorAvatarPosition ?? targetRoom.defaultAvatar ?? DEFAULT_AVATAR_INTERIOR
+
+      return {
+        ...prev,
+        items: prev.items.map((entry) =>
+          entry.id === placedItem.id
+            ? {
+                ...item,
+                interiorRooms: savedRooms,
+                currentInteriorRoomId: targetRoomId,
+              }
+            : entry,
+        ),
+      }
+    })
+
+    setCurrentRoomId(targetRoomId)
+    setAvatarPosition(nextSpawn)
+    clearSelection()
+    if (soundOn) playPlaceSound()
+  }
+
+  const quickFurnishRoom = () => {
+    if (!roomDef || interiorItems.length > 2) return
+    const newItems = getQuickFurnishItems(roomDef.name)
+    persistRoomData({ interior: [...interiorItems, ...newItems] })
+    if (soundOn) playPlaceSound()
+  }
+
+  const paletteMode: InteriorPaletteMode = theme === 'zoo' ? 'full' : interiorMode === 'decorate' ? 'decorate' : 'design'
+
   const selectedInterior = interiorItems.find((item) => item.id === selectedInteriorId)
   const selectedInteriorDef = selectedInterior ? getFurniture(selectedInterior.furnitureId) : null
   const selectedOpening = interiorOpenings.find((item) => item.id === selectedOpeningId)
@@ -677,6 +733,33 @@ export function BuildingInterior({
           </div>
         </div>
         <div className="interior-header-actions">
+          {theme !== 'zoo' && (
+            <div className="interior-mode-toggle" role="group" aria-label="Interior mode">
+              <button
+                type="button"
+                className={`btn btn-small${interiorMode === 'decorate' ? ' btn-primary' : ' btn-ghost'}`}
+                onClick={() => {
+                  setInteriorMode('decorate')
+                  clearSelection()
+                  setPaletteTab(null)
+                }}
+              >
+                🛋️ Decorate
+              </button>
+              <button
+                type="button"
+                className={`btn btn-small${interiorMode === 'design' ? ' btn-primary' : ' btn-ghost'}`}
+                onClick={() => {
+                  setInteriorMode('design')
+                  clearSelection()
+                  setSelectedFurniture(null)
+                  setPaletteTab('walls')
+                }}
+              >
+                🎨 Design
+              </button>
+            </div>
+          )}
           <SoundToggle enabled={soundOn} onToggle={toggleSound} compact />
         </div>
         {selectedFurniture && !selectedInteriorId && !selectedOpeningId && (
@@ -735,9 +818,23 @@ export function BuildingInterior({
             setSelectedOpeningId(null)
           }}
           editMode={(selectedInteriorId !== null || selectedOpeningId !== null) && !placementMode}
+          paletteMode={paletteMode}
         />
 
         <div className="interior-room-container">
+          {layout && layout.rooms.length > 1 && (
+            <InteriorRoomMap
+              layout={layout}
+              currentRoomId={currentRoomId}
+              onSelectRoom={switchToRoomId}
+            />
+          )}
+
+          {interiorMode === 'decorate' && theme !== 'zoo' && interiorItems.length <= 2 && roomDef && (
+            <button type="button" className="btn btn-secondary btn-small quick-furnish-btn" onClick={quickFurnishRoom}>
+              ✨ Quick furnish this room
+            </button>
+          )}
           {selectedInterior && selectedInteriorDef && (
             <div className="item-toolbar interior-toolbar">
               <span>

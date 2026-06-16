@@ -18,6 +18,7 @@ import {
   SKIN_TONES,
   VEHICLES,
 } from '../data/avatarOptions'
+import { AVATAR_PRESETS, applyAvatarPreset } from '../data/avatarPresets'
 import { AvatarSprite } from './AvatarSprite'
 
 interface AvatarCreatorProps {
@@ -130,6 +131,23 @@ export function AvatarCreator({ avatar, onChange, onDone, onBack }: AvatarCreato
         </div>
 
         <div className="avatar-options-panel">
+          <section className="avatar-presets-section">
+            <span className="picker-label">Quick looks</span>
+            <div className="avatar-presets-row">
+              {AVATAR_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  className="avatar-preset-btn"
+                  onClick={() => patch(applyAvatarPreset(preset.id, draft.name))}
+                  title={preset.name}
+                >
+                  <span aria-hidden="true">{preset.emoji}</span>
+                  {preset.name}
+                </button>
+              ))}
+            </div>
+          </section>
           <OptionPicker
             label="Body shape"
             options={BODY_SHAPES}

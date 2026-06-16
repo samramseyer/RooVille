@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { BuildingDef, GameState, PlacedItem } from '../types'
 import { getBuilding } from '../data/buildings'
+import { getSuggestedBuildCategory } from '../data/buildingMeta'
 import { getPlacedDisplayPosition, itemPositionFromDisplay } from '../data/buildingDisplay'
 import { isRoadBuilding, snapRoadPlacementFromCenter, snapRoadPosition } from '../data/roads'
 import { QUESTS } from '../data/quests'
@@ -27,6 +28,10 @@ import { BuildingPalette } from './BuildingPalette'
 import { ItemEditPanel } from './ItemEditPanel'
 import { SidePanel } from './SidePanel'
 import { SoundToggle } from './SoundToggle'
+import { TutorialOverlay } from './TutorialOverlay'
+import { NewTownModal } from './NewTownModal'
+import { UndoToast } from './UndoToast'
+import { MobileWorldNav, type MobilePanel } from './MobileWorldNav'
 import { checkQuest } from './QuestPanel'
 import {
   findNearbyEnterable,
@@ -43,12 +48,38 @@ interface CoastalWorldProps {
   lastSavedAt: Date | null
   saveFlash: boolean
   onSaveNow: () => void
+  onExportSave?: () => void
+  onImportSave?: (file: File, onDone: (ok: boolean) => void) => void
   toggleSound: () => void
 }
 
 type DragMode = 'avatar' | 'item' | null
 
+type UndoAction =
+  | { type: 'delete'; item: PlacedItem }
+  | { type: 'move'; itemId: string; x: number; y: number }
+
 const DRAG_THRESHOLD = 8
+const VIEWPORT_PADDING = 120
+
+function formatSavedTime(date: Date): string {
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+}
+
+function isItemInViewport(
+  item: PlacedItem,
+  building: BuildingDef,
+  mapSize: { width: number; height: number },
+  padding = VIEWPORT_PADDING,
+): boolean {
+  const display = getPlacedDisplayPosition(item, building)
+  return (
+    display.left + display.width > -padding &&
+    display.top + display.height > -padding &&
+    display.left < mapSize.width + padding &&
+    display.top < mapSize.height + padding
+  )
+}
 
 function roadRotationLabel(rotation: number): string {
   const r = ((rotation % 360) + 360) % 360
@@ -133,6 +164,8 @@ export function CoastalWorld({
   lastSavedAt,
   saveFlash,
   onSaveNow,
+  onExportSave,
+  onImportSave,
   toggleSound,
 }: CoastalWorldProps) {
   const mapRef = useRef<HTMLDivElement>(null)
@@ -142,14 +175,76 @@ export function CoastalWorld({
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [dragMode, setDragMode] = useState<DragMode>(null)
   const [celebration, setCelebration] = useState<string | null>(null)
+  const [showTutorial, setShowTutorial] = useState(() => !gameState.tutorialCompleted)
+  const [showNewTownModal, setShowNewTownModal] = useState(false)
+  const [undoAction, setUndoAction] = useState<UndoAction | null>(null)
+  const [placementTip, setPlacementTip] = useState<string | null>(null)
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel>('map')
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const dragOffset = useRef({ x: 0, y: 0 })
   const dragStart = useRef({ x: 0, y: 0 })
   const pointerMoved = useRef(false)
   const draggingItemId = useRef<string | null>(null)
+  const moveSnapshot = useRef<{ itemId: string; x: number; y: number } | null>(null)
+  const undoTimerRef = useRef<number | null>(null)
   const { phase, localTimeLabel } = useDayNightCycle()
   const weather = useLocalWeather()
 
   const soundOn = gameState.soundEnabled
+  const favoriteBuildingIds = gameState.favoriteBuildingIds ?? []
+  const suggestedCategory = getSuggestedBuildCategory(gameState.completedQuests)
+  const activeQuestCount = QUESTS.filter((q) => !gameState.completedQuests.includes(q.id)).length
+
+  const showUndo = useCallback((action: UndoAction) => {
+    if (undoTimerRef.current) window.clearTimeout(undoTimerRef.current)
+    setUndoAction(action)
+    undoTimerRef.current = window.setTimeout(() => setUndoAction(null), 5000)
+  }, [])
+
+  const handleUndo = useCallback(() => {
+    if (!undoAction) return
+    if (undoAction.type === 'delete') {
+      onUpdate((prev) => ({ ...prev, items: [...prev.items, undoAction.item] }))
+    } else {
+      onUpdate((prev) => ({
+        ...prev,
+        items: prev.items.map((item) =>
+          item.id === undoAction.itemId ? { ...item, x: undoAction.x, y: undoAction.y } : item,
+        ),
+      }))
+    }
+    setUndoAction(null)
+    if (undoTimerRef.current) window.clearTimeout(undoTimerRef.current)
+  }, [undoAction, onUpdate])
+
+  const toggleFavorite = useCallback(
+    (buildingId: string) => {
+      onUpdate((prev) => {
+        const current = prev.favoriteBuildingIds ?? []
+        const next = current.includes(buildingId)
+          ? current.filter((id) => id !== buildingId)
+          : [...current, buildingId]
+        return { ...prev, favoriteBuildingIds: next }
+      })
+    },
+    [onUpdate],
+  )
+
+  const completeTutorial = useCallback(() => {
+    setShowTutorial(false)
+    onUpdate((prev) => ({ ...prev, tutorialCompleted: true }))
+  }, [onUpdate])
+
+  const markTipSeen = useCallback(
+    (tipId: string) => {
+      onUpdate((prev) => {
+        const seen = prev.tipsSeen ?? []
+        if (seen.includes(tipId)) return prev
+        return { ...prev, tipsSeen: [...seen, tipId] }
+      })
+    },
+    [onUpdate],
+  )
 
   const updateMapSize = useCallback(() => {
     const rect = mapRef.current?.getBoundingClientRect()
@@ -244,8 +339,17 @@ export function CoastalWorld({
       onUpdate((prev) => ({ ...prev, items: [...prev.items, newItem] }))
       selectItem(newItem.id)
       if (soundOn) playPlaceSound()
+
+      if (
+        selectedBuilding.category === 'houses' &&
+        !(gameState.tipsSeen ?? []).includes('first-house')
+      ) {
+        markTipSeen('first-house')
+        setPlacementTip('Walk up to your house and tap Enter to go inside!')
+        window.setTimeout(() => setPlacementTip(null), 6000)
+      }
     },
-    [selectedBuilding, placementRotation, onUpdate, soundOn],
+    [selectedBuilding, placementRotation, onUpdate, soundOn, gameState.tipsSeen, markTipSeen],
   )
 
   const rotatePlacement = (delta: number) => {
@@ -344,14 +448,22 @@ export function CoastalWorld({
     dragStart.current = { x: e.clientX, y: e.clientY }
     pointerMoved.current = false
     draggingItemId.current = item.id
+    moveSnapshot.current = { itemId: item.id, x: item.x, y: item.y }
     selectItem(item.id)
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
   const finishItemPointer = () => {
-    if (!pointerMoved.current && draggingItemId.current) {
+    if (pointerMoved.current && draggingItemId.current && moveSnapshot.current) {
+      const snap = moveSnapshot.current
+      const item = gameState.items.find((i) => i.id === snap.itemId)
+      if (item && (item.x !== snap.x || item.y !== snap.y)) {
+        showUndo({ type: 'move', itemId: snap.itemId, x: snap.x, y: snap.y })
+      }
+    } else if (!pointerMoved.current && draggingItemId.current) {
       selectItem(draggingItemId.current)
     }
+    moveSnapshot.current = null
     stopDrag()
   }
 
@@ -366,14 +478,37 @@ export function CoastalWorld({
     if (soundOn) playRotateSound()
   }
 
-  const deleteItem = (itemId: string) => {
+  const nudgeItem = (itemId: string, dx: number, dy: number) => {
     onUpdate((prev) => ({
       ...prev,
-      items: prev.items.filter((item) => item.id !== itemId),
+      items: prev.items.map((item) => {
+        if (item.id !== itemId) return item
+        const building = getBuilding(item.buildingId)
+        if (!building) return item
+        let nextX = item.x + dx
+        let nextY = item.y + dy
+        if (isRoadBuilding(item.buildingId)) {
+          const snapped = snapRoadPosition(nextX, nextY)
+          nextX = snapped.x
+          nextY = snapped.y
+        }
+        return { ...item, x: nextX, y: nextY }
+      }),
+    }))
+    setSelectedItemId(itemId)
+  }
+
+  const deleteItem = (itemId: string) => {
+    const item = gameState.items.find((i) => i.id === itemId)
+    if (!item) return
+    onUpdate((prev) => ({
+      ...prev,
+      items: prev.items.filter((i) => i.id !== itemId),
       activeInteriorId: prev.activeInteriorId === itemId ? null : prev.activeInteriorId,
     }))
     setSelectedItemId(null)
     if (soundOn) playDeleteSound()
+    showUndo({ type: 'delete', item })
   }
 
   const enterBuilding = (itemId: string) => {
@@ -414,11 +549,19 @@ export function CoastalWorld({
       }
       if (e.key === 'ArrowLeft' || e.key === 'q') rotateItem(selectedItemId, -90)
       if (e.key === 'ArrowRight' || e.key === 'e') rotateItem(selectedItemId, 90)
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        nudgeItem(selectedItemId, 0, -8)
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        nudgeItem(selectedItemId, 0, 8)
+      }
       if (e.key === 'Escape') setSelectedItemId(null)
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selectedItemId, soundOn, onUpdate])
+  }, [selectedItemId, gameState.items, soundOn, onUpdate])
 
   const selectedItem = gameState.items.find((i) => i.id === selectedItemId)
   const selectedDef = selectedItem ? getBuilding(selectedItem.buildingId) : null
@@ -431,8 +574,21 @@ export function CoastalWorld({
       ? findNearbyEnterable(gameState.avatarPosition, gameState.items)
       : null
 
-  const roadItems = gameState.items.filter((item) => isRoadBuilding(item.buildingId))
-  const structureItems = gameState.items.filter((item) => !isRoadBuilding(item.buildingId))
+  const roadItems = gameState.items.filter(
+    (item) => isRoadBuilding(item.buildingId) && getBuilding(item.buildingId) && isItemInViewport(item, getBuilding(item.buildingId)!, mapSize),
+  )
+  const structureItems = gameState.items.filter(
+    (item) => !isRoadBuilding(item.buildingId) && getBuilding(item.buildingId) && isItemInViewport(item, getBuilding(item.buildingId)!, mapSize),
+  )
+
+  const handleMobileSelect = (panel: MobilePanel) => {
+    setMobilePanel(panel)
+    if (panel === 'you' || panel === 'quests') {
+      setMobileDrawerOpen(true)
+    } else {
+      setMobileDrawerOpen(false)
+    }
+  }
 
   const renderPlacedItem = (item: PlacedItem) => (
     <div
@@ -470,11 +626,16 @@ export function CoastalWorld({
   }
 
   return (
-    <div className="coastal-world">
+    <div className={`coastal-world${mobilePanel === 'map' ? ' mobile-map-focus' : ''}`}>
       <header className="world-header">
         <div className="world-header-left">
           <h2>RooVille</h2>
           <span className="player-name">👋 {gameState.avatar.name}</span>
+          {lastSavedAt && (
+            <span className={`save-indicator${saveFlash ? ' save-indicator-flash' : ''}`} aria-live="polite">
+              {saveFlash ? 'Saved!' : `Saved ${formatSavedTime(lastSavedAt)}`}
+            </span>
+          )}
         </div>
         <div className="world-header-actions">
           <SoundToggle enabled={soundOn} onToggle={toggleSound} />
@@ -486,25 +647,41 @@ export function CoastalWorld({
               {PHASE_LABELS[phase]} · {localTimeLabel}
             </span>
           </div>
+          <button type="button" className="btn btn-ghost btn-small" onClick={() => setShowTutorial(true)}>
+            Help
+          </button>
           <button type="button" className="btn btn-ghost" onClick={onEditAvatar}>
             Edit Avatar
           </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => {
-              if (confirm('Start over? Your town will be cleared.')) onReset()
-            }}
-          >
+          <button type="button" className="btn btn-ghost" onClick={() => setShowNewTownModal(true)}>
             New Town
           </button>
         </div>
       </header>
 
       {celebration && <div className="celebration-toast">{celebration}</div>}
+      {placementTip && <div className="placement-tip-toast">{placementTip}</div>}
+      {undoAction && (
+        <UndoToast
+          message={undoAction.type === 'delete' ? 'Item removed' : 'Item moved'}
+          onUndo={handleUndo}
+        />
+      )}
+      {showTutorial && (
+        <TutorialOverlay onComplete={completeTutorial} onSkip={completeTutorial} />
+      )}
+      {showNewTownModal && (
+        <NewTownModal
+          onCancel={() => setShowNewTownModal(false)}
+          onConfirm={() => {
+            setShowNewTownModal(false)
+            onReset()
+          }}
+        />
+      )}
 
       <div className="world-body">
-        <aside className="sidebar-left">
+        <aside className={`sidebar-left${mobilePanel !== 'build' ? ' sidebar-left--hidden-mobile' : ''}`}>
           <BuildingPalette
             onSelectBuilding={(b) => {
               setSelectedBuilding(b)
@@ -513,6 +690,9 @@ export function CoastalWorld({
             }}
             selectedBuildingId={selectedBuilding?.id ?? null}
             editMode={selectedItemId !== null}
+            favoriteBuildingIds={favoriteBuildingIds}
+            onToggleFavorite={toggleFavorite}
+            suggestedCategory={suggestedCategory}
           />
 
           {selectedItem && selectedDef && (
@@ -615,7 +795,7 @@ export function CoastalWorld({
               return (
               <button
                 type="button"
-                className="enter-building-btn"
+                className={`enter-building-btn${placementTip ? ' enter-building-btn--highlight' : ''}`}
                 style={{
                   left: bounds.centerX,
                   top: bounds.top - 12,
@@ -638,8 +818,37 @@ export function CoastalWorld({
           onNameChange={(name) => onUpdate((prev) => ({ ...prev, avatar: { ...prev.avatar, name } }))}
           onEditAvatar={onEditAvatar}
           onSaveNow={onSaveNow}
+          onExportSave={onExportSave}
+          onImportSave={onImportSave}
         />
       </div>
+
+      {mobileDrawerOpen && (
+        <div className="mobile-drawer-overlay" onClick={() => setMobileDrawerOpen(false)}>
+          <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
+            <SidePanel
+              avatar={gameState.avatar}
+              items={gameState.items}
+              completedQuests={gameState.completedQuests}
+              lastSavedAt={lastSavedAt}
+              saveFlash={saveFlash}
+              initialTab={mobilePanel === 'you' ? 'you' : 'adventures'}
+              onNameChange={(name) => onUpdate((prev) => ({ ...prev, avatar: { ...prev.avatar, name } }))}
+              onEditAvatar={onEditAvatar}
+              onSaveNow={onSaveNow}
+              onExportSave={onExportSave}
+              onImportSave={onImportSave}
+              onClose={() => setMobileDrawerOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      <MobileWorldNav
+        activePanel={mobilePanel}
+        onSelect={handleMobileSelect}
+        questBadge={activeQuestCount}
+      />
     </div>
   )
 }

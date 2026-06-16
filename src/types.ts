@@ -148,6 +148,12 @@ export interface GameState {
   soundEnabled: boolean
   activeInteriorId: string | null
   overworldAvatarPosition: { x: number; y: number } | null
+  /** First-time tutorial completed. */
+  tutorialCompleted?: boolean
+  /** Building ids starred in the build menu. */
+  favoriteBuildingIds?: string[]
+  /** One-shot tips already shown (e.g. first-house). */
+  tipsSeen?: string[]
 }
 
 export interface BuildingDef {

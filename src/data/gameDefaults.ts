@@ -132,5 +132,12 @@ export function migrateSave(raw: Partial<GameState>): GameState {
     soundEnabled: raw.soundEnabled ?? true,
     activeInteriorId,
     overworldAvatarPosition: raw.overworldAvatarPosition ?? null,
+    tutorialCompleted: raw.tutorialCompleted === true,
+    favoriteBuildingIds: Array.isArray(raw.favoriteBuildingIds)
+      ? raw.favoriteBuildingIds.filter((id): id is string => typeof id === 'string')
+      : [],
+    tipsSeen: Array.isArray(raw.tipsSeen)
+      ? raw.tipsSeen.filter((t): t is string => typeof t === 'string')
+      : [],
   }
 }

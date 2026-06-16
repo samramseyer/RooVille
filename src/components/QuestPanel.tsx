@@ -1,4 +1,4 @@
-import { QUESTS, checkQuest, getQuestProgress } from '../data/quests'
+import { QUESTS, checkQuest, getActiveQuestId, getQuestProgress, getQuestProgressLines } from '../data/quests'
 import type { PlacedItem } from '../types'
 
 interface QuestPanelProps {
@@ -8,6 +8,7 @@ interface QuestPanelProps {
 
 export function QuestPanel({ items, completedQuests }: QuestPanelProps) {
   const activeQuests = QUESTS.filter((q) => !completedQuests.includes(q.id))
+  const activeQuestId = getActiveQuestId(completedQuests)
 
   return (
     <div className="quest-panel">
@@ -19,6 +20,8 @@ export function QuestPanel({ items, completedQuests }: QuestPanelProps) {
           const done = completedQuests.includes(quest.id)
           const progress = getQuestProgress(quest.id, items)
           const pct = Math.round((progress.current / progress.target) * 100)
+          const isActive = !done && quest.id === activeQuestId
+          const progressLines = getQuestProgressLines(quest.id, items)
 
           if (done) {
             return (
@@ -31,7 +34,8 @@ export function QuestPanel({ items, completedQuests }: QuestPanelProps) {
           }
 
           return (
-            <div key={quest.id} className="quest-card">
+            <div key={quest.id} className={`quest-card${isActive ? ' quest-active' : ''}`}>
+              {isActive && <span className="quest-active-badge">Up next</span>}
               <strong>{quest.title}</strong>
               <p>{quest.description}</p>
               <div className="quest-progress-bar">
@@ -40,6 +44,13 @@ export function QuestPanel({ items, completedQuests }: QuestPanelProps) {
               <span className="quest-progress-text">
                 {progress.current} / {progress.target}
               </span>
+              {progressLines.length > 0 && (
+                <ul className="quest-progress-lines">
+                  {progressLines.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              )}
               <p className="quest-hint">{quest.hint}</p>
             </div>
           )

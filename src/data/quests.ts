@@ -140,3 +140,33 @@ export function getQuestProgress(questId: string, items: PlacedItem[]): { curren
       return { current: 0, target: 1 }
   }
 }
+
+/** Human-readable sub-steps for quest cards. */
+export function getQuestProgressLines(questId: string, items: PlacedItem[]): string[] {
+  switch (questId) {
+    case 'harbour-master': {
+      const docks = countByCategory(items, 'docks')
+      const boats = countByCategory(items, 'boats')
+      return [
+        `Dock ${docks >= 1 ? '✓' : '○'} (1 needed)`,
+        `Boats ${boats}/2`,
+      ]
+    }
+    case 'boathouse-bay': {
+      const bh = countByCategory(items, 'boathouses')
+      const boats = countByCategory(items, 'boats')
+      return [`Boathouse ${bh >= 1 ? '✓' : '○'}`, `Boat ${boats >= 1 ? '✓' : '○'}`]
+    }
+    case 'zoo-keeper': {
+      const n = countUniqueZooAnimals(items)
+      return [`Animal exhibits ${n}/3`]
+    }
+    default:
+      return []
+  }
+}
+
+export function getActiveQuestId(completedQuests: string[]): string | null {
+  const next = QUESTS.find((q) => !completedQuests.includes(q.id))
+  return next?.id ?? null
+}

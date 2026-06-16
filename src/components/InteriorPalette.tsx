@@ -36,6 +36,7 @@ import { WindowViewPreviewSwatch } from './InteriorWindowViews'
 import { WallpaperPreviewSwatch } from './InteriorWallpaperPatterns'
 
 export type PaletteTab = 'furniture' | 'walls' | 'openings' | 'trim'
+export type InteriorPaletteMode = 'decorate' | 'design' | 'full'
 
 interface InteriorPaletteProps {
   theme?: InteriorTheme
@@ -54,6 +55,8 @@ interface InteriorPaletteProps {
   editMode?: boolean
   /** Switches to this tab when set (e.g. when starting window placement). */
   activeTab?: PaletteTab | null
+  /** Restrict tabs: decorate = furniture only, design = walls/openings/trim. */
+  paletteMode?: InteriorPaletteMode
 }
 
 const WINDOW_VIEW_LABELS: Record<WindowViewId, string> = {
@@ -80,12 +83,18 @@ export function InteriorPalette({
   onStartPlaceDoor,
   editMode,
   activeTab,
+  paletteMode = 'full',
 }: InteriorPaletteProps) {
-  const [tab, setTab] = useState<PaletteTab>('furniture')
+  const [tab, setTab] = useState<PaletteTab>(paletteMode === 'design' ? 'walls' : 'furniture')
 
   useEffect(() => {
     if (activeTab) setTab(activeTab)
   }, [activeTab])
+
+  useEffect(() => {
+    if (paletteMode === 'decorate' && tab !== 'furniture') setTab('furniture')
+    if (paletteMode === 'design' && tab === 'furniture') setTab('walls')
+  }, [paletteMode, tab])
   const [furnitureCategory, setFurnitureCategory] = useState<FurnitureCategory>('furniture')
   const categoryItems = getFurnitureByCategory(furnitureCategory)
   const selectedFurnitureDef = selectedFurnitureId ? getFurniture(selectedFurnitureId) : undefined
@@ -145,37 +154,43 @@ export function InteriorPalette({
 
   return (
     <aside className={`interior-palette${editMode ? ' palette-dimmed' : ''}`}>
-      <h3 className="palette-title">Decorate</h3>
+      <h3 className="palette-title">{paletteMode === 'design' ? 'Design' : 'Decorate'}</h3>
 
       <nav className="interior-palette-tabs interior-palette-tabs-4">
-        <button
-          type="button"
-          className={`interior-tab${tab === 'furniture' ? ' active' : ''}`}
-          onClick={() => setTab('furniture')}
-        >
-          🛋️ Furniture
-        </button>
-        <button
-          type="button"
-          className={`interior-tab${tab === 'walls' ? ' active' : ''}`}
-          onClick={() => setTab('walls')}
-        >
-          🎨 Walls
-        </button>
-        <button
-          type="button"
-          className={`interior-tab${tab === 'openings' ? ' active' : ''}`}
-          onClick={() => setTab('openings')}
-        >
-          🪟 Windows
-        </button>
-        <button
-          type="button"
-          className={`interior-tab${tab === 'trim' ? ' active' : ''}`}
-          onClick={() => setTab('trim')}
-        >
-          🖌️ Trim
-        </button>
+        {(paletteMode === 'full' || paletteMode === 'decorate') && (
+          <button
+            type="button"
+            className={`interior-tab${tab === 'furniture' ? ' active' : ''}`}
+            onClick={() => setTab('furniture')}
+          >
+            🛋️ Furniture
+          </button>
+        )}
+        {(paletteMode === 'full' || paletteMode === 'design') && (
+          <>
+            <button
+              type="button"
+              className={`interior-tab${tab === 'walls' ? ' active' : ''}`}
+              onClick={() => setTab('walls')}
+            >
+              🎨 Walls
+            </button>
+            <button
+              type="button"
+              className={`interior-tab${tab === 'openings' ? ' active' : ''}`}
+              onClick={() => setTab('openings')}
+            >
+              🪟 Windows
+            </button>
+            <button
+              type="button"
+              className={`interior-tab${tab === 'trim' ? ' active' : ''}`}
+              onClick={() => setTab('trim')}
+            >
+              🖌️ Trim
+            </button>
+          </>
+        )}
       </nav>
 
       {tab === 'furniture' && (

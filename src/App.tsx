@@ -10,7 +10,7 @@ import { sanitizeAvatar } from './data/avatarOptions'
 import './App.css'
 
 function App() {
-  const { gameState, updateGameState, resetGame, hasSave, lastSavedAt, saveNow, saveFlash } = useGameSave()
+  const { gameState, updateGameState, resetGame, hasSave, lastSavedAt, saveNow, saveFlash, exportSave, importSave } = useGameSave()
   const { soundEnabled, toggleSound } = useSoundToggle(gameState, updateGameState)
   const [screen, setScreen] = useState<Screen>(() =>
     hasSave ? 'play' : 'welcome',
@@ -54,6 +54,8 @@ function App() {
           lastSavedAt={lastSavedAt}
           saveFlash={saveFlash}
           onSaveNow={saveNow}
+          onExportSave={exportSave}
+          onImportSave={importSave}
           toggleSound={toggleSound}
         />
       )}

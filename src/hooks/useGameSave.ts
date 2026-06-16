@@ -47,5 +47,42 @@ export function useGameSave() {
     setLastSavedAt(null)
   }, [])
 
-  return { gameState, updateGameState, resetGame, hasSave, lastSavedAt, saveNow, saveFlash }
+  const exportSave = useCallback(() => {
+    const blob = new Blob([JSON.stringify(gameState, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `rooville-save-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [gameState])
+
+  const importSave = useCallback((file: File, onDone: (ok: boolean) => void) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const parsed = migrateSave(JSON.parse(String(reader.result)) as Partial<GameState>)
+        setGameState(parsed)
+        setHasSave(true)
+        setLastSavedAt(new Date())
+        onDone(true)
+      } catch {
+        onDone(false)
+      }
+    }
+    reader.onerror = () => onDone(false)
+    reader.readAsText(file)
+  }, [])
+
+  return {
+    gameState,
+    updateGameState,
+    resetGame,
+    hasSave,
+    lastSavedAt,
+    saveNow,
+    saveFlash,
+    exportSave,
+    importSave,
+  }
 }
