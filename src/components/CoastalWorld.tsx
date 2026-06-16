@@ -3,6 +3,16 @@ import type { BuildingDef, GameState, PlacedItem } from '../types'
 import { getBuilding } from '../data/buildings'
 import { getSuggestedBuildCategory } from '../data/buildingMeta'
 import { getPlacedDisplayPosition, itemPositionFromDisplay } from '../data/buildingDisplay'
+import {
+  AVATAR_MAP_SIZE,
+  MAP_VIEW_HEIGHT,
+  MAP_VIEW_WIDTH,
+  mapLengthToPercentWidth,
+  mapPercentStyle,
+  mapToPercentX,
+  mapToPercentY,
+  screenToMapCoords,
+} from '../data/mapCoordinates'
 import { isRoadBuilding, snapRoadPlacementFromCenter, snapRoadPosition } from '../data/roads'
 import { QUESTS } from '../data/quests'
 import {
@@ -32,6 +42,8 @@ import { TutorialOverlay } from './TutorialOverlay'
 import { NewTownModal } from './NewTownModal'
 import { UndoToast } from './UndoToast'
 import { MobileWorldNav, type MobilePanel } from './MobileWorldNav'
+import { MobileHeaderMenu } from './MobileHeaderMenu'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { checkQuest } from './QuestPanel'
 import {
   findNearbyEnterable,
@@ -69,15 +81,14 @@ function formatSavedTime(date: Date): string {
 function isItemInViewport(
   item: PlacedItem,
   building: BuildingDef,
-  mapSize: { width: number; height: number },
   padding = VIEWPORT_PADDING,
 ): boolean {
   const display = getPlacedDisplayPosition(item, building)
   return (
     display.left + display.width > -padding &&
     display.top + display.height > -padding &&
-    display.left < mapSize.width + padding &&
-    display.top < mapSize.height + padding
+    display.left < MAP_VIEW_WIDTH + padding &&
+    display.top < MAP_VIEW_HEIGHT + padding
   )
 }
 
@@ -106,17 +117,15 @@ function PlacedBuildingView({
   if (!building) return null
   const isRoad = building.category === 'roads'
   const display = getPlacedDisplayPosition(item, building)
+  const posStyle = mapPercentStyle(display)
 
   return (
     <div
       className={`placed-building placed-building--${building.category}${isRoad ? ' placed-road' : ''}${isSelected ? ' selected' : ''}`}
       style={{
-        left: display.left,
-        top: display.top,
+        ...posStyle,
         transform: `rotate(${item.rotation}deg)`,
         transformOrigin: 'center bottom',
-        width: display.width,
-        height: display.height,
       }}
       role="button"
       tabIndex={0}
@@ -125,8 +134,6 @@ function PlacedBuildingView({
       <BuildingArt
         id={item.buildingId}
         rotation={item.rotation}
-        width={display.width}
-        height={display.height}
         variant="placed"
       />
       {isSelected && (
@@ -169,7 +176,6 @@ export function CoastalWorld({
   toggleSound,
 }: CoastalWorldProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const [mapSize, setMapSize] = useState({ width: 800, height: 520 })
   const [selectedBuilding, setSelectedBuilding] = useState<BuildingDef | null>(null)
   const [placementRotation, setPlacementRotation] = useState(0)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
@@ -189,6 +195,7 @@ export function CoastalWorld({
   const undoTimerRef = useRef<number | null>(null)
   const { phase, localTimeLabel } = useDayNightCycle()
   const weather = useLocalWeather()
+  const isMobile = useIsMobile()
 
   const soundOn = gameState.soundEnabled
   const favoriteBuildingIds = gameState.favoriteBuildingIds ?? []
@@ -246,25 +253,6 @@ export function CoastalWorld({
     [onUpdate],
   )
 
-  const updateMapSize = useCallback(() => {
-    const rect = mapRef.current?.getBoundingClientRect()
-    if (rect?.width && rect?.height) {
-      setMapSize({ width: rect.width, height: rect.height })
-    }
-  }, [])
-
-  useEffect(() => {
-    updateMapSize()
-    window.addEventListener('resize', updateMapSize)
-    const observer =
-      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateMapSize) : null
-    if (mapRef.current && observer) observer.observe(mapRef.current)
-    return () => {
-      window.removeEventListener('resize', updateMapSize)
-      observer?.disconnect()
-    }
-  }, [updateMapSize])
-
   const initAudio = useCallback(() => {
     resumeAudio()
     if (soundOn) startWaveAmbience()
@@ -313,7 +301,7 @@ export function CoastalWorld({
   const getCoords = (clientX: number, clientY: number) => {
     const rect = mapRef.current?.getBoundingClientRect()
     if (!rect) return null
-    return { x: clientX - rect.left, y: clientY - rect.top }
+    return screenToMapCoords(clientX, clientY, rect)
   }
 
   const selectItem = (itemId: string) => {
@@ -575,10 +563,10 @@ export function CoastalWorld({
       : null
 
   const roadItems = gameState.items.filter(
-    (item) => isRoadBuilding(item.buildingId) && getBuilding(item.buildingId) && isItemInViewport(item, getBuilding(item.buildingId)!, mapSize),
+    (item) => isRoadBuilding(item.buildingId) && getBuilding(item.buildingId) && isItemInViewport(item, getBuilding(item.buildingId)!),
   )
   const structureItems = gameState.items.filter(
-    (item) => !isRoadBuilding(item.buildingId) && getBuilding(item.buildingId) && isItemInViewport(item, getBuilding(item.buildingId)!, mapSize),
+    (item) => !isRoadBuilding(item.buildingId) && getBuilding(item.buildingId) && isItemInViewport(item, getBuilding(item.buildingId)!),
   )
 
   const handleMobileSelect = (panel: MobilePanel) => {
@@ -588,6 +576,10 @@ export function CoastalWorld({
     } else {
       setMobileDrawerOpen(false)
     }
+  }
+
+  const closeMobileBuild = () => {
+    if (mobilePanel === 'build') setMobilePanel('map')
   }
 
   const renderPlacedItem = (item: PlacedItem) => (
@@ -617,7 +609,6 @@ export function CoastalWorld({
         gameState={gameState}
         placedItem={activeInteriorItem}
         building={activeInteriorDef}
-        mapSize={mapSize}
         onUpdate={onUpdate}
         onExit={exitInterior}
         toggleSound={toggleSound}
@@ -626,20 +617,22 @@ export function CoastalWorld({
   }
 
   return (
-    <div className={`coastal-world${mobilePanel === 'map' ? ' mobile-map-focus' : ''}`}>
+    <div
+      className={`coastal-world${isMobile && mobilePanel === 'map' ? ' coastal-world--map-fullscreen' : ''}${isMobile && mobilePanel === 'build' ? ' coastal-world--build-open' : ''}`}
+    >
       <header className="world-header">
         <div className="world-header-left">
           <h2>RooVille</h2>
-          <span className="player-name">👋 {gameState.avatar.name}</span>
+          <span className="player-name player-name--mobile-compact">👋 {gameState.avatar.name}</span>
           {lastSavedAt && (
-            <span className={`save-indicator${saveFlash ? ' save-indicator-flash' : ''}`} aria-live="polite">
+            <span className={`save-indicator save-indicator--desktop${saveFlash ? ' save-indicator-flash' : ''}`} aria-live="polite">
               {saveFlash ? 'Saved!' : `Saved ${formatSavedTime(lastSavedAt)}`}
             </span>
           )}
         </div>
         <div className="world-header-actions">
           <SoundToggle enabled={soundOn} onToggle={toggleSound} />
-          <div className="time-controls">
+          <div className="time-controls time-controls--desktop">
             <span className="local-time-display btn btn-ghost btn-small" aria-live="polite">
               {weather.loading ? '🌤️ …' : `${weather.emoji} ${weather.label}`}
               {weather.temperature ? ` · ${weather.temperature}` : ''}
@@ -647,13 +640,21 @@ export function CoastalWorld({
               {PHASE_LABELS[phase]} · {localTimeLabel}
             </span>
           </div>
-          <button type="button" className="btn btn-ghost btn-small" onClick={() => setShowTutorial(true)}>
+          <span className="time-controls time-controls--mobile" aria-live="polite">
+            {weather.loading ? '🌤️' : weather.emoji} {PHASE_LABELS[phase]}
+          </span>
+          <button type="button" className="btn btn-ghost btn-small world-header-help-desktop" onClick={() => setShowTutorial(true)}>
             Help
           </button>
-          <button type="button" className="btn btn-ghost" onClick={onEditAvatar}>
+          <MobileHeaderMenu
+            onHelp={() => setShowTutorial(true)}
+            onEditAvatar={onEditAvatar}
+            onNewTown={() => setShowNewTownModal(true)}
+          />
+          <button type="button" className="btn btn-ghost world-header-btn-desktop" onClick={onEditAvatar}>
             Edit Avatar
           </button>
-          <button type="button" className="btn btn-ghost" onClick={() => setShowNewTownModal(true)}>
+          <button type="button" className="btn btn-ghost world-header-btn-desktop" onClick={() => setShowNewTownModal(true)}>
             New Town
           </button>
         </div>
@@ -681,7 +682,18 @@ export function CoastalWorld({
       )}
 
       <div className="world-body">
-        <aside className={`sidebar-left${mobilePanel !== 'build' ? ' sidebar-left--hidden-mobile' : ''}`}>
+        {isMobile && mobilePanel === 'build' && (
+          <button
+            type="button"
+            className="mobile-build-backdrop"
+            aria-label="Close build menu"
+            onClick={closeMobileBuild}
+          />
+        )}
+
+        <aside
+          className={`sidebar-left${isMobile ? ' sidebar-left--mobile-sheet' : ''}${isMobile && mobilePanel !== 'build' ? ' sidebar-left--mobile-hidden' : ''}`}
+        >
           <BuildingPalette
             onSelectBuilding={(b) => {
               setSelectedBuilding(b)
@@ -777,8 +789,9 @@ export function CoastalWorld({
             <div
               className="player-avatar"
               style={{
-                left: gameState.avatarPosition.x,
-                top: gameState.avatarPosition.y,
+                left: `${mapToPercentX(gameState.avatarPosition.x)}%`,
+                top: `${mapToPercentY(gameState.avatarPosition.y)}%`,
+                width: `${mapLengthToPercentWidth(AVATAR_MAP_SIZE)}%`,
               }}
               onPointerDown={startAvatarDrag}
               onPointerMove={handleMapPointerMove}
@@ -786,7 +799,7 @@ export function CoastalWorld({
               role="img"
               aria-label={`${gameState.avatar.name}'s avatar`}
             >
-              <AvatarSprite avatar={gameState.avatar} size={60} />
+              <AvatarSprite avatar={gameState.avatar} size={60} className="avatar-map-scale" />
               <span className="avatar-name-tag">{gameState.avatar.name}</span>
             </div>
 
@@ -797,8 +810,8 @@ export function CoastalWorld({
                 type="button"
                 className={`enter-building-btn${placementTip ? ' enter-building-btn--highlight' : ''}`}
                 style={{
-                  left: bounds.centerX,
-                  top: bounds.top - 12,
+                  left: `${mapToPercentX(bounds.centerX)}%`,
+                  top: `${mapToPercentY(bounds.top - 12)}%`,
                 }}
                 onClick={() => enterBuilding(nearbyEnterable.item.id)}
               >

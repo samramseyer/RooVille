@@ -235,6 +235,24 @@ export function BuildingArt({
   const placedClass = variant === 'placed' ? ' building-art--placed' : ''
   const combinedClass = `${className ?? ''}${placedClass}`.trim() || undefined
 
+  if (variant === 'placed') {
+    return (
+      <div
+        className={combinedClass}
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          overflow: 'visible',
+        }}
+      >
+        {art}
+      </div>
+    )
+  }
+
   if (width !== undefined || height !== undefined) {
     return (
       <div

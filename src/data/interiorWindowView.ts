@@ -1,6 +1,7 @@
 import type { BuildingDef, PlacedItem, WindowViewSetting } from '../types'
 import { getBuilding } from './buildings'
 import { getPlacedCenter } from './buildingDisplay'
+import { MAP_VIEW_HEIGHT, MAP_VIEW_WIDTH } from './mapCoordinates'
 
 export type WindowViewId = Exclude<WindowViewSetting, 'auto'>
 
@@ -54,13 +55,11 @@ export function detectWindowViewFromLocation(
   item: PlacedItem,
   building: BuildingDef,
   allItems: PlacedItem[],
-  mapSize: MapSize,
 ): WindowViewId {
-  const height = Math.max(mapSize.height, 1)
   const center = buildingCenter(item, building)
-  const yNorm = center.y / height
+  const yNorm = center.y / MAP_VIEW_HEIGHT
 
-  if (hasNearbyDock(item, building, allItems, Math.max(160, mapSize.width * 0.18))) {
+  if (hasNearbyDock(item, building, allItems, Math.max(160, MAP_VIEW_WIDTH * 0.18))) {
     return 'dock'
   }
 
@@ -83,13 +82,12 @@ export function resolveWindowView(
   item: PlacedItem,
   building: BuildingDef,
   allItems: PlacedItem[],
-  mapSize: MapSize,
   setting: WindowViewSetting | undefined,
 ): WindowViewId {
   if (setting && setting !== 'auto') {
     return setting
   }
-  return detectWindowViewFromLocation(item, building, allItems, mapSize)
+  return detectWindowViewFromLocation(item, building, allItems)
 }
 
 export function sanitizeWindowViewSetting(raw: unknown): WindowViewSetting {

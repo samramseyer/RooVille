@@ -1,6 +1,7 @@
 import type { BuildingCategory, BuildingDef, PlacedItem } from '../types'
 import { getBuilding } from './buildings'
 import { getPlacedDisplayPosition, getPlacedDisplaySize } from './buildingDisplay'
+import { AVATAR_MAP_SIZE } from './mapCoordinates'
 
 const ENTERABLE_CATEGORIES: BuildingCategory[] = ['houses', 'businesses', 'boats', 'boathouses']
 
@@ -37,8 +38,8 @@ export function isAvatarNearBuilding(
   padding = 48,
 ): boolean {
   const bounds = getBuildingBounds(item, building)
-  const avatarCenterX = avatarPosition.x + 30
-  const avatarCenterY = avatarPosition.y + 30
+  const avatarCenterX = avatarPosition.x + AVATAR_MAP_SIZE / 2
+  const avatarCenterY = avatarPosition.y + AVATAR_MAP_SIZE / 2
   const reach = Math.max(getPlacedDisplaySize(building, item.scale).width, getPlacedDisplaySize(building, item.scale).height) / 2 + padding
   return Math.hypot(avatarCenterX - bounds.centerX, avatarCenterY - bounds.centerY) <= reach
 }
@@ -56,8 +57,8 @@ export function findNearbyEnterable(
     if (!isAvatarNearBuilding(avatarPosition, item, building, padding)) continue
 
     const bounds = getBuildingBounds(item, building)
-    const avatarCenterX = avatarPosition.x + 30
-    const avatarCenterY = avatarPosition.y + 30
+    const avatarCenterX = avatarPosition.x + AVATAR_MAP_SIZE / 2
+    const avatarCenterY = avatarPosition.y + AVATAR_MAP_SIZE / 2
     const dist = Math.hypot(avatarCenterX - bounds.centerX, avatarCenterY - bounds.centerY)
     if (!closest || dist < closest.dist) {
       closest = { item, building, dist }
@@ -70,7 +71,7 @@ export function findNearbyEnterable(
 export function getExitAvatarPosition(item: PlacedItem, building: BuildingDef) {
   const display = getPlacedDisplayPosition(item, building)
   return {
-    x: display.left + display.width / 2 - 30,
+    x: display.left + display.width / 2 - AVATAR_MAP_SIZE / 2,
     y: display.top + display.height + 8,
   }
 }

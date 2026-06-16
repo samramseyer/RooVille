@@ -3,6 +3,7 @@ import { DEFAULT_AVATAR, sanitizeAvatar } from './avatarOptions'
 import { getBuilding } from './buildings'
 import { getInteriorTheme } from './enterableBuildings'
 import { getBuildingInteriorLayout } from './interiorLayouts'
+import { isMapCoordinateSpace, migrateLegacyMapPoint } from './mapCoordinates'
 import { migratePlacedItemRooms } from './interiorRoomState'
 import { clampInteriorFurnitureItem, getFurniture } from './interiorFurniture'
 import { sanitizeInteriorStyle } from './interiorStyles'
@@ -11,11 +12,12 @@ import { sanitizeInteriorOpenings } from './interiorOpenings'
 export const INITIAL_GAME_STATE: GameState = {
   avatar: DEFAULT_AVATAR,
   items: [],
-  avatarPosition: { x: 400, y: 280 },
+  avatarPosition: { x: 500, y: 325 },
   completedQuests: [],
   soundEnabled: true,
   activeInteriorId: null,
   overworldAvatarPosition: null,
+  overworldCoordSpace: 'map',
 }
 
 function sanitizeInterior(raw: unknown): InteriorItem[] {
@@ -115,6 +117,16 @@ function sanitizeItems(raw: unknown): PlacedItem[] {
     })
 }
 
+function migrateOverworldCoords(items: PlacedItem[], avatarPosition: { x: number; y: number }) {
+  return {
+    items: items.map((item) => {
+      const p = migrateLegacyMapPoint({ x: item.x, y: item.y })
+      return { ...item, x: p.x, y: p.y }
+    }),
+    avatarPosition: migrateLegacyMapPoint(avatarPosition),
+  }
+}
+
 export function migrateSave(raw: Partial<GameState>): GameState {
   const items = sanitizeItems(raw.items)
   let activeInteriorId = typeof raw.activeInteriorId === 'string' ? raw.activeInteriorId : null
@@ -122,16 +134,33 @@ export function migrateSave(raw: Partial<GameState>): GameState {
     activeInteriorId = null
   }
 
+  let avatarPosition = raw.avatarPosition ?? INITIAL_GAME_STATE.avatarPosition
+  let migratedItems = items
+  let overworldCoordSpace: 'map' | undefined = raw.overworldCoordSpace
+
+  if (!isMapCoordinateSpace(overworldCoordSpace)) {
+    const migrated = migrateOverworldCoords(items, avatarPosition)
+    migratedItems = migrated.items
+    avatarPosition = migrated.avatarPosition
+    overworldCoordSpace = 'map'
+  }
+
+  let overworldAvatarPosition = raw.overworldAvatarPosition ?? null
+  if (overworldAvatarPosition && !isMapCoordinateSpace(raw.overworldCoordSpace)) {
+    overworldAvatarPosition = migrateLegacyMapPoint(overworldAvatarPosition)
+  }
+
   return {
     ...INITIAL_GAME_STATE,
     ...raw,
     avatar: sanitizeAvatar(raw.avatar),
-    items,
-    avatarPosition: raw.avatarPosition ?? INITIAL_GAME_STATE.avatarPosition,
+    items: migratedItems,
+    avatarPosition,
     completedQuests: Array.isArray(raw.completedQuests) ? raw.completedQuests : [],
     soundEnabled: raw.soundEnabled ?? true,
     activeInteriorId,
-    overworldAvatarPosition: raw.overworldAvatarPosition ?? null,
+    overworldAvatarPosition,
+    overworldCoordSpace,
     tutorialCompleted: raw.tutorialCompleted === true,
     favoriteBuildingIds: Array.isArray(raw.favoriteBuildingIds)
       ? raw.favoriteBuildingIds.filter((id): id is string => typeof id === 'string')

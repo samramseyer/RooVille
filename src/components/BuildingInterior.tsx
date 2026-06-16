@@ -37,7 +37,7 @@ import {
   isLivingAreaRoom,
   isTownExitDoor,
 } from '../data/interiorExitDoor'
-import { resolveWindowView, type MapSize } from '../data/interiorWindowView'
+import { resolveWindowView } from '../data/interiorWindowView'
 import { playDeleteSound, playPlaceSound, playRotateSound } from '../audio/sounds'
 import { getQuickFurnishItems } from '../data/quickFurnish'
 import { AvatarSprite } from './AvatarSprite'
@@ -71,7 +71,6 @@ interface BuildingInteriorProps {
   gameState: GameState
   placedItem: PlacedItem
   building: BuildingDef
-  mapSize: MapSize
   onUpdate: (updater: (prev: GameState) => GameState) => void
   onExit: () => void
   toggleSound: () => void
@@ -81,7 +80,6 @@ export function BuildingInterior({
   gameState,
   placedItem,
   building,
-  mapSize,
   onUpdate,
   onExit,
   toggleSound,
@@ -135,7 +133,7 @@ export function BuildingInterior({
         : interiorOpeningsRaw
   const windowView = roomDef?.forceOceanView
     ? 'ocean'
-    : resolveWindowView(liveItem, building, gameState.items, mapSize, interiorStyle.windowViewId)
+    : resolveWindowView(liveItem, building, gameState.items, interiorStyle.windowViewId)
   const soundOn = gameState.soundEnabled
   const trimColor = interiorStyle.trimColor ?? '#C4956A'
   const windowStyleId = interiorStyle.windowStyleId ?? 'classic'

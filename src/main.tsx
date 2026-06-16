@@ -51,3 +51,11 @@ window.addEventListener('unhandledrejection', (event) => {
     showBootError(reason)
   }
 })
+
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      /* optional — game works without offline cache */
+    })
+  })
+}

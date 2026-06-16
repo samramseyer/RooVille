@@ -154,6 +154,8 @@ export interface GameState {
   favoriteBuildingIds?: string[]
   /** One-shot tips already shown (e.g. first-house). */
   tipsSeen?: string[]
+  /** Overworld x/y are in MAP_VIEW (1000×600) space when set to "map". */
+  overworldCoordSpace?: 'map'
 }
 
 export interface BuildingDef {
