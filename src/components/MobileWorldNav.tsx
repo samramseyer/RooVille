@@ -17,20 +17,20 @@ export function MobileWorldNav({ activePanel, onSelect, questBadge }: MobileWorl
   ]
 
   return (
-    <nav className="mobile-world-nav" aria-label="Main navigation">
+    <nav className="mobile-play-toolbar" aria-label="Build and play">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           type="button"
-          className={`mobile-world-nav-btn${activePanel === tab.id ? ' active' : ''}`}
+          className={`mobile-play-toolbar-btn${activePanel === tab.id ? ' active' : ''}`}
           onClick={() => onSelect(tab.id)}
         >
-          <span className="mobile-world-nav-emoji" aria-hidden="true">
+          <span className="mobile-play-toolbar-emoji" aria-hidden="true">
             {tab.emoji}
           </span>
           <span>{tab.label}</span>
           {tab.id === 'quests' && questBadge !== undefined && questBadge > 0 && (
-            <span className="mobile-nav-badge">{questBadge}</span>
+            <span className="mobile-play-toolbar-badge">{questBadge}</span>
           )}
         </button>
       ))}

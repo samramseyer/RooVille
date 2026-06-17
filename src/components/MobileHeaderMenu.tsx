@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 
 interface MobileHeaderMenuProps {
+  onBuild: () => void
   onEditAvatar: () => void
   onNewTown: () => void
   onHelp: () => void
   onGetApp: () => void
 }
 
-export function MobileHeaderMenu({ onEditAvatar, onNewTown, onHelp, onGetApp }: MobileHeaderMenuProps) {
+export function MobileHeaderMenu({ onBuild, onEditAvatar, onNewTown, onHelp, onGetApp }: MobileHeaderMenuProps) {
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -35,6 +36,9 @@ export function MobileHeaderMenu({ onEditAvatar, onNewTown, onHelp, onGetApp }: 
       </button>
       {open && (
         <div className="mobile-header-menu-dropdown" role="menu">
+          <button type="button" role="menuitem" className="mobile-menu-build" onClick={() => { setOpen(false); onBuild() }}>
+            🏗️ Build menu
+          </button>
           <button type="button" role="menuitem" onClick={() => { setOpen(false); onGetApp() }}>
             📱 Get on phone
           </button>

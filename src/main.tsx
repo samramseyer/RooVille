@@ -3,6 +3,12 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
+import { getMobileLayout } from './hooks/useIsMobile'
+
+if (typeof window !== 'undefined' && getMobileLayout()) {
+  document.documentElement.classList.add('layout-mobile')
+}
+
 const rootEl = document.getElementById('root')
 
 async function clearSiteCaches() {

@@ -681,18 +681,12 @@ export function CoastalWorld({
           <span className="time-controls time-controls--mobile" aria-live="polite">
             {weather.loading ? '🌤️' : weather.emoji} {PHASE_LABELS[phase]}
           </span>
-          <button
-            type="button"
-            className="btn btn-secondary btn-small world-header-build-mobile"
-            onClick={() => handleMobileSelect('build')}
-          >
-            🏗️ Build
-          </button>
           <button type="button" className="btn btn-ghost btn-small world-header-help-desktop" onClick={() => setShowTutorial(true)}>
             Help
           </button>
           <GetAppButton compact onClick={() => setShowGetApp(true)} />
           <MobileHeaderMenu
+            onBuild={() => handleMobileSelect('build')}
             onHelp={() => setShowTutorial(true)}
             onEditAvatar={onEditAvatar}
             onNewTown={() => setShowNewTownModal(true)}
@@ -706,6 +700,12 @@ export function CoastalWorld({
           </button>
         </div>
       </header>
+
+      <MobileWorldNav
+        activePanel={mobilePanel}
+        onSelect={handleMobileSelect}
+        questBadge={activeQuestCount}
+      />
 
       {celebration && <div className="celebration-toast">{celebration}</div>}
       {placementTip && <div className="placement-tip-toast">{placementTip}</div>}
@@ -883,19 +883,21 @@ export function CoastalWorld({
           </div>
         </div>
 
-        <SidePanel
-          avatar={gameState.avatar}
-          items={gameState.items}
-          completedQuests={gameState.completedQuests}
-          lastSavedAt={lastSavedAt}
-          saveFlash={saveFlash}
-          onNameChange={(name) => onUpdate((prev) => ({ ...prev, avatar: { ...prev.avatar, name } }))}
-          onEditAvatar={onEditAvatar}
-          onSaveNow={onSaveNow}
-          onExportSave={onExportSave}
-          onParseSaveFile={onParseSaveFile}
-          onApplyImportedSave={onApplyImportedSave}
-        />
+        {!isMobile && (
+          <SidePanel
+            avatar={gameState.avatar}
+            items={gameState.items}
+            completedQuests={gameState.completedQuests}
+            lastSavedAt={lastSavedAt}
+            saveFlash={saveFlash}
+            onNameChange={(name) => onUpdate((prev) => ({ ...prev, avatar: { ...prev.avatar, name } }))}
+            onEditAvatar={onEditAvatar}
+            onSaveNow={onSaveNow}
+            onExportSave={onExportSave}
+            onParseSaveFile={onParseSaveFile}
+            onApplyImportedSave={onApplyImportedSave}
+          />
+        )}
       </div>
 
       {mobileDrawerOpen && (
@@ -920,11 +922,6 @@ export function CoastalWorld({
         </div>
       )}
 
-      <MobileWorldNav
-        activePanel={mobilePanel}
-        onSelect={handleMobileSelect}
-        questBadge={activeQuestCount}
-      />
     </div>
   )
 }
