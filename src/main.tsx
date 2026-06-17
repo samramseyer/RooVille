@@ -93,6 +93,19 @@ function isNativeCapacitorApp(): boolean {
 }
 
 if ('serviceWorker' in navigator && import.meta.env.PROD && !isNativeCapacitorApp()) {
+  const SW_VERSION = 'rooville-sw-v7'
+  if (localStorage.getItem('rooville-sw-version') !== SW_VERSION) {
+    void (async () => {
+      const regs = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(regs.map((r) => r.unregister()))
+      if ('caches' in window) {
+        const keys = await caches.keys()
+        await Promise.all(keys.map((k) => caches.delete(k)))
+      }
+      localStorage.setItem('rooville-sw-version', SW_VERSION)
+    })()
+  }
+
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => {
       /* optional — game works without offline cache */

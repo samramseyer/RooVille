@@ -708,11 +708,13 @@ export function CoastalWorld({
         </div>
       </header>
 
-      <MobileWorldNav
-        activePanel={mobilePanel}
-        onSelect={handleMobileSelect}
-        questBadge={activeQuestCount}
-      />
+      {isMobile && (
+        <MobileWorldNav
+          activePanel={mobilePanel}
+          onSelect={handleMobileSelect}
+          questBadge={activeQuestCount}
+        />
+      )}
 
       {celebration && <div className="celebration-toast">{celebration}</div>}
       {placementTip && <div className="placement-tip-toast">{placementTip}</div>}

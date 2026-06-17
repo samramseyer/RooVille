@@ -17,7 +17,11 @@ export function MobileWorldNav({ activePanel, onSelect, questBadge }: MobileWorl
   ]
 
   return (
-    <nav className="mobile-play-toolbar" aria-label="Build and play">
+    <nav
+      className="mobile-play-toolbar"
+      aria-label="Build and play"
+      style={{ display: 'flex', flexShrink: 0 }}
+    >
       {tabs.map((tab) => (
         <button
           key={tab.id}

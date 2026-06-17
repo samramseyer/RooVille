@@ -1959,12 +1959,6 @@ button {
   display: none;
 }
 
-@media (min-width: 901px) {
-  html:not(.capacitor-native):not(.layout-mobile) .mobile-play-toolbar {
-    display: none !important;
-  }
-}
-
 @media (max-width: 900px) {
   .app {
     height: 100dvh;

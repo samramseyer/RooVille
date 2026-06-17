@@ -2,17 +2,15 @@ import { useEffect, useState } from 'react'
 
 const MOBILE_WIDTH = 900
 
-/** Match CSS mobile layout — native app, viewport width, or phone UA. */
+/** Phones and native app always use mobile layout. */
 export function getMobileLayout(): boolean {
   if (typeof window === 'undefined') return false
-  const cap = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
-  if (cap?.isNativePlatform?.()) return true
-  const width = window.visualViewport?.width ?? window.innerWidth
-  if (width <= MOBILE_WIDTH) return true
+  if (isNativeApp()) return true
   if (/android|iphone|ipad|ipod|mobile|webos|blackberry|iemobile|opera mini/i.test(navigator.userAgent)) {
-    return width <= 1024
+    return true
   }
-  return false
+  const width = window.visualViewport?.width ?? window.innerWidth
+  return width <= MOBILE_WIDTH
 }
 
 export function isNativeApp(): boolean {
