@@ -258,7 +258,8 @@ export function BuildingInterior({
       rotation: 0,
     }
     persistRoomData({ interior: [...interiorItems, newItem] })
-    setSelectedInteriorId(newItem.id)
+    setSelectedFurniture(null)
+    setSelectedInteriorId(null)
     setSelectedOpeningId(null)
     if (soundOn) playPlaceSound()
   }
@@ -278,7 +279,7 @@ export function BuildingInterior({
     }
     const placed = clampOpening(draft)
     persistOpenings([...interiorOpenings, placed])
-    setSelectedOpeningId(placed.id)
+    setSelectedOpeningId(null)
     setSelectedInteriorId(null)
     setPlacementMode(null)
     if (soundOn) playPlaceSound()
