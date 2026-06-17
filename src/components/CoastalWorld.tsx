@@ -13,7 +13,8 @@ import {
   mapToPercentY,
   screenToMapCoords,
 } from '../data/mapCoordinates'
-import { isRoadBuilding, snapRoadPlacementFromCenter, snapRoadPosition } from '../data/roads'
+import { buildPreviewPlacedItem, computeBuildingPlacement } from '../data/buildPlacement'
+import { isRoadBuilding, snapRoadPosition } from '../data/roads'
 import { QUESTS } from '../data/quests'
 import {
   playDeleteSound,
@@ -44,6 +45,7 @@ import { UndoToast } from './UndoToast'
 import { MobileWorldNav, type MobilePanel } from './MobileWorldNav'
 import { MobileHeaderMenu } from './MobileHeaderMenu'
 import { GetAppButton, GetAppModal } from './GetAppModal'
+import { PlacementGhost } from './PlacementGhost'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { checkQuest } from './QuestPanel'
 import {
@@ -62,7 +64,8 @@ interface CoastalWorldProps {
   saveFlash: boolean
   onSaveNow: () => void
   onExportSave?: () => void
-  onImportSave?: (file: File, onDone: (ok: boolean) => void) => void
+  onParseSaveFile?: (file: File, onDone: (result: GameState | null) => void) => void
+  onApplyImportedSave?: (state: GameState) => void
   toggleSound: () => void
 }
 
@@ -173,12 +176,14 @@ export function CoastalWorld({
   saveFlash,
   onSaveNow,
   onExportSave,
-  onImportSave,
+  onParseSaveFile,
+  onApplyImportedSave,
   toggleSound,
 }: CoastalWorldProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [selectedBuilding, setSelectedBuilding] = useState<BuildingDef | null>(null)
   const [placementRotation, setPlacementRotation] = useState(0)
+  const [placementCursor, setPlacementCursor] = useState<{ x: number; y: number } | null>(null)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [dragMode, setDragMode] = useState<DragMode>(null)
   const [celebration, setCelebration] = useState<string | null>(null)
@@ -326,20 +331,19 @@ export function CoastalWorld({
   const placeBuilding = useCallback(
     (x: number, y: number) => {
       if (!selectedBuilding) return
-      const placement =
-        selectedBuilding.category === 'roads'
-          ? snapRoadPlacementFromCenter(x, y, selectedBuilding.width, selectedBuilding.height)
-          : { x: x - selectedBuilding.width / 2, y: y - selectedBuilding.height / 2 }
+      const placement = computeBuildingPlacement(selectedBuilding, x, y, placementRotation)
       const newItem: PlacedItem = {
         id: crypto.randomUUID(),
         buildingId: selectedBuilding.id,
         x: placement.x,
         y: placement.y,
-        rotation: selectedBuilding.category === 'roads' ? placementRotation : 0,
+        rotation: selectedBuilding.category === 'roads' ? placementRotation : placement.rotation,
         scale: 1,
       }
       onUpdate((prev) => ({ ...prev, items: [...prev.items, newItem] }))
-      selectItem(newItem.id)
+      setSelectedBuilding(null)
+      setSelectedItemId(null)
+      setPlacementCursor(null)
       if (soundOn) playPlaceSound()
 
       if (
@@ -382,6 +386,10 @@ export function CoastalWorld({
   const handleMapPointerMove = (e: React.PointerEvent) => {
     const coords = getCoords(e.clientX, e.clientY)
     if (!coords) return
+
+    if (selectedBuilding && !selectedItemId && !dragMode) {
+      setPlacementCursor({ x: coords.x, y: coords.y })
+    }
 
     if (dragMode === 'avatar') {
       onUpdate((prev) => ({
@@ -571,6 +579,15 @@ export function CoastalWorld({
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [selectedItemId, gameState.items, soundOn, onUpdate])
+
+  useEffect(() => {
+    if (!selectedBuilding) setPlacementCursor(null)
+  }, [selectedBuilding])
+
+  const previewItem =
+    selectedBuilding && placementCursor
+      ? buildPreviewPlacedItem(selectedBuilding, placementCursor.x, placementCursor.y, placementRotation)
+      : null
 
   const selectedItem = gameState.items.find((i) => i.id === selectedItemId)
   const selectedDef = selectedItem ? getBuilding(selectedItem.buildingId) : null
@@ -819,6 +836,10 @@ export function CoastalWorld({
             {roadItems.map(renderPlacedItem)}
             {structureItems.map(renderPlacedItem)}
 
+            {previewItem && selectedBuilding && (
+              <PlacementGhost item={previewItem} building={selectedBuilding} />
+            )}
+
             <div
               className="player-avatar"
               style={{
@@ -865,7 +886,8 @@ export function CoastalWorld({
           onEditAvatar={onEditAvatar}
           onSaveNow={onSaveNow}
           onExportSave={onExportSave}
-          onImportSave={onImportSave}
+          onParseSaveFile={onParseSaveFile}
+          onApplyImportedSave={onApplyImportedSave}
         />
       </div>
 
@@ -883,7 +905,8 @@ export function CoastalWorld({
               onEditAvatar={onEditAvatar}
               onSaveNow={onSaveNow}
               onExportSave={onExportSave}
-              onImportSave={onImportSave}
+              onParseSaveFile={onParseSaveFile}
+              onApplyImportedSave={onApplyImportedSave}
               onClose={() => setMobileDrawerOpen(false)}
             />
           </div>

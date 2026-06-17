@@ -48,6 +48,7 @@ import { InteriorPalette, type InteriorPaletteMode, type PaletteTab } from './In
 import { InteriorRoomMap } from './InteriorRoomMap'
 import { InteriorRoomNav } from './InteriorRoomNav'
 import { SoundToggle } from './SoundToggle'
+import { UndoToast } from './UndoToast'
 
 const ROOM_WIDTH = 640
 const ROOM_HEIGHT = 480
@@ -58,6 +59,10 @@ const AVATAR_RADIUS = 28
 type PlacementMode = 'window' | 'door' | null
 type DragMode = 'avatar' | 'furniture' | 'opening' | 'resize-opening' | 'resize-furniture' | null
 type InteriorMode = 'decorate' | 'design'
+
+type InteriorUndoAction =
+  | { type: 'delete-furniture'; item: InteriorItem; roomId: string }
+  | { type: 'delete-opening'; opening: InteriorOpening; roomId: string }
 
 function clampAvatarPosition(x: number, y: number, theme: InteriorTheme = 'home') {
   const floorTop = theme === 'zoo' ? AVATAR_RADIUS : FLOOR_TOP + AVATAR_RADIUS
@@ -95,6 +100,8 @@ export function BuildingInterior({
   const [paletteTab, setPaletteTab] = useState<PaletteTab | null>(null)
   const [interiorMode, setInteriorMode] = useState<InteriorMode>('decorate')
   const [dragMode, setDragMode] = useState<DragMode>(null)
+  const [undoAction, setUndoAction] = useState<InteriorUndoAction | null>(null)
+  const undoTimerRef = useRef<number | null>(null)
 
   const liveItem = gameState.items.find((i) => i.id === placedItem.id) ?? placedItem
   const initialRoomId = layout ? resolveCurrentRoomId(liveItem, layout) : 'main'
@@ -166,6 +173,48 @@ export function BuildingInterior({
     [persistRoomData],
   )
 
+  const showInteriorUndo = useCallback((action: InteriorUndoAction) => {
+    if (undoTimerRef.current) window.clearTimeout(undoTimerRef.current)
+    setUndoAction(action)
+    undoTimerRef.current = window.setTimeout(() => setUndoAction(null), 5000)
+  }, [])
+
+  const handleInteriorUndo = useCallback(() => {
+    if (!undoAction) return
+    onUpdate((prev) => ({
+      ...prev,
+      items: prev.items.map((item) => {
+        if (item.id !== placedItem.id) return item
+        if (undoAction.type === 'delete-furniture') {
+          if (!layout) {
+            const interior = [...(item.interior ?? []), undoAction.item]
+            return { ...item, interior }
+          }
+          const room = getRawRoomState(item, undoAction.roomId, layout.defaultRoomId)
+          const interior = [...(room?.interior ?? []), undoAction.item]
+          return {
+            ...item,
+            ...patchRoomState(item, undoAction.roomId, layout.defaultRoomId, { interior }),
+          }
+        }
+        if (!layout) {
+          const interiorOpeningsList = [...(item.interiorOpenings ?? []), undoAction.opening]
+          return { ...item, interiorOpenings: interiorOpeningsList }
+        }
+        const room = getRawRoomState(item, undoAction.roomId, layout.defaultRoomId)
+        const interiorOpeningsList = [...(room?.interiorOpenings ?? []), undoAction.opening]
+        return {
+          ...item,
+          ...patchRoomState(item, undoAction.roomId, layout.defaultRoomId, {
+            interiorOpenings: interiorOpeningsList,
+          }),
+        }
+      }),
+    }))
+    setUndoAction(null)
+    if (undoTimerRef.current) window.clearTimeout(undoTimerRef.current)
+  }, [undoAction, onUpdate, placedItem.id, layout])
+
   const persistAvatarPosition = useCallback(
     (pos: { x: number; y: number }) => {
       setAvatarPosition(pos)
@@ -236,9 +285,12 @@ export function BuildingInterior({
   }
 
   const deleteFurniture = (id: string) => {
+    const removed = interiorItems.find((item) => item.id === id)
+    if (!removed) return
     persistRoomData({ interior: interiorItems.filter((item) => item.id !== id) })
     setSelectedInteriorId(null)
     if (soundOn) playDeleteSound()
+    showInteriorUndo({ type: 'delete-furniture', item: removed, roomId: currentRoomId })
   }
 
   const deleteOpening = (id: string) => {
@@ -249,9 +301,11 @@ export function BuildingInterior({
     ) {
       return
     }
+    if (!target) return
     persistOpenings(interiorOpenings.filter((item) => item.id !== id))
     setSelectedOpeningId(null)
     if (soundOn) playDeleteSound()
+    showInteriorUndo({ type: 'delete-opening', opening: target, roomId: currentRoomId })
   }
 
   const rotateFurniture = (id: string, delta: number) => {
@@ -985,6 +1039,16 @@ export function BuildingInterior({
           </div>
         </div>
       </div>
+      {undoAction && (
+        <UndoToast
+          message={
+            undoAction.type === 'delete-furniture'
+              ? 'Furniture removed'
+              : `${undoAction.opening.kind === 'window' ? 'Window' : 'Door'} removed`
+          }
+          onUndo={handleInteriorUndo}
+        />
+      )}
     </div>
   )
 }

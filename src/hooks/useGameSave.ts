@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { GameState } from '../types'
 import { INITIAL_GAME_STATE, migrateSave } from '../data/gameDefaults'
 
@@ -14,17 +14,31 @@ function loadState(): GameState | null {
   }
 }
 
+function readSavedAt(state: GameState | null): Date | null {
+  if (!state?.savedAt) return null
+  const date = new Date(state.savedAt)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
 export { INITIAL_GAME_STATE }
 
 export function useGameSave() {
-  const [gameState, setGameState] = useState<GameState>(() => loadState() ?? INITIAL_GAME_STATE)
-  const [hasSave, setHasSave] = useState(() => loadState() !== null)
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(() => (loadState() ? new Date() : null))
+  const initial = loadState()
+  const [gameState, setGameState] = useState<GameState>(() => initial ?? INITIAL_GAME_STATE)
+  const [hasSave, setHasSave] = useState(() => initial !== null)
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(() => readSavedAt(initial))
   const [saveFlash, setSaveFlash] = useState(false)
+  const skipPersistRef = useRef(true)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState))
-    setLastSavedAt(new Date())
+    if (skipPersistRef.current) {
+      skipPersistRef.current = false
+      return
+    }
+    const savedAt = new Date().toISOString()
+    const payload: GameState = { ...gameState, savedAt }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+    setLastSavedAt(new Date(savedAt))
     setHasSave(true)
   }, [gameState])
 
@@ -33,8 +47,10 @@ export function useGameSave() {
   }, [])
 
   const saveNow = useCallback(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState))
-    setLastSavedAt(new Date())
+    const savedAt = new Date().toISOString()
+    const payload: GameState = { ...gameState, savedAt }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+    setLastSavedAt(new Date(savedAt))
     setHasSave(true)
     setSaveFlash(true)
     window.setTimeout(() => setSaveFlash(false), 2000)
@@ -45,10 +61,13 @@ export function useGameSave() {
     localStorage.removeItem(STORAGE_KEY)
     setHasSave(false)
     setLastSavedAt(null)
+    skipPersistRef.current = true
   }, [])
 
   const exportSave = useCallback(() => {
-    const blob = new Blob([JSON.stringify(gameState, null, 2)], { type: 'application/json' })
+    const savedAt = gameState.savedAt ?? new Date().toISOString()
+    const payload: GameState = { ...gameState, savedAt }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -57,20 +76,23 @@ export function useGameSave() {
     URL.revokeObjectURL(url)
   }, [gameState])
 
-  const importSave = useCallback((file: File, onDone: (ok: boolean) => void) => {
+  const applyImportedSave = useCallback((parsed: GameState) => {
+    setGameState(parsed)
+    setHasSave(true)
+    setLastSavedAt(readSavedAt(parsed) ?? new Date())
+    skipPersistRef.current = false
+  }, [])
+
+  const parseSaveFile = useCallback((file: File, onDone: (result: GameState | null) => void) => {
     const reader = new FileReader()
     reader.onload = () => {
       try {
-        const parsed = migrateSave(JSON.parse(String(reader.result)) as Partial<GameState>)
-        setGameState(parsed)
-        setHasSave(true)
-        setLastSavedAt(new Date())
-        onDone(true)
+        onDone(migrateSave(JSON.parse(String(reader.result)) as Partial<GameState>))
       } catch {
-        onDone(false)
+        onDone(null)
       }
     }
-    reader.onerror = () => onDone(false)
+    reader.onerror = () => onDone(null)
     reader.readAsText(file)
   }, [])
 
@@ -83,6 +105,7 @@ export function useGameSave() {
     saveNow,
     saveFlash,
     exportSave,
-    importSave,
+    applyImportedSave,
+    parseSaveFile,
   }
 }

@@ -11,57 +11,67 @@ import { sanitizeAvatar } from './data/avatarOptions'
 import './App.css'
 
 function App() {
-  const { gameState, updateGameState, resetGame, hasSave, lastSavedAt, saveNow, saveFlash, exportSave, importSave } = useGameSave()
+  const {
+    gameState,
+    updateGameState,
+    resetGame,
+    hasSave,
+    lastSavedAt,
+    saveNow,
+    saveFlash,
+    exportSave,
+    applyImportedSave,
+    parseSaveFile,
+  } = useGameSave()
   const { soundEnabled, toggleSound } = useSoundToggle(gameState, updateGameState)
-  const [screen, setScreen] = useState<Screen>(() =>
-    hasSave ? 'play' : 'welcome',
-  )
+  const [screen, setScreen] = useState<Screen>(() => (hasSave ? 'play' : 'welcome'))
 
   return (
     <ErrorBoundary onResetSave={resetGame}>
       <InstallAppProvider>
-      <div className="app">
-      {screen === 'welcome' && (
-        <Welcome
-          onStart={() => setScreen('avatar')}
-          onContinue={() => setScreen('play')}
-          hasSave={hasSave}
-          savedPlayerName={hasSave ? gameState.avatar.name : undefined}
-          soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
-        />
-      )}
+        <div className="app">
+          {screen === 'welcome' && (
+            <Welcome
+              onStart={() => setScreen('avatar')}
+              onContinue={() => setScreen('play')}
+              hasSave={hasSave}
+              savedPlayerName={hasSave ? gameState.avatar.name : undefined}
+              soundEnabled={soundEnabled}
+              onToggleSound={toggleSound}
+            />
+          )}
 
-      {screen === 'avatar' && (
-        <AvatarCreator
-          key="avatar-creator"
-          avatar={gameState.avatar}
-          onChange={(avatar) =>
-            updateGameState((prev) => ({ ...prev, avatar: sanitizeAvatar(avatar) }))
-          }
-          onDone={() => setScreen('play')}
-          onBack={() => setScreen('welcome')}
-        />
-      )}
+          {screen === 'avatar' && (
+            <AvatarCreator
+              key="avatar-creator"
+              avatar={gameState.avatar}
+              onChange={(avatar) =>
+                updateGameState((prev) => ({ ...prev, avatar: sanitizeAvatar(avatar) }))
+              }
+              onDone={() => setScreen('play')}
+              onBack={() => setScreen('welcome')}
+            />
+          )}
 
-      {screen === 'play' && (
-        <CoastalWorld
-          gameState={gameState}
-          onUpdate={updateGameState}
-          onEditAvatar={() => setScreen('avatar')}
-          onReset={() => {
-            resetGame()
-            setScreen('avatar')
-          }}
-          lastSavedAt={lastSavedAt}
-          saveFlash={saveFlash}
-          onSaveNow={saveNow}
-          onExportSave={exportSave}
-          onImportSave={importSave}
-          toggleSound={toggleSound}
-        />
-      )}
-      </div>
+          {screen === 'play' && (
+            <CoastalWorld
+              gameState={gameState}
+              onUpdate={updateGameState}
+              onEditAvatar={() => setScreen('avatar')}
+              onReset={() => {
+                resetGame()
+                setScreen('avatar')
+              }}
+              lastSavedAt={lastSavedAt}
+              saveFlash={saveFlash}
+              onSaveNow={saveNow}
+              onExportSave={exportSave}
+              onApplyImportedSave={applyImportedSave}
+              onParseSaveFile={parseSaveFile}
+              toggleSound={toggleSound}
+            />
+          )}
+        </div>
       </InstallAppProvider>
     </ErrorBoundary>
   )

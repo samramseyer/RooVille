@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Avatar, PlacedItem } from '../types'
+import type { Avatar, GameState, PlacedItem } from '../types'
 import { QUESTS } from '../data/quests'
 import { PersonalizationPanel } from './PersonalizationPanel'
 import { QuestPanel } from './QuestPanel'
@@ -17,7 +17,8 @@ interface SidePanelProps {
   onEditAvatar: () => void
   onSaveNow: () => void
   onExportSave?: () => void
-  onImportSave?: (file: File, onDone: (ok: boolean) => void) => void
+  onParseSaveFile?: (file: File, onDone: (result: GameState | null) => void) => void
+  onApplyImportedSave?: (state: GameState) => void
   onClose?: () => void
 }
 
@@ -32,7 +33,8 @@ export function SidePanel({
   onEditAvatar,
   onSaveNow,
   onExportSave,
-  onImportSave,
+  onParseSaveFile,
+  onApplyImportedSave,
   onClose,
 }: SidePanelProps) {
   const [tab, setTab] = useState<SideTab>(initialTab)
@@ -72,6 +74,7 @@ export function SidePanel({
       {tab === 'you' ? (
         <PersonalizationPanel
           avatar={avatar}
+          currentPlayerName={avatar.name}
           buildingCount={items.length}
           completedQuests={completedQuests.length}
           totalQuests={QUESTS.length}
@@ -81,7 +84,8 @@ export function SidePanel({
           onEditAvatar={onEditAvatar}
           onSaveNow={onSaveNow}
           onExportSave={onExportSave}
-          onImportSave={onImportSave}
+          onParseSaveFile={onParseSaveFile}
+          onApplyImportedSave={onApplyImportedSave}
         />
       ) : (
         <QuestPanel items={items} completedQuests={completedQuests} />

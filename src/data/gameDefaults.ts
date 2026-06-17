@@ -171,5 +171,6 @@ export function migrateSave(raw: Partial<GameState>): GameState {
     tipsSeen: Array.isArray(raw.tipsSeen)
       ? raw.tipsSeen.filter((t): t is string => typeof t === 'string')
       : [],
+    savedAt: typeof raw.savedAt === 'string' ? raw.savedAt : undefined,
   }
 }

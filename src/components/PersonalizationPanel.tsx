@@ -1,10 +1,13 @@
 import { useRef, useState } from 'react'
+import type { GameState } from '../types'
 import type { Avatar } from '../types'
 import { sanitizeAvatarName } from '../data/avatarOptions'
+import { ImportSaveModal } from './ImportSaveModal'
 import { AvatarSprite } from './AvatarSprite'
 
 interface PersonalizationPanelProps {
   avatar: Avatar
+  currentPlayerName: string
   buildingCount: number
   completedQuests: number
   totalQuests: number
@@ -14,15 +17,22 @@ interface PersonalizationPanelProps {
   onEditAvatar: () => void
   onSaveNow: () => void
   onExportSave?: () => void
-  onImportSave?: (file: File, onDone: (ok: boolean) => void) => void
+  onParseSaveFile?: (file: File, onDone: (result: GameState | null) => void) => void
+  onApplyImportedSave?: (state: GameState) => void
 }
 
 function formatSavedTime(date: Date): string {
-  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  return date.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 }
 
 export function PersonalizationPanel({
   avatar,
+  currentPlayerName,
   buildingCount,
   completedQuests,
   totalQuests,
@@ -32,17 +42,31 @@ export function PersonalizationPanel({
   onEditAvatar,
   onSaveNow,
   onExportSave,
-  onImportSave,
+  onParseSaveFile,
+  onApplyImportedSave,
 }: PersonalizationPanelProps) {
   const importRef = useRef<HTMLInputElement>(null)
   const [importMessage, setImportMessage] = useState<string | null>(null)
+  const [pendingImport, setPendingImport] = useState<GameState | null>(null)
 
-  const handleImport = (file: File | undefined) => {
-    if (!file || !onImportSave) return
-    onImportSave(file, (ok) => {
-      setImportMessage(ok ? 'Save imported!' : 'Could not read that file.')
-      window.setTimeout(() => setImportMessage(null), 3000)
+  const handleImportPick = (file: File | undefined) => {
+    if (!file || !onParseSaveFile) return
+    onParseSaveFile(file, (parsed) => {
+      if (!parsed) {
+        setImportMessage('Could not read that file.')
+        window.setTimeout(() => setImportMessage(null), 3000)
+        return
+      }
+      setPendingImport(parsed)
     })
+  }
+
+  const confirmImport = () => {
+    if (!pendingImport || !onApplyImportedSave) return
+    onApplyImportedSave(pendingImport)
+    setPendingImport(null)
+    setImportMessage('Save imported!')
+    window.setTimeout(() => setImportMessage(null), 3000)
   }
 
   return (
@@ -66,6 +90,7 @@ export function PersonalizationPanel({
             className="name-input"
             value={avatar.name}
             maxLength={20}
+            autoComplete="name"
             onChange={(e) => onNameChange(sanitizeAvatarName(e.target.value))}
             placeholder="Enter your name"
           />
@@ -82,7 +107,7 @@ export function PersonalizationPanel({
           {saveFlash ? (
             <span>✓ Progress saved!</span>
           ) : lastSavedAt ? (
-            <span>Last saved at {formatSavedTime(lastSavedAt)}</span>
+            <span>Last saved {formatSavedTime(lastSavedAt)}</span>
           ) : (
             <span>Not saved yet</span>
           )}
@@ -90,14 +115,14 @@ export function PersonalizationPanel({
         <button type="button" className="btn btn-secondary btn-small personalization-save-btn" onClick={onSaveNow}>
           Save now
         </button>
-        {(onExportSave || onImportSave) && (
+        {(onExportSave || onParseSaveFile) && (
           <div className="save-backup-row">
             {onExportSave && (
               <button type="button" className="btn btn-ghost btn-small" onClick={onExportSave}>
                 Export save
               </button>
             )}
-            {onImportSave && (
+            {onParseSaveFile && onApplyImportedSave && (
               <>
                 <input
                   ref={importRef}
@@ -105,7 +130,7 @@ export function PersonalizationPanel({
                   accept="application/json,.json"
                   className="sr-only"
                   onChange={(e) => {
-                    handleImport(e.target.files?.[0])
+                    handleImportPick(e.target.files?.[0])
                     e.target.value = ''
                   }}
                 />
@@ -138,6 +163,15 @@ export function PersonalizationPanel({
           </div>
         </dl>
       </section>
+
+      {pendingImport && (
+        <ImportSaveModal
+          incoming={pendingImport}
+          currentPlayerName={currentPlayerName}
+          onConfirm={confirmImport}
+          onCancel={() => setPendingImport(null)}
+        />
+      )}
     </div>
   )
 }

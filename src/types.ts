@@ -156,6 +156,8 @@ export interface GameState {
   tipsSeen?: string[]
   /** Overworld x/y are in MAP_VIEW (1000×600) space when set to "map". */
   overworldCoordSpace?: 'map'
+  /** ISO timestamp written when the save was last persisted. */
+  savedAt?: string
 }
 
 export interface BuildingDef {
