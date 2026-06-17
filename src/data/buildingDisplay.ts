@@ -41,7 +41,7 @@ const MAP_SINK_BY_CATEGORY: Partial<Record<BuildingCategory, number>> = {
   boats: 10,
   docks: 8,
   boathouses: 6,
-  houses: 5,
+  houses: 3,
   businesses: 5,
   zoos: 5,
 }
@@ -87,7 +87,7 @@ export const PLACED_SCALE_BY_CATEGORY: Record<BuildingCategory, number> = {
   docks: 1.4,
   boathouses: 1.45,
   zoos: 1.45,
-  houses: 1.5,
+  houses: 0.75,
   businesses: 1.55,
 }
 
@@ -95,7 +95,7 @@ const EXTRA_SCALE_BY_ID: Partial<Record<string, number>> = {
   'five-star-hotel': 1.65,
   'skyline-tower': 1.6,
   'luxury-resort': 1.5,
-  lighthouse: 1.55,
+  lighthouse: 0.775,
 }
 
 export function getPlacedDisplayScale(building: BuildingDef): number {
