@@ -913,11 +913,13 @@ export function CoastalWorld({
         </div>
       )}
 
-      <MobileWorldNav
-        activePanel={mobilePanel}
-        onSelect={handleMobileSelect}
-        questBadge={activeQuestCount}
-      />
+      {isMobile && (
+        <MobileWorldNav
+          activePanel={mobilePanel}
+          onSelect={handleMobileSelect}
+          questBadge={activeQuestCount}
+        />
+      )}
     </div>
   )
 }

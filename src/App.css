@@ -1892,6 +1892,14 @@ button {
   position: relative;
 }
 
+.mobile-world-nav {
+  display: none;
+}
+
+.mobile-drawer-overlay {
+  display: none;
+}
+
 .time-controls--mobile {
   display: none;
 }
@@ -3310,12 +3318,4 @@ button {
 @keyframes enter-pulse {
   0%, 100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
   50% { box-shadow: 0 0 0 6px rgba(255, 140, 66, 0.35); }
-}
-
-.mobile-world-nav {
-  display: none;
-}
-
-.mobile-drawer-overlay {
-  display: none;
 }
