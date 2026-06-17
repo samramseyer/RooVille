@@ -2,9 +2,9 @@ import { resolve } from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// GitHub Pages project site: https://samramseyer.github.io/RooVille/
+// GitHub Pages: /RooVille/ — Portfolio embed: /docs/RooVille/
 export default defineConfig({
-  base: "/RooVille/",
+  base: process.env.VITE_BASE || "/RooVille/",
   plugins: [react()],
   resolve: {
     dedupe: ["react", "react-dom"],
