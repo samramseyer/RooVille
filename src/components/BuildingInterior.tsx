@@ -99,6 +99,7 @@ export function BuildingInterior({
   const [placementWindowStyle, setPlacementWindowStyle] = useState<WindowStyleId | null>(null)
   const [paletteTab, setPaletteTab] = useState<PaletteTab | null>(null)
   const [interiorMode, setInteriorMode] = useState<InteriorMode>('decorate')
+  const [decorateMenuOpen, setDecorateMenuOpen] = useState(true)
   const [dragMode, setDragMode] = useState<DragMode>(null)
   const [undoAction, setUndoAction] = useState<InteriorUndoAction | null>(null)
   const undoTimerRef = useRef<number | null>(null)
@@ -797,6 +798,15 @@ export function BuildingInterior({
           </div>
         </div>
         <div className="interior-header-actions">
+          {!decorateMenuOpen && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-small menu-reopen-header-btn"
+              onClick={() => setDecorateMenuOpen(true)}
+            >
+              {interiorMode === 'design' ? '🎨 Open menu' : '🛋️ Open menu'}
+            </button>
+          )}
           {theme !== 'zoo' && (
             <div className="interior-mode-toggle" role="group" aria-label="Interior mode">
               <button
@@ -848,45 +858,66 @@ export function BuildingInterior({
       </header>
 
       <div className="interior-body">
-        <InteriorPalette
-          theme={theme}
-          style={interiorStyle}
-          resolvedWindowView={windowView}
-          selectedOpening={selectedOpening ?? null}
-          onSelectFurniture={(f) => {
-            setSelectedFurniture(f)
-            setSelectedInteriorId(null)
-            setSelectedOpeningId(null)
-            setPlacementMode(null)
-          }}
-          onStyleChange={applyStyleChange}
-          onSelectWindowStyle={applyWindowStyleChoice}
-          onSelectDoorStyle={applyDoorStyleChoice}
-          selectedFurnitureId={selectedFurniture?.id ?? null}
-          placementMode={placementMode}
-          activeTab={paletteTab}
-          onScaleSelectedWindow={scaleSelectedWindow}
-          onStartPlaceWindow={() => {
-            setPlacementWindowStyle(windowStyleId)
-            setPlacementMode('window')
-            setPaletteTab('openings')
-            setSelectedFurniture(null)
-            setSelectedInteriorId(null)
-            setSelectedOpeningId(null)
-          }}
-          onStartPlaceDoor={() => {
-            setPlacementMode('door')
-            setPaletteTab('openings')
-            setSelectedFurniture(null)
-            setSelectedInteriorId(null)
-            setSelectedOpeningId(null)
-          }}
-          editMode={(selectedInteriorId !== null || selectedOpeningId !== null) && !placementMode}
-          paletteMode={paletteMode}
-          buildingId={building.id}
-        />
+        <div className={`interior-palette-shell${decorateMenuOpen ? '' : ' is-collapsed'}`}>
+          <button
+            type="button"
+            className="menu-collapse-btn interior-menu-collapse-btn"
+            aria-expanded={decorateMenuOpen}
+            onClick={() => setDecorateMenuOpen((open) => !open)}
+          >
+            {decorateMenuOpen ? '▼ Hide menu' : '▲ Show menu'}
+          </button>
+          {decorateMenuOpen && (
+            <InteriorPalette
+              theme={theme}
+              style={interiorStyle}
+              resolvedWindowView={windowView}
+              selectedOpening={selectedOpening ?? null}
+              onSelectFurniture={(f) => {
+                setSelectedFurniture(f)
+                setSelectedInteriorId(null)
+                setSelectedOpeningId(null)
+                setPlacementMode(null)
+              }}
+              onStyleChange={applyStyleChange}
+              onSelectWindowStyle={applyWindowStyleChoice}
+              onSelectDoorStyle={applyDoorStyleChoice}
+              selectedFurnitureId={selectedFurniture?.id ?? null}
+              placementMode={placementMode}
+              activeTab={paletteTab}
+              onScaleSelectedWindow={scaleSelectedWindow}
+              onStartPlaceWindow={() => {
+                setPlacementWindowStyle(windowStyleId)
+                setPlacementMode('window')
+                setPaletteTab('openings')
+                setSelectedFurniture(null)
+                setSelectedInteriorId(null)
+                setSelectedOpeningId(null)
+              }}
+              onStartPlaceDoor={() => {
+                setPlacementMode('door')
+                setPaletteTab('openings')
+                setSelectedFurniture(null)
+                setSelectedInteriorId(null)
+                setSelectedOpeningId(null)
+              }}
+              editMode={(selectedInteriorId !== null || selectedOpeningId !== null) && !placementMode}
+              paletteMode={paletteMode}
+              buildingId={building.id}
+            />
+          )}
+        </div>
 
         <div className="interior-room-container">
+          {!decorateMenuOpen && (
+            <button
+              type="button"
+              className="menu-expand-fab interior-menu-expand-fab"
+              onClick={() => setDecorateMenuOpen(true)}
+            >
+              {interiorMode === 'design' ? '🎨 Open menu' : '🛋️ Open menu'}
+            </button>
+          )}
           {layout && layout.rooms.length > 1 && (
             <InteriorRoomMap
               layout={layout}

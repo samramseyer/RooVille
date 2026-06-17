@@ -194,6 +194,7 @@ export function CoastalWorld({
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('map')
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const [showGetApp, setShowGetApp] = useState(false)
+  const [buildMenuOpen, setBuildMenuOpen] = useState(true)
   const dragOffset = useRef({ x: 0, y: 0 })
   const dragStart = useRef({ x: 0, y: 0 })
   const pointerMoved = useRef(false)
@@ -609,6 +610,7 @@ export function CoastalWorld({
 
   const handleMobileSelect = (panel: MobilePanel) => {
     setMobilePanel(panel)
+    if (panel === 'build') setBuildMenuOpen(true)
     if (panel === 'you' || panel === 'quests') {
       setMobileDrawerOpen(true)
     } else {
@@ -681,10 +683,25 @@ export function CoastalWorld({
           <span className="time-controls time-controls--mobile" aria-live="polite">
             {weather.loading ? '🌤️' : weather.emoji} {PHASE_LABELS[phase]}
           </span>
+          {!buildMenuOpen && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-small menu-reopen-header-btn"
+              onClick={() => {
+                setBuildMenuOpen(true)
+                if (isMobile) setMobilePanel('build')
+              }}
+            >
+              🏗️ Open menu
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-secondary btn-small world-header-build-native"
-            onClick={() => handleMobileSelect('build')}
+            onClick={() => {
+              setBuildMenuOpen(true)
+              handleMobileSelect('build')
+            }}
           >
             🏗️ Build
           </button>
@@ -749,35 +766,59 @@ export function CoastalWorld({
         )}
 
         <aside
-          className={`sidebar-left${isMobile ? ' sidebar-left--mobile-sheet' : ''}${isMobile && mobilePanel !== 'build' ? ' sidebar-left--mobile-hidden' : ''}`}
+          className={`sidebar-left${isMobile ? ' sidebar-left--mobile-sheet' : ''}${isMobile && mobilePanel !== 'build' ? ' sidebar-left--mobile-hidden' : ''}${!buildMenuOpen ? ' sidebar-left--collapsed' : ''}`}
         >
-          <BuildingPalette
-            onSelectBuilding={(b) => {
-              setSelectedBuilding(b)
-              setPlacementRotation(0)
-              setSelectedItemId(null)
-            }}
-            selectedBuildingId={selectedBuilding?.id ?? null}
-            editMode={selectedItemId !== null}
-            favoriteBuildingIds={favoriteBuildingIds}
-            onToggleFavorite={toggleFavorite}
-            suggestedCategory={suggestedCategory}
-          />
+          <button
+            type="button"
+            className="menu-collapse-btn build-menu-collapse-btn"
+            aria-expanded={buildMenuOpen}
+            onClick={() => setBuildMenuOpen((open) => !open)}
+          >
+            {buildMenuOpen ? '▼ Hide build menu' : '▲ Show build menu'}
+          </button>
+          {buildMenuOpen && (
+            <>
+              <BuildingPalette
+                onSelectBuilding={(b) => {
+                  setSelectedBuilding(b)
+                  setPlacementRotation(0)
+                  setSelectedItemId(null)
+                }}
+                selectedBuildingId={selectedBuilding?.id ?? null}
+                editMode={selectedItemId !== null}
+                favoriteBuildingIds={favoriteBuildingIds}
+                onToggleFavorite={toggleFavorite}
+                suggestedCategory={suggestedCategory}
+              />
 
-          {selectedItem && selectedDef && (
-            <ItemEditPanel
-              item={selectedItem}
-              building={selectedDef}
-              onRotateLeft={() => rotateItem(selectedItem.id, -90)}
-              onRotateRight={() => rotateItem(selectedItem.id, 90)}
-              onDelete={() => deleteItem(selectedItem.id)}
-              onDeselect={() => setSelectedItemId(null)}
-              onEnter={isEnterableBuilding(selectedDef) ? () => enterBuilding(selectedItem.id) : undefined}
-            />
+              {selectedItem && selectedDef && (
+                <ItemEditPanel
+                  item={selectedItem}
+                  building={selectedDef}
+                  onRotateLeft={() => rotateItem(selectedItem.id, -90)}
+                  onRotateRight={() => rotateItem(selectedItem.id, 90)}
+                  onDelete={() => deleteItem(selectedItem.id)}
+                  onDeselect={() => setSelectedItemId(null)}
+                  onEnter={isEnterableBuilding(selectedDef) ? () => enterBuilding(selectedItem.id) : undefined}
+                />
+              )}
+            </>
           )}
         </aside>
 
         <div className="map-container">
+          {!buildMenuOpen && (
+            <button
+              type="button"
+              className="menu-expand-fab build-menu-expand-fab"
+              onClick={() => {
+                setBuildMenuOpen(true)
+                if (isMobile) setMobilePanel('build')
+              }}
+            >
+              🏗️ Open build menu
+            </button>
+          )}
           {selectedBuilding && !selectedItemId && (
             <div className="placement-hint">
               Placing: {selectedBuilding.name}
