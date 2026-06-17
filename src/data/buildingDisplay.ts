@@ -40,7 +40,7 @@ const GROUND_FRAC_BY_CATEGORY: Partial<Record<BuildingCategory, number>> = {
 const MAP_SINK_BY_CATEGORY: Partial<Record<BuildingCategory, number>> = {
   boats: 10,
   docks: 8,
-  boathouses: 6,
+  boathouses: 3,
   houses: 3,
   businesses: 5,
   zoos: 5,
@@ -85,7 +85,7 @@ export const PLACED_SCALE_BY_CATEGORY: Record<BuildingCategory, number> = {
   boats: 1.35,
   decor: 1.3,
   docks: 1.4,
-  boathouses: 1.45,
+  boathouses: 0.725,
   zoos: 1.45,
   houses: 0.75,
   businesses: 1.55,
