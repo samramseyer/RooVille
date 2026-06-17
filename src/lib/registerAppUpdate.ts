@@ -1,14 +1,14 @@
 import { isInstalledApp, isNativeCapacitorApp } from './appInstall'
 
 export const BUILD_VERSION_KEY = 'rooville-build-version'
-const RELOAD_KEY = 'rooville-update-reloads'
 const BUILD_ID = import.meta.env.VITE_BUILD_ID as string | undefined
 const UPDATE_CHECK_MS = 5 * 60 * 1000
-const INSTALLED_UPDATE_CHECK_MS = 30 * 1000
+const INSTALLED_UPDATE_CHECK_MS = 15 * 1000
 
 export interface RemoteBuildInfo {
   version?: string
   entry?: string
+  style?: string
 }
 
 function versionJsonUrl(): URL {
@@ -26,24 +26,14 @@ function currentBundleEntry(): string {
   return entryName(import.meta.url)
 }
 
-function htmlBuildId(): string {
-  const fromWindow = (window as Window & { __ROOVILLE_BUILD__?: string }).__ROOVILLE_BUILD__
-  if (fromWindow) return fromWindow
-  const bootstrap = document.querySelector('script[data-build-id]')
-  return bootstrap?.getAttribute('data-build-id') ?? ''
-}
-
-export function isRemoteBuildStale(data: RemoteBuildInfo, stored: string | null): boolean {
+export function isRemoteBuildStale(data: RemoteBuildInfo): boolean {
   if (!data.version) return false
 
   const serverEntry = entryName(data.entry)
   const bundleEntry = currentBundleEntry()
-  const pageBuildId = htmlBuildId()
 
-  if (pageBuildId && data.version !== pageBuildId) return true
   if (BUILD_ID && BUILD_ID !== data.version) return true
   if (serverEntry && bundleEntry && serverEntry !== bundleEntry) return true
-  if (stored && stored !== data.version) return true
 
   return false
 }
@@ -59,30 +49,18 @@ async function clearAppCaches(): Promise<void> {
   }
 }
 
-async function hardReload(version: string, refreshing: { value: boolean }): Promise<boolean> {
-  if (refreshing.value) return true
-
-  const reloads = Number(sessionStorage.getItem(RELOAD_KEY) || '0')
-  if (reloads >= 2) {
-    sessionStorage.removeItem(RELOAD_KEY)
-    return false
-  }
-
-  sessionStorage.setItem(RELOAD_KEY, String(reloads + 1))
+async function hardReload(version: string, refreshing: { value: boolean }): Promise<void> {
+  if (refreshing.value) return
   refreshing.value = true
   await clearAppCaches()
   localStorage.setItem(BUILD_VERSION_KEY, version)
   const next = new URL(location.href)
   next.searchParams.set('_rv', version)
+  next.searchParams.set('_', String(Date.now()))
   location.replace(next.toString())
-  return true
 }
 
-function skipWaitingWorker(registration: ServiceWorkerRegistration): void {
-  registration.waiting?.postMessage({ type: 'SKIP_WAITING' })
-}
-
-/** Reload when the server has a newer build than this install. */
+/** Reload when the server has a newer build than this bundle. */
 export async function checkRemoteBuildVersion(refreshing: { value: boolean }): Promise<void> {
   if (refreshing.value) return
 
@@ -96,26 +74,15 @@ export async function checkRemoteBuildVersion(refreshing: { value: boolean }): P
     const data = (await res.json()) as RemoteBuildInfo
     if (!data.version) return
 
-    const stored = localStorage.getItem(BUILD_VERSION_KEY)
-
-    if (isRemoteBuildStale(data, stored)) {
-      const reloaded = await hardReload(data.version, refreshing)
-      if (reloaded) return
+    if (isRemoteBuildStale(data)) {
+      await hardReload(data.version, refreshing)
+      return
     }
 
-    sessionStorage.removeItem(RELOAD_KEY)
-
-    if (!stored) {
-      localStorage.setItem(BUILD_VERSION_KEY, data.version)
-    }
+    localStorage.setItem(BUILD_VERSION_KEY, data.version)
   } catch {
     /* offline — keep playing with the current bundle */
   }
-}
-
-function onDocumentReady(run: () => void): void {
-  if (document.readyState === 'complete') run()
-  else window.addEventListener('load', run, { once: true })
 }
 
 /** Keep installed PWAs on the latest deploy without user action. */
@@ -126,67 +93,18 @@ export function registerAppUpdate(): void {
   const installed = isInstalledApp()
   const updateIntervalMs = installed ? INSTALLED_UPDATE_CHECK_MS : UPDATE_CHECK_MS
 
-  const runUpdateChecks = (registration?: ServiceWorkerRegistration) => {
+  const runUpdateChecks = () => {
     void checkRemoteBuildVersion(refreshing)
-    if (registration) {
-      void registration.update().catch(() => {
-        /* offline or blocked — try again later */
-      })
-    }
   }
 
   runUpdateChecks()
+  window.setInterval(runUpdateChecks, updateIntervalMs)
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing.value) return
-      refreshing.value = true
-      window.location.reload()
-    })
-
-    onDocumentReady(() => {
-      void navigator.serviceWorker
-        .register(new URL('sw.js', location.href))
-        .then((registration) => {
-          runUpdateChecks(registration)
-
-          window.setInterval(() => runUpdateChecks(registration), updateIntervalMs)
-
-          document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') runUpdateChecks(registration)
-          })
-          window.addEventListener('focus', () => runUpdateChecks(registration))
-          window.addEventListener('pageshow', (event) => {
-            if (event.persisted) runUpdateChecks(registration)
-          })
-
-          registration.addEventListener('updatefound', () => {
-            const worker = registration.installing
-            if (!worker) return
-
-            worker.addEventListener('statechange', () => {
-              if (worker.state !== 'installed') return
-              if (!navigator.serviceWorker.controller) return
-              skipWaitingWorker(registration)
-            })
-          })
-
-          if (registration.waiting && navigator.serviceWorker.controller) {
-            skipWaitingWorker(registration)
-          }
-        })
-        .catch(() => {
-          /* game works without offline cache */
-        })
-    })
-  } else {
-    window.setInterval(() => runUpdateChecks(), updateIntervalMs)
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') runUpdateChecks()
-    })
-    window.addEventListener('focus', () => runUpdateChecks())
-    window.addEventListener('pageshow', (event) => {
-      if (event.persisted) runUpdateChecks()
-    })
-  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') runUpdateChecks()
+  })
+  window.addEventListener('focus', runUpdateChecks)
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) runUpdateChecks()
+  })
 }

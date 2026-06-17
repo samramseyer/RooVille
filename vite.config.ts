@@ -45,20 +45,29 @@ function appVersionPlugin(version: string): Plugin {
     },
     closeBundle() {
       const distDir = resolve(__dirname, "dist");
-      const js = readdirSync(resolve(distDir, "assets"))
-        .find((file) => /^main-.*\.js$/.test(file));
+      const js = readdirSync(resolve(distDir, "assets")).find((file) =>
+        /^main-.*\.js$/.test(file),
+      );
+      const css = readdirSync(resolve(distDir, "assets")).find((file) =>
+        /^main-.*\.css$/.test(file),
+      );
 
       writeFileSync(
         resolve(distDir, "version.json"),
-        `${JSON.stringify({ version, entry: js ?? null })}\n`,
+        `${JSON.stringify({ version, entry: js ?? null, style: css ?? null })}\n`,
       );
 
-      const swTemplate = readFileSync(resolve(__dirname, "public/sw.js"), "utf8");
-      const swSource = swTemplate.replace(
-        /const CACHE_NAME = '[^']+'/,
-        `const CACHE_NAME = 'rooville-${version}'`,
+      writeFileSync(
+        resolve(distDir, "sw.js"),
+        readFileSync(resolve(__dirname, "public/sw.js"), "utf8"),
       );
-      writeFileSync(resolve(distDir, "sw.js"), swSource);
+
+      const manifestPath = resolve(distDir, "manifest.webmanifest");
+      const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+        start_url?: string;
+      };
+      manifest.start_url = `./?v=${encodeURIComponent(version)}`;
+      writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
     },
   };
 }

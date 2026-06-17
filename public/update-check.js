@@ -1,10 +1,6 @@
 (function () {
   var script = document.currentScript
-  var style = script && script.getAttribute('data-style')
-  var htmlBuildId = (script && script.getAttribute('data-build-id')) || window.__ROOVILLE_BUILD__ || ''
-  var htmlEntry = script && script.getAttribute('data-entry')
   var BUILD_KEY = 'rooville-build-version'
-  var RELOAD_KEY = 'rooville-update-reloads'
 
   function isLocal() {
     return (
@@ -19,64 +15,23 @@
     return script.src.replace(/update-check\.js(?:\?.*)?$/, '')
   }
 
-  function entryName(path) {
-    if (!path) return ''
-    return String(path).split('/').pop().split('?')[0]
+  function resolveAsset(file) {
+    if (!file) return ''
+    var clean = String(file).split('?')[0]
+    if (clean.indexOf('://') !== -1) return clean
+    if (clean.indexOf('/assets/') !== -1) return clean
+    if (clean.charAt(0) === '/') return clean
+    return deployBase() + 'assets/' + clean
   }
 
-  function resolveAsset(fileName) {
-    if (!fileName) return ''
-    if (fileName.indexOf('/') !== -1) return fileName
-    return deployBase() + 'assets/' + fileName
+  function bust(url, version) {
+    if (!url) return ''
+    var next = new URL(url, location.href)
+    next.searchParams.set('v', version || String(Date.now()))
+    return next.toString()
   }
 
-  function loadApp(entry, cssHref) {
-    if (cssHref) {
-      var link = document.createElement('link')
-      link.rel = 'stylesheet'
-      link.href = cssHref
-      document.head.appendChild(link)
-    }
-    if (!entry) return
-    var el = document.createElement('script')
-    el.type = 'module'
-    el.crossOrigin = 'anonymous'
-    el.src = entry
-    document.head.appendChild(el)
-  }
-
-  if (isLocal()) {
-    loadApp(htmlEntry, style)
-    return
-  }
-
-  function reloadCount() {
-    try {
-      return Number(sessionStorage.getItem(RELOAD_KEY) || '0')
-    } catch (e) {
-      return 0
-    }
-  }
-
-  function bumpReloadCount() {
-    try {
-      sessionStorage.setItem(RELOAD_KEY, String(reloadCount() + 1))
-    } catch (e) {}
-  }
-
-  function clearReloadCount() {
-    try {
-      sessionStorage.removeItem(RELOAD_KEY)
-    } catch (e) {}
-  }
-
-  function hardReload(version) {
-    if (reloadCount() >= 2) {
-      clearReloadCount()
-      return false
-    }
-    bumpReloadCount()
-
+  function clearLegacyCaches() {
     var tasks = []
     if ('serviceWorker' in navigator) {
       tasks.push(
@@ -96,74 +51,78 @@
         }),
       )
     }
+    return Promise.all(tasks)
+  }
 
-    Promise.all(tasks).finally(function () {
+  function loadBundle(bundle) {
+    var version = bundle.version || String(Date.now())
+
+    if (bundle.style) {
+      var link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = bust(resolveAsset(bundle.style), version)
+      document.head.appendChild(link)
+    }
+
+    if (!bundle.entry) return
+
+    var el = document.createElement('script')
+    el.type = 'module'
+    el.crossOrigin = 'anonymous'
+    el.src = bust(resolveAsset(bundle.entry), version)
+    el.onerror = function () {
       try {
-        localStorage.setItem(BUILD_KEY, version)
+        localStorage.removeItem(BUILD_KEY)
       } catch (e) {}
       var next = new URL(location.href)
       next.searchParams.set('_rv', version)
       location.replace(next.toString())
-    })
-    return true
-  }
-
-  function start(entry, cssHref, version) {
-    if (version) {
-      try {
-        localStorage.setItem(BUILD_KEY, version)
-      } catch (e) {}
     }
-    clearReloadCount()
-    loadApp(entry, cssHref)
+    document.head.appendChild(el)
   }
 
-  function checkVersion() {
-    var fallbackEntry = htmlEntry
-    var fallbackStyle = style
+  function loadFromHtmlFallback() {
+    var entry = script && script.getAttribute('data-entry')
+    var style = script && script.getAttribute('data-style')
+    var version =
+      (script && script.getAttribute('data-build-id')) ||
+      window.__ROOVILLE_BUILD__ ||
+      String(Date.now())
+
+    loadBundle({
+      version: version,
+      entry: entry,
+      style: style ? style.split('/').pop() : '',
+    })
+  }
+
+  if (isLocal()) {
+    loadFromHtmlFallback()
+    return
+  }
+
+  clearLegacyCaches().then(function () {
     var url = new URL('version.json', location.href)
     url.search = '_=' + Date.now()
 
     fetch(url, { cache: 'no-store' })
       .then(function (r) {
-        if (!r.ok) return null
+        if (!r.ok) throw new Error('version missing')
         var ct = r.headers.get('content-type') || ''
-        if (ct.indexOf('json') === -1) return null
+        if (ct.indexOf('json') === -1) throw new Error('version not json')
         return r.json()
       })
       .then(function (data) {
-        if (!data || !data.version) {
-          start(fallbackEntry, fallbackStyle, null)
-          return
-        }
+        if (!data || !data.entry) throw new Error('version invalid')
 
-        var serverEntry = resolveAsset(data.entry || entryName(fallbackEntry))
-        var stored = null
         try {
-          stored = localStorage.getItem(BUILD_KEY)
+          localStorage.setItem(BUILD_KEY, data.version)
         } catch (e) {}
 
-        var htmlEntryName = entryName(htmlEntry)
-        var serverEntryName = entryName(data.entry)
-        var htmlStale = Boolean(serverEntryName && htmlEntryName && serverEntryName !== htmlEntryName)
-        var buildStale = Boolean(htmlBuildId && data.version !== htmlBuildId)
-        var storedStale = Boolean(stored && stored !== data.version)
-
-        if ((htmlStale || buildStale || storedStale) && hardReload(data.version)) {
-          return
-        }
-
-        start(serverEntry || fallbackEntry, fallbackStyle, data.version)
+        loadBundle(data)
       })
       .catch(function () {
-        start(fallbackEntry, fallbackStyle, null)
+        loadFromHtmlFallback()
       })
-  }
-
-  if (!htmlEntry) {
-    checkVersion()
-    return
-  }
-
-  checkVersion()
+  })
 })()

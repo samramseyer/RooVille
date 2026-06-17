@@ -42,6 +42,7 @@ jobs:
           fi
           test -f dist/.nojekyll
           test -f dist/version.json
+          grep -q '"style"' dist/version.json
           test -f dist/update-check.js
           test -f dist/manifest.webmanifest
           test -f dist/favicon.svg
