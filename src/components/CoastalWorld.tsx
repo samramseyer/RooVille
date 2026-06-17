@@ -681,6 +681,13 @@ export function CoastalWorld({
           <span className="time-controls time-controls--mobile" aria-live="polite">
             {weather.loading ? '🌤️' : weather.emoji} {PHASE_LABELS[phase]}
           </span>
+          <button
+            type="button"
+            className="btn btn-secondary btn-small world-header-build-native"
+            onClick={() => handleMobileSelect('build')}
+          >
+            🏗️ Build
+          </button>
           <button type="button" className="btn btn-ghost btn-small world-header-help-desktop" onClick={() => setShowTutorial(true)}>
             Help
           </button>

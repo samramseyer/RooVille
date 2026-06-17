@@ -3,10 +3,14 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
-import { getMobileLayout } from './hooks/useIsMobile'
+import { getMobileLayout, isNativeApp } from './hooks/useIsMobile'
 
-if (typeof window !== 'undefined' && getMobileLayout()) {
-  document.documentElement.classList.add('layout-mobile')
+if (typeof window !== 'undefined') {
+  if (isNativeApp()) {
+    document.documentElement.classList.add('capacitor-native', 'layout-mobile')
+  } else if (getMobileLayout()) {
+    document.documentElement.classList.add('layout-mobile')
+  }
 }
 
 const rootEl = document.getElementById('root')

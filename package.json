@@ -10,8 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "icons": "node scripts/generate-pwa-icons.mjs",
-    "build:web": "npm run icons && npm run build",
-    "build:mobile": "npm run build:web && npx cap sync android",
+    "build:web": "npm run icons && tsc -b && vite build",
+    "build:capacitor": "npm run icons && tsc -b && vite build --base ./ && node scripts/copy-capacitor-html.mjs",
+    "build:mobile": "npm run build:capacitor && npx cap sync android",
     "android:open": "npx cap open android",
     "android:run": "npm run build:mobile && npx cap run android",
     "android:apk": "npm run build:mobile && cd android && gradlew.bat assembleDebug"

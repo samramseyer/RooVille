@@ -1960,7 +1960,7 @@ button {
 }
 
 @media (min-width: 901px) {
-  .mobile-play-toolbar {
+  html:not(.capacitor-native):not(.layout-mobile) .mobile-play-toolbar {
     display: none !important;
   }
 }
@@ -2299,6 +2299,20 @@ button {
     min-width: 44px;
     min-height: 44px;
   }
+}
+
+html.capacitor-native .mobile-play-toolbar {
+  display: flex !important;
+}
+
+html.capacitor-native .world-header-build-native {
+  display: inline-flex !important;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+.world-header-build-native {
+  display: none;
 }
 
 /* Phone layout when JS detects mobile (backup for odd viewports) */
