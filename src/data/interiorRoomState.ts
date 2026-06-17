@@ -133,28 +133,49 @@ export function migratePlacedItemRooms(item: PlacedItem): PlacedItem {
   const layout = getBuildingInteriorLayout(item.buildingId)
   if (!layout) return item
 
-  if (item.interiorRooms && Object.keys(item.interiorRooms).length > 0) {
-    return {
+  let next = item
+  if (
+    item.buildingId === 'petting-zoo' &&
+    item.interiorRooms?.['petting-zoo-ground'] &&
+    !item.interiorRooms[layout.defaultRoomId]
+  ) {
+    const legacy = item.interiorRooms['petting-zoo-ground']!
+    const { ['petting-zoo-ground']: _removed, ...restRooms } = item.interiorRooms
+    next = {
       ...item,
-      currentInteriorRoomId: resolveCurrentRoomId(item, layout),
+      interiorRooms: {
+        ...restRooms,
+        [layout.defaultRoomId]: legacy,
+      },
+      currentInteriorRoomId:
+        item.currentInteriorRoomId === 'petting-zoo-ground'
+          ? layout.defaultRoomId
+          : item.currentInteriorRoomId,
     }
   }
 
-  if (!hasLegacyInteriorData(item)) {
+  if (next.interiorRooms && Object.keys(next.interiorRooms).length > 0) {
     return {
-      ...item,
+      ...next,
+      currentInteriorRoomId: resolveCurrentRoomId(next, layout),
+    }
+  }
+
+  if (!hasLegacyInteriorData(next)) {
+    return {
+      ...next,
       currentInteriorRoomId: layout.defaultRoomId,
     }
   }
 
   return {
-    ...item,
+    ...next,
     interiorRooms: {
       [layout.defaultRoomId]: {
-        interior: item.interior,
-        interiorOpenings: item.interiorOpenings,
-        interiorAvatarPosition: item.interiorAvatarPosition,
-        interiorStyle: item.interiorStyle,
+        interior: next.interior,
+        interiorOpenings: next.interiorOpenings,
+        interiorAvatarPosition: next.interiorAvatarPosition,
+        interiorStyle: next.interiorStyle,
       },
     },
     currentInteriorRoomId: layout.defaultRoomId,

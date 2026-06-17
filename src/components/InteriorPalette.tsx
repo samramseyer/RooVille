@@ -153,17 +153,17 @@ export function InteriorPalette({
     furnitureCategory === 'kitchen-cabinets' || furnitureCategory === 'countertops'
 
   if (theme === 'zoo') {
-    const exhibitItems = getFurnitureByCategory('exhibits')
+    const animalItems = getFurnitureByCategory('zoo-animals')
     return (
       <aside className={`interior-palette${editMode ? ' palette-dimmed' : ''}`}>
-        <h3 className="palette-title">Exhibits</h3>
+        <h3 className="palette-title">Animals</h3>
         <p className="palette-hint">
           {selectedFurnitureDef
-            ? `Placing: ${selectedFurnitureDef.name} — tap an empty pen on the map`
-            : 'Pick an animal or exhibit, then tap the map to place it'}
+            ? `Placing: ${selectedFurnitureDef.name} — tap the room floor to place it`
+            : 'Pick an animal, then tap the room to place it like furniture'}
         </p>
         <div className="interior-furniture-grid">
-          {exhibitItems.map((item) => (
+          {animalItems.map((item) => (
             <button
               key={item.id}
               type="button"

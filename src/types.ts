@@ -35,7 +35,7 @@ export interface Avatar {
   sunglasses: AvatarSunglassesId
   necklace: AvatarNecklaceId
   shoes: AvatarShoesId
-  pet: 'none' | 'dog' | 'cat' | 'kangaroo' | 'parrot'
+  pet: 'none' | 'dog' | 'cat' | 'kangaroo' | 'parrot' | 'axolotl'
   vehicle: 'none' | 'bike' | 'surfboard'
 }
 

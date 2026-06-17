@@ -43,7 +43,7 @@ const MAP_SINK_BY_CATEGORY: Partial<Record<BuildingCategory, number>> = {
   boathouses: 3,
   houses: 3,
   businesses: 5,
-  zoos: 5,
+  zoos: 3,
 }
 
 export function getPlacedGroundY(
@@ -86,7 +86,7 @@ export const PLACED_SCALE_BY_CATEGORY: Record<BuildingCategory, number> = {
   decor: 1.3,
   docks: 1.4,
   boathouses: 0.725,
-  zoos: 1.45,
+  zoos: 0.725,
   houses: 0.75,
   businesses: 1.55,
 }

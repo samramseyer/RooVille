@@ -64,8 +64,8 @@ type InteriorUndoAction =
   | { type: 'delete-furniture'; item: InteriorItem; roomId: string }
   | { type: 'delete-opening'; opening: InteriorOpening; roomId: string }
 
-function clampAvatarPosition(x: number, y: number, theme: InteriorTheme = 'home') {
-  const floorTop = theme === 'zoo' ? AVATAR_RADIUS : FLOOR_TOP + AVATAR_RADIUS
+function clampAvatarPosition(x: number, y: number, _theme: InteriorTheme = 'home') {
+  const floorTop = FLOOR_TOP + AVATAR_RADIUS
   return {
     x: Math.max(AVATAR_RADIUS, Math.min(ROOM_WIDTH - AVATAR_RADIUS, x)),
     y: Math.max(floorTop, Math.min(ROOM_HEIGHT - AVATAR_RADIUS, y)),
@@ -134,11 +134,9 @@ export function BuildingInterior({
     ? resolveRoomOpenings(liveItem, layout, currentRoomId, theme, interiorStyle)
     : resolveStoredOpenings(theme, interiorStyle, liveItem.interiorOpenings)
   const interiorOpenings: InteriorOpening[] =
-    theme === 'zoo'
-      ? interiorOpeningsRaw
-      : !layout || currentRoomId === layout.defaultRoomId
-        ? ensureLivingRoomExitDoor(interiorOpeningsRaw, theme, interiorStyle)
-        : interiorOpeningsRaw
+    !layout || currentRoomId === layout.defaultRoomId
+      ? ensureLivingRoomExitDoor(interiorOpeningsRaw, theme, interiorStyle)
+      : interiorOpeningsRaw
   const windowView = roomDef?.forceOceanView
     ? 'ocean'
     : resolveWindowView(liveItem, building, gameState.items, interiorStyle.windowViewId)
@@ -771,11 +769,9 @@ export function BuildingInterior({
   const isPlacing = !!selectedFurniture || !!placementMode
   const townExitDoor = getTownExitDoor(interiorOpenings)
   const nearTownExitDoor =
-    theme === 'zoo'
-      ? avatarPosition.y > 350 && Math.abs(avatarPosition.x - ROOM_WIDTH / 2) < 110
-      : townExitDoor !== null &&
-        isLivingAreaRoom(layout ?? null, currentRoomId) &&
-        isAvatarNearExitDoor(avatarPosition, townExitDoor)
+    townExitDoor !== null &&
+    isLivingAreaRoom(layout ?? null, currentRoomId) &&
+    isAvatarNearExitDoor(avatarPosition, townExitDoor)
 
   return (
     <div className="building-interior">
@@ -839,7 +835,7 @@ export function BuildingInterior({
         {selectedFurniture && !selectedInteriorId && !selectedOpeningId && (
           <div className="placement-hint interior-placement-hint">
             Placing: {selectedFurniture.name} —{' '}
-            {theme === 'zoo' ? 'tap the map to place animals & exhibits' : 'tap anywhere in the room (homes, shops, boats & boathouses)'}
+            {theme === 'zoo' ? 'tap the room floor to place animals' : 'tap anywhere in the room (homes, shops, boats & boathouses)'}
             <button type="button" className="btn btn-ghost btn-small" onClick={() => setSelectedFurniture(null)}>
               Cancel
             </button>
@@ -969,7 +965,7 @@ export function BuildingInterior({
 
           <div
             ref={roomRef}
-            className={`interior-room interior-room--${theme}${roomDef?.variant === 'zoo-topdown' ? ' interior-room--zoo-topdown' : roomDef ? ` interior-room--${roomDef.variant === 'lantern-deck' ? 'lantern-deck' : roomDef.floor}` : ''}${isPlacing && !selectedInteriorId && !selectedOpeningId ? ' placing-mode' : ''}${placementMode === 'window' ? ' placing-mode--window' : ''}${placementMode === 'door' ? ' placing-mode--door' : ''}`}
+            className={`interior-room interior-room--${theme}${roomDef?.variant === 'jungle' || roomDef?.variant === 'jungle-aquarium' ? ` interior-room--${roomDef.variant}` : roomDef?.variant === 'zoo-topdown' ? ' interior-room--zoo-topdown' : roomDef ? ` interior-room--${roomDef.variant === 'lantern-deck' ? 'lantern-deck' : roomDef.floor}` : ''}${isPlacing && !selectedInteriorId && !selectedOpeningId ? ' placing-mode' : ''}${placementMode === 'window' ? ' placing-mode--window' : ''}${placementMode === 'door' ? ' placing-mode--door' : ''}`}
             onPointerDown={handleRoomPointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={stopDrag}
@@ -991,8 +987,7 @@ export function BuildingInterior({
               <InteriorRoomNav links={roomDef.nav} onNavigate={switchRoom} />
             )}
 
-            {theme !== 'zoo' &&
-              interiorOpenings.map((opening) => (
+            {interiorOpenings.map((opening) => (
                 <InteriorOpeningView
                   key={opening.id}
                   opening={opening}
@@ -1013,13 +1008,13 @@ export function BuildingInterior({
                 />
               ))}
 
-            {nearTownExitDoor && (theme === 'zoo' || townExitDoor) && (
+            {nearTownExitDoor && townExitDoor && (
               <button
                 type="button"
                 className="exit-building-btn"
                 style={{
-                  left: `${((theme === 'zoo' ? ROOM_WIDTH / 2 : (townExitDoor!.x + townExitDoor!.width / 2)) / ROOM_WIDTH) * 100}%`,
-                  top: `${((theme === 'zoo' ? 430 : townExitDoor!.y) / ROOM_HEIGHT) * 100}%`,
+                  left: `${((townExitDoor.x + townExitDoor.width / 2) / ROOM_WIDTH) * 100}%`,
+                  top: `${(townExitDoor.y / ROOM_HEIGHT) * 100}%`,
                 }}
                 onClick={onExit}
               >

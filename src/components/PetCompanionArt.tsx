@@ -16,6 +16,10 @@ const PARROT_W = 195
 const PARROT_H = 237
 const PARROT_SCALE = 28 / PARROT_H
 
+const AXOLOTL_W = 170
+const AXOLOTL_H = 170
+const AXOLOTL_SCALE = 28 / AXOLOTL_H
+
 /** Kawaii puppy — reference clipart facing the avatar. */
 function DogCompanion() {
   const w = PUPPY_W * PUPPY_SCALE
@@ -80,6 +84,22 @@ function ParrotCompanion() {
   )
 }
 
+/** Kawaii axolotl sticker — faces the avatar. */
+function AxolotlCompanion() {
+  const w = AXOLOTL_W * AXOLOTL_SCALE
+  const h = AXOLOTL_H * AXOLOTL_SCALE
+  return (
+    <image
+      href="/axolotl-companion.png"
+      x={-6}
+      y={-h}
+      width={w}
+      height={h}
+      preserveAspectRatio="xMidYMax meet"
+    />
+  )
+}
+
 export function PetCompanionSprite({ pet, footY }: { pet: Avatar['pet']; footY: number }) {
   if (pet === 'none') return null
 
@@ -91,6 +111,7 @@ export function PetCompanionSprite({ pet, footY }: { pet: Avatar['pet']; footY: 
       {pet === 'cat' && <CatCompanion />}
       {pet === 'kangaroo' && <KangarooCompanion />}
       {pet === 'parrot' && <ParrotCompanion />}
+      {pet === 'axolotl' && <AxolotlCompanion />}
     </g>
   )
 }

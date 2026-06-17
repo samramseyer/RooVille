@@ -3,7 +3,7 @@ import { ROOM_HEIGHT, ROOM_WIDTH } from './interiorOpenings'
 
 export type FurniturePlacement = 'floor' | 'wall' | 'both'
 
-export type FurnitureCategory = 'furniture' | 'kitchen-cabinets' | 'appliances' | 'bathroom-accessories' | 'patio' | 'countertops' | 'exhibits'
+export type FurnitureCategory = 'furniture' | 'kitchen-cabinets' | 'appliances' | 'bathroom-accessories' | 'patio' | 'countertops' | 'exhibits' | 'zoo-animals'
 
 export interface FurnitureCategoryDef {
   id: FurnitureCategory
@@ -21,7 +21,7 @@ export const FURNITURE_CATEGORIES: FurnitureCategoryDef[] = [
 ]
 
 export const ZOO_EXHIBIT_CATEGORIES: FurnitureCategoryDef[] = [
-  { id: 'exhibits', name: 'Animals & Exhibits', emoji: '🦓' },
+  { id: 'zoo-animals', name: 'Animals', emoji: '🦁' },
 ]
 
 const SIZE_LIMITS: Record<string, { minW: number; minH: number; maxW: number; maxH: number }> = {
@@ -214,6 +214,33 @@ export const INTERIOR_FURNITURE: FurnitureDef[] = [
   { id: 'exhibit-restroom', name: 'Restrooms', emoji: '🚻', width: 50, height: 40, category: 'exhibits' },
   { id: 'exhibit-gift-shop', name: 'Gift Shop', emoji: '🐾', width: 55, height: 45, category: 'exhibits' },
   { id: 'exhibit-tree', name: 'Tree', emoji: '🌳', width: 45, height: 45, category: 'exhibits' },
+
+  { id: 'animal-lion', name: 'Lion', emoji: '🦁', width: 52, height: 52, category: 'zoo-animals' },
+  { id: 'animal-monkey', name: 'Monkey', emoji: '🐒', width: 52, height: 52, category: 'zoo-animals' },
+  { id: 'animal-axolotl', name: 'Axolotl', emoji: '🦎', width: 52, height: 52, category: 'zoo-animals' },
+  { id: 'animal-elephant', name: 'Elephant', emoji: '🐘', width: 56, height: 52, category: 'zoo-animals' },
+  { id: 'animal-giraffe', name: 'Giraffe', emoji: '🦒', width: 48, height: 58, category: 'zoo-animals' },
+  { id: 'animal-penguin', name: 'Penguin', emoji: '🐧', width: 48, height: 52, category: 'zoo-animals' },
+  { id: 'animal-tiger', name: 'Tiger', emoji: '🐯', width: 52, height: 52, category: 'zoo-animals' },
+  { id: 'animal-zebra', name: 'Zebra', emoji: '🦓', width: 54, height: 52, category: 'zoo-animals' },
+  { id: 'animal-flamingo', name: 'Flamingo', emoji: '🦩', width: 48, height: 58, category: 'zoo-animals' },
+  { id: 'animal-snake', name: 'Snake', emoji: '🐍', width: 58, height: 42, category: 'zoo-animals' },
+  { id: 'animal-turtle', name: 'Turtle', emoji: '🐢', width: 52, height: 48, category: 'zoo-animals' },
+  { id: 'animal-bear', name: 'Bear', emoji: '🐻', width: 52, height: 52, category: 'zoo-animals' },
+  { id: 'animal-meerkat', name: 'Meerkat', emoji: '🐾', width: 44, height: 52, category: 'zoo-animals' },
+  { id: 'animal-panda', name: 'Panda', emoji: '🐼', width: 52, height: 52, category: 'zoo-animals' },
+  { id: 'animal-hippo', name: 'Hippo', emoji: '🦛', width: 56, height: 52, category: 'zoo-animals' },
+  { id: 'animal-gorilla', name: 'Gorilla', emoji: '🦍', width: 52, height: 54, category: 'zoo-animals' },
+  { id: 'animal-parrot', name: 'Parrot', emoji: '🦜', width: 50, height: 48, category: 'zoo-animals' },
+  { id: 'animal-kangaroo', name: 'Kangaroo', emoji: '🦘', width: 52, height: 52, category: 'zoo-animals' },
+  { id: 'animal-rhino', name: 'Rhino', emoji: '🦏', width: 56, height: 52, category: 'zoo-animals' },
+  { id: 'animal-crocodile', name: 'Crocodile', emoji: '🐊', width: 62, height: 42, category: 'zoo-animals' },
+  { id: 'animal-owl', name: 'Owl', emoji: '🦉', width: 48, height: 52, category: 'zoo-animals' },
+  { id: 'animal-peacock', name: 'Peacock', emoji: '🦚', width: 54, height: 52, category: 'zoo-animals' },
+  { id: 'animal-sloth', name: 'Sloth', emoji: '🦥', width: 50, height: 52, category: 'zoo-animals' },
+  { id: 'animal-seal', name: 'Seal', emoji: '🦭', width: 54, height: 48, category: 'zoo-animals' },
+  { id: 'animal-dolphin', name: 'Dolphin', emoji: '🐬', width: 58, height: 44, category: 'zoo-animals' },
+  { id: 'animal-red-panda', name: 'Red Panda', emoji: '🐾', width: 50, height: 50, category: 'zoo-animals' },
 ]
 
 export function getFurnitureByCategory(category: FurnitureCategory): FurnitureDef[] {

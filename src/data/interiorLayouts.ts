@@ -2,7 +2,7 @@ import type { InteriorOpening, InteriorStyle } from '../types'
 
 export type NavDirection = 'left' | 'right' | 'up' | 'down'
 export type InteriorRoomFloor = 'downstairs' | 'upstairs' | 'outdoor'
-export type InteriorRoomVariant = 'standard' | 'balcony' | 'lantern-deck' | 'zoo-topdown'
+export type InteriorRoomVariant = 'standard' | 'balcony' | 'lantern-deck' | 'zoo-topdown' | 'jungle' | 'jungle-aquarium'
 
 export interface RoomNavLink {
   direction: NavDirection
@@ -957,27 +957,181 @@ const BEACH_HOUSE_LAYOUTS: BuildingInteriorLayout[] = [
   }),
 ]
 
+const ZOO_ENTRANCE = 'zoo-entrance'
+
+function zooBackNav(spawnX = 540): RoomNavLink {
+  return {
+    direction: 'left',
+    targetRoomId: ZOO_ENTRANCE,
+    label: 'Safari Gate',
+    spawnPosition: { x: spawnX, y: 340 },
+  }
+}
+
+function createZooExhibitRoom(
+  id: string,
+  name: string,
+  emoji: string,
+  opts: {
+    variant?: InteriorRoomVariant
+    wallColor?: string
+    floorColor?: string
+    floorLabel?: string
+    nav?: RoomNavLink[]
+  } = {},
+): InteriorRoomDef {
+  const variant = opts.variant ?? 'jungle'
+  return {
+    id,
+    name,
+    emoji,
+    floor: 'outdoor',
+    floorLabel: opts.floorLabel ?? 'Exhibit hall',
+    variant,
+    defaultAvatar: { x: 320, y: 340 },
+    defaultStyle: {
+      wallColor: opts.wallColor ?? (variant === 'jungle-aquarium' ? '#0277BD' : '#2E7D32'),
+      floorColor: opts.floorColor ?? (variant === 'jungle-aquarium' ? '#0288D1' : '#33691E'),
+      wallpaperId: 'none',
+      floorTypeId: 'paint',
+      trimColor: variant === 'jungle-aquarium' ? '#004D73' : '#1B5E20',
+    },
+    nav: opts.nav ?? [zooBackNav()],
+  }
+}
+
 export const PETTING_ZOO_LAYOUT: BuildingInteriorLayout = {
   buildingId: 'petting-zoo',
-  defaultRoomId: 'petting-zoo-ground',
+  defaultRoomId: ZOO_ENTRANCE,
   rooms: [
     {
-      id: 'petting-zoo-ground',
-      name: 'Petting Zoo',
-      emoji: '🦓',
+      id: ZOO_ENTRANCE,
+      name: 'Safari Gate',
+      emoji: '🚪',
       floor: 'outdoor',
-      floorLabel: 'Petting zoo map',
-      variant: 'zoo-topdown',
-      defaultAvatar: { x: 320, y: 400 },
+      floorLabel: 'Main entrance',
+      variant: 'jungle',
+      defaultAvatar: { x: 320, y: 340 },
       defaultStyle: {
-        wallColor: '#7CB342',
-        floorColor: '#7CB342',
+        wallColor: '#388E3C',
+        floorColor: '#2E7D32',
         wallpaperId: 'none',
         floorTypeId: 'paint',
-        trimColor: '#8D6E63',
+        trimColor: '#1B5E20',
       },
-      nav: [],
+      nav: [
+        {
+          direction: 'right',
+          targetRoomId: 'zoo-lion',
+          label: 'Lion Room',
+          spawnPosition: { x: 100, y: 340 },
+        },
+        {
+          direction: 'left',
+          targetRoomId: 'zoo-monkey',
+          label: 'Monkey Room',
+          spawnPosition: { x: 540, y: 340 },
+        },
+        {
+          direction: 'up',
+          targetRoomId: 'zoo-elephant',
+          label: 'Elephant Room',
+          spawnPosition: { x: 320, y: 360 },
+        },
+        {
+          direction: 'down',
+          targetRoomId: 'zoo-axolotl',
+          label: 'Axolotl Aquarium',
+          spawnPosition: { x: 320, y: 340 },
+        },
+      ],
     },
+    createZooExhibitRoom('zoo-lion', 'Lion Room', '🦁', {
+      wallColor: '#F9A825',
+      floorColor: '#558B2F',
+      floorLabel: 'Savanna den',
+      nav: [zooBackNav(), { direction: 'right', targetRoomId: 'zoo-tiger', label: 'Tiger Den', spawnPosition: { x: 100, y: 340 } }],
+    }),
+    createZooExhibitRoom('zoo-monkey', 'Monkey Room', '🐒', {
+      wallColor: '#33691E',
+      floorColor: '#1B5E20',
+      floorLabel: 'Canopy climb',
+      nav: [zooBackNav(100), { direction: 'left', targetRoomId: 'zoo-meerkat', label: 'Meerkat Mound', spawnPosition: { x: 540, y: 340 } }],
+    }),
+    createZooExhibitRoom('zoo-axolotl', 'Axolotl Aquarium', '🦎', {
+      variant: 'jungle-aquarium',
+      floorLabel: 'Crystal waters',
+      nav: [zooBackNav(), { direction: 'down', targetRoomId: 'zoo-penguin', label: 'Penguin Pool', spawnPosition: { x: 320, y: 340 } }],
+    }),
+    createZooExhibitRoom('zoo-elephant', 'Elephant Room', '🐘', {
+      wallColor: '#689F38',
+      floorColor: '#33691E',
+      floorLabel: 'Mud wallow',
+      nav: [zooBackNav(), { direction: 'up', targetRoomId: 'zoo-giraffe', label: 'Giraffe Savannah', spawnPosition: { x: 320, y: 360 } }],
+    }),
+    createZooExhibitRoom('zoo-giraffe', 'Giraffe Savannah', '🦒', {
+      wallColor: '#FBC02D',
+      floorColor: '#689F38',
+      floorLabel: 'Acacia plains',
+    }),
+    createZooExhibitRoom('zoo-penguin', 'Penguin Pool', '🐧', {
+      variant: 'jungle-aquarium',
+      wallColor: '#0277BD',
+      floorColor: '#01579B',
+      floorLabel: 'Ice-cold pool',
+    }),
+    createZooExhibitRoom('zoo-tiger', 'Tiger Den', '🐯', {
+      wallColor: '#FF9800',
+      floorColor: '#33691E',
+      floorLabel: 'Bamboo thicket',
+    }),
+    createZooExhibitRoom('zoo-zebra', 'Zebra Plains', '🦓', {
+      wallColor: '#8BC34A',
+      floorColor: '#558B2F',
+      floorLabel: 'Open grassland',
+    }),
+    createZooExhibitRoom('zoo-flamingo', 'Flamingo Lagoon', '🦩', {
+      variant: 'jungle-aquarium',
+      wallColor: '#F48FB1',
+      floorColor: '#0288D1',
+      floorLabel: 'Pink lagoon',
+    }),
+    createZooExhibitRoom('zoo-reptile', 'Reptile House', '🐍', {
+      wallColor: '#33691E',
+      floorColor: '#1B5E20',
+      floorLabel: 'Warm terrarium',
+    }),
+    createZooExhibitRoom('zoo-bear', 'Bear Den', '🐻', {
+      wallColor: '#5D4037',
+      floorColor: '#33691E',
+      floorLabel: 'Forest cave',
+    }),
+    createZooExhibitRoom('zoo-meerkat', 'Meerkat Mound', '🐾', {
+      wallColor: '#A1887F',
+      floorColor: '#689F38',
+      floorLabel: 'Sunny burrow',
+    }),
+    createZooExhibitRoom('zoo-panda', 'Panda Grove', '🐼', {
+      wallColor: '#66BB6A',
+      floorColor: '#2E7D32',
+      floorLabel: 'Bamboo grove',
+    }),
+    createZooExhibitRoom('zoo-hippo', 'Hippo Pool', '🦛', {
+      variant: 'jungle-aquarium',
+      wallColor: '#546E7A',
+      floorColor: '#0277BD',
+      floorLabel: 'Lazy river',
+    }),
+    createZooExhibitRoom('zoo-gorilla', 'Gorilla Rainforest', '🦍', {
+      wallColor: '#1B5E20',
+      floorColor: '#33691E',
+      floorLabel: 'Misty jungle',
+    }),
+    createZooExhibitRoom('zoo-aviary', 'Tropical Aviary', '🦜', {
+      wallColor: '#00897B',
+      floorColor: '#2E7D32',
+      floorLabel: 'Bird canopy',
+    }),
   ],
 }
 
@@ -1014,6 +1168,20 @@ export function getRoomDefaultOpenings(roomDef: InteriorRoomDef): InteriorOpenin
 
   if (roomDef.variant === 'zoo-topdown') {
     return []
+  }
+
+  if (roomDef.variant === 'jungle' || roomDef.variant === 'jungle-aquarium') {
+    if (roomDef.id === ZOO_ENTRANCE) {
+      return [
+        { id: 'win-left', kind: 'window', x: 40, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+        { id: 'win-right', kind: 'window', x: 520, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+        { id: 'door-main', kind: 'door', x: 280, y: 430, width: 80, height: 50, doorStyleId: 'coastal' },
+      ]
+    }
+    return [
+      { id: 'win-left', kind: 'window', x: 40, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+      { id: 'win-right', kind: 'window', x: 520, y: 40, width: 80, height: 60, windowStyleId: 'classic' },
+    ]
   }
 
   const beachPrefix = getBeachHouseRoomPrefix(roomDef.id)

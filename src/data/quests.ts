@@ -11,8 +11,8 @@ export const QUESTS: QuestDef[] = [
   {
     id: 'zoo-keeper',
     title: 'Zoo Keeper',
-    description: 'Place a Petting Zoo and add 3 animal exhibits inside',
-    hint: 'Enter the zoo and place kangaroos, goats, horses, and more!',
+    description: 'Place a Petting Zoo and add 3 animals inside',
+    hint: 'Enter the zoo, pick a room, and place lions, monkeys, axolotls, and more!',
   },
   {
     id: 'harbour-master',
@@ -53,32 +53,24 @@ function countByCategory(items: PlacedItem[], category: string): number {
 function countZooKeeperProgress(items: PlacedItem[]): number {
   let best = 0
   for (const item of items) {
-    const building = getBuilding(item.buildingId)
-    if (!building) continue
+    if (item.buildingId !== 'petting-zoo') continue
 
-    if (item.buildingId === 'petting-zoo') {
-      const room = item.interiorRooms?.['petting-zoo-ground']
-      const interior = room?.interior ?? item.interior ?? []
-      const animalExhibits = new Set(
-        interior
-          .map((entry) => entry.furnitureId)
-          .filter(
-            (id) =>
-              id.startsWith('exhibit-') &&
-              id !== 'exhibit-empty-pen' &&
-              id !== 'exhibit-tree' &&
-              !id.includes('food') &&
-              !id.includes('restroom') &&
-              !id.includes('gift'),
-          ),
-      )
-      best = Math.max(best, animalExhibits.size)
-      continue
+    const animalIds = new Set<string>()
+    const layout = item.interiorRooms ?? {}
+    for (const room of Object.values(layout)) {
+      if (!room) continue
+      for (const entry of room.interior ?? []) {
+        if (entry.furnitureId.startsWith('animal-')) {
+          animalIds.add(entry.furnitureId)
+        }
+      }
     }
-
-    if (building.category === 'zoos') {
-      best = Math.max(best, 1)
+    for (const entry of item.interior ?? []) {
+      if (entry.furnitureId.startsWith('animal-')) {
+        animalIds.add(entry.furnitureId)
+      }
     }
+    best = Math.max(best, animalIds.size)
   }
   return best
 }
@@ -156,7 +148,7 @@ export function getQuestProgressLines(questId: string, items: PlacedItem[]): str
     }
     case 'zoo-keeper': {
       const n = countUniqueZooAnimals(items)
-      return [`Animal exhibits ${n}/3`]
+      return [`Animals placed ${n}/3`]
     }
     default:
       return []

@@ -97,6 +97,7 @@ export const PETS: { id: Avatar['pet']; label: string }[] = [
   { id: 'cat', label: 'Kitten' },
   { id: 'kangaroo', label: 'Joey' },
   { id: 'parrot', label: 'Parrot' },
+  { id: 'axolotl', label: 'Axolotl' },
 ]
 
 export const VEHICLES: { id: Avatar['vehicle']; label: string }[] = [

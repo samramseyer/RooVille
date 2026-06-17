@@ -2976,6 +2976,14 @@ html.layout-mobile .mobile-header-menu {
   box-shadow: inset 0 0 0 3px rgba(183, 74, 66, 0.35);
 }
 
+.interior-room--jungle {
+  box-shadow: inset 0 0 0 3px rgba(46, 125, 50, 0.35);
+}
+
+.interior-room--jungle-aquarium {
+  box-shadow: inset 0 0 0 3px rgba(2, 119, 189, 0.35);
+}
+
 .interior-room--zoo-topdown {
   box-shadow: inset 0 0 0 3px rgba(104, 159, 56, 0.35);
   background: #7cb342;
