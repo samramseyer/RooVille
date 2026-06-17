@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { registerAppUpdate } from './lib/registerAppUpdate'
+import { registerAppUpdate, BUILD_VERSION_KEY } from './lib/registerAppUpdate'
 import './index.css'
 import App from './App.tsx'
 
@@ -26,6 +26,7 @@ const rootEl = document.getElementById('root')
 
 async function clearSiteCaches() {
   localStorage.removeItem('rooville-save')
+  localStorage.removeItem(BUILD_VERSION_KEY)
   if ('serviceWorker' in navigator) {
     const registrations = await navigator.serviceWorker.getRegistrations()
     await Promise.all(registrations.map((r) => r.unregister()))

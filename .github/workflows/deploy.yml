@@ -38,6 +38,7 @@ jobs:
           test -f dist/.nojekyll
           test -f dist/version.json
           test -f dist/update-check.js
+          grep -q 'data-build-id' dist/index.html
           grep -q 'update-check.js' dist/index.html
           grep -q '/RooVille/' dist/index.html
 

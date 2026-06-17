@@ -5,10 +5,46 @@ const BUILD_ID = import.meta.env.VITE_BUILD_ID as string | undefined
 const UPDATE_CHECK_MS = 5 * 60 * 1000
 const INSTALLED_UPDATE_CHECK_MS = 30 * 1000
 
+export interface RemoteBuildInfo {
+  version?: string
+  entry?: string
+}
+
 function versionJsonUrl(): URL {
   const url = new URL('version.json', location.href)
   url.search = `_=${Date.now()}`
   return url
+}
+
+function entryName(path: string | undefined | null): string {
+  if (!path) return ''
+  return path.split('/').pop()?.split('?')[0] ?? ''
+}
+
+function currentBundleEntry(): string {
+  return entryName(import.meta.url)
+}
+
+function htmlBuildId(): string {
+  const fromWindow = (window as Window & { __ROOVILLE_BUILD__?: string }).__ROOVILLE_BUILD__
+  if (fromWindow) return fromWindow
+  const bootstrap = document.querySelector('script[data-build-id]')
+  return bootstrap?.getAttribute('data-build-id') ?? ''
+}
+
+export function isRemoteBuildStale(data: RemoteBuildInfo, stored: string | null): boolean {
+  if (!data.version) return false
+
+  const serverEntry = entryName(data.entry)
+  const bundleEntry = currentBundleEntry()
+  const pageBuildId = htmlBuildId()
+
+  if (pageBuildId && data.version !== pageBuildId) return true
+  if (BUILD_ID && BUILD_ID !== data.version) return true
+  if (serverEntry && bundleEntry && serverEntry !== bundleEntry) return true
+  if (stored && stored !== data.version) return true
+
+  return false
 }
 
 async function clearAppCaches(): Promise<void> {
@@ -47,14 +83,12 @@ export async function checkRemoteBuildVersion(refreshing: { value: boolean }): P
     const contentType = res.headers.get('content-type') ?? ''
     if (!contentType.includes('json')) return
 
-    const data = (await res.json()) as { version?: string }
+    const data = (await res.json()) as RemoteBuildInfo
     if (!data.version) return
 
     const stored = localStorage.getItem(BUILD_VERSION_KEY)
-    const bundleStale = Boolean(BUILD_ID && BUILD_ID !== data.version)
-    const installStale = Boolean(stored && stored !== data.version)
 
-    if (installStale || bundleStale) {
+    if (isRemoteBuildStale(data, stored)) {
       await hardReload(data.version, refreshing)
       return
     }
@@ -74,7 +108,7 @@ function onDocumentReady(run: () => void): void {
 
 /** Keep installed PWAs on the latest deploy without user action. */
 export function registerAppUpdate(): void {
-  if (import.meta.env.DEV || isNativeCapacitorApp()) return
+  if (isNativeCapacitorApp()) return
 
   const refreshing = { value: false }
   const installed = isInstalledApp()
