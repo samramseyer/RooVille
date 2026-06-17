@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="RooVille">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#87CEEB"/>
+      <stop offset="100%" stop-color="#48CAE4"/>
+    </linearGradient>
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F4D03F"/>
+      <stop offset="100%" stop-color="#E8C547"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#sky)"/>
+  <rect y="300" width="512" height="212" fill="url(#sand)"/>
+  <rect x="176" y="220" width="160" height="120" rx="12" fill="#FFF8F0" stroke="#C4956A" stroke-width="8"/>
+  <polygon points="256,140 120,230 392,230" fill="#E74C3C"/>
+  <rect x="228" y="280" width="56" height="60" rx="6" fill="#48B5B0"/>
+  <circle cx="130" cy="360" r="28" fill="#7EC850"/>
+  <rect x="118" y="340" width="24" height="50" fill="#8B6914"/>
+</svg>
