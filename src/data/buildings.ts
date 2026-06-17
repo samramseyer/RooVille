@@ -45,7 +45,6 @@ export const BUILDINGS: BuildingDef[] = [
   { id: 'kayak', name: 'Kayak', category: 'boats', emoji: '🛶', width: 55, height: 30 },
   { id: 'yacht', name: 'Yacht', category: 'boats', emoji: '🛥️', width: 90, height: 50 },
 
-  { id: 'small-boathouse', name: 'Small Boathouse', category: 'boathouses', emoji: '🛖', width: 75, height: 70 },
   { id: 'big-boathouse', name: 'Big Boathouse', category: 'boathouses', emoji: '🏚️', width: 100, height: 85 },
 
   { id: 'petting-zoo', name: 'Petting Zoo', category: 'zoos', emoji: '🦁', width: 185, height: 125 },

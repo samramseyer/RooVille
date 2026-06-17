@@ -400,16 +400,3 @@ export function CafeToca() {
     </TocaWrap>
   )
 }
-
-/** Aussie boat shed — corrugated iron */
-export function SmallBoathouseToca() {
-  return (
-    <TocaWrap>
-      <TocaShadow cx={37} cy={70} rx={28} />
-      <TocaBody x={10} y={32} width={55} height={34} fill={TOCA.corrugated} rx={10} />
-      <CorrugatedRoof points="6,34 37,12 68,34" fill={TOCA.tinRed} />
-      <rect x={26} y={44} width={24} height={22} rx={6} fill={TOCA.ochre} stroke={TOCA.stroke} strokeWidth={2} />
-      <TocaRoundWindow cx={20} cy={46} r={6} />
-    </TocaWrap>
-  )
-}

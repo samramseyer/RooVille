@@ -16,7 +16,6 @@ const TOCA_VIEWBOXES: Record<string, string> = {
   'orange-beach-house': '0 0 90 112',
   'blue-beach-house': '0 0 90 114',
   'ice-cream': '0 0 70 80',
-  'small-boathouse': '0 0 75 75',
   'big-boathouse': '0 0 100 88',
   pier: '0 0 120 55',
   'raised-pier': '0 0 120 55',

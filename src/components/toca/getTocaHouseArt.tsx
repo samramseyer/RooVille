@@ -9,7 +9,6 @@ import {
   CafeToca,
   FishChipsToca,
   IceCreamToca,
-  SmallBoathouseToca,
   SurfShopToca,
 } from './TocaHouseArt'
 
@@ -41,8 +40,6 @@ export function getTocaHouseArt(id: string): ReactNode | null {
       return <IceCreamToca />
     case 'cafe':
       return <CafeToca />
-    case 'small-boathouse':
-      return <SmallBoathouseToca />
     default:
       return null
   }
