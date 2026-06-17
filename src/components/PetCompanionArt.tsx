@@ -16,8 +16,8 @@ const PARROT_W = 195
 const PARROT_H = 237
 const PARROT_SCALE = 28 / PARROT_H
 
-const AXOLOTL_W = 170
-const AXOLOTL_H = 170
+const AXOLOTL_W = 156
+const AXOLOTL_H = 146
 const AXOLOTL_SCALE = 28 / AXOLOTL_H
 
 /** Kawaii puppy — reference clipart facing the avatar. */
