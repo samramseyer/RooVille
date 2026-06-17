@@ -1,5 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
+const liveUrl = process.env.ROOVILLE_LIVE_URL
+
 const config: CapacitorConfig = {
   appId: 'com.rooville.game',
   appName: 'RooVille',
@@ -7,9 +9,9 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
   },
-  server: {
-    androidScheme: 'https',
-  },
+  server: liveUrl
+    ? { url: liveUrl, cleartext: false }
+    : { androidScheme: 'https' },
   plugins: {
     SplashScreen: {
       launchShowDuration: 1200,

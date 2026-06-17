@@ -77,7 +77,7 @@ export function GetAppModal({ onClose }: GetAppModalProps) {
                 <p className="get-app-success">✓ You&apos;re using the RooVille app.</p>
               ) : hasNativeInstall ? (
                 <>
-                  <p>Tap below to download RooVille from this website. It works offline after the first visit.</p>
+                  <p>Tap below to install RooVille from this website. It stays in sync with the web version automatically.</p>
                   <button type="button" className="btn btn-primary get-app-install-btn" onClick={() => void install()}>
                     Install RooVille
                   </button>

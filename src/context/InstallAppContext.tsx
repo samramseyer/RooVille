@@ -7,6 +7,9 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { isNativeCapacitorApp, isStandaloneApp } from '../lib/appInstall'
+
+export { isStandaloneApp } from '../lib/appInstall'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -14,14 +17,6 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const DISMISS_KEY = 'rooville-install-dismissed'
-
-export function isStandaloneApp(): boolean {
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    ('standalone' in navigator &&
-      (navigator as Navigator & { standalone?: boolean }).standalone === true)
-  )
-}
 
 export function isIosDevice(): boolean {
   if (/iphone|ipad|ipod/i.test(navigator.userAgent)) return true
@@ -36,12 +31,6 @@ export function isAndroidDevice(): boolean {
 export function isMobileDevice(): boolean {
   if (isIosDevice() || isAndroidDevice()) return true
   return window.matchMedia('(max-width: 900px)').matches
-}
-
-function isNativeCapacitorApp(): boolean {
-  if (typeof window === 'undefined') return false
-  const cap = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
-  return cap?.isNativePlatform?.() ?? false
 }
 
 export function getPlayUrl(): string {

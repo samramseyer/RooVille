@@ -36,6 +36,7 @@ jobs:
             exit 1
           fi
           test -f dist/.nojekyll
+          test -f dist/version.json
           grep -q '/RooVille/' dist/index.html
 
       - name: Deploy to gh-pages branch

@@ -4,13 +4,17 @@ import './index.css'
 import App from './App.tsx'
 
 import { getMobileLayout, isNativeApp } from './hooks/useIsMobile'
+import { isStandaloneApp } from './lib/appInstall'
 import { registerAppUpdate } from './lib/registerAppUpdate'
 
 if (typeof window !== 'undefined') {
   if (isNativeApp()) {
     document.documentElement.classList.add('capacitor-native', 'layout-mobile')
-  } else if (getMobileLayout()) {
+  } else if (getMobileLayout() || isStandaloneApp()) {
     document.documentElement.classList.add('layout-mobile')
+  }
+  if (isStandaloneApp()) {
+    document.documentElement.classList.add('installed-app')
   }
 }
 

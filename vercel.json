@@ -6,7 +6,7 @@
       "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
     },
     {
-      "source": "/(index.html|app.html)",
+      "source": "/(index.html|app.html|version.json)",
       "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
     },
     {

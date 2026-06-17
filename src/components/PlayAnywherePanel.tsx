@@ -21,7 +21,7 @@ export function PlayAnywherePanel({ onGetApp }: PlayAnywherePanelProps) {
           <div className="play-anywhere-install">
             {showMobileBanner && hasNativeInstall ? (
               <>
-                <p>Install from this website — works offline after your first visit.</p>
+                <p>Install from this website — always matches the latest web version.</p>
                 <div className="play-anywhere-actions">
                   <button type="button" className="btn btn-primary btn-small" onClick={() => void install()}>
                     Install app
