@@ -1,8 +1,12 @@
-const CACHE_NAME = 'rooville-shell-v7'
+const CACHE_NAME = 'rooville-shell-v8'
 
 /** Network-first only — avoids stale JS/CSS trapping users on old mobile UI. */
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting())
+})
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
