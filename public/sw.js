@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rooville-shell-v4'
+const CACHE_NAME = 'rooville-shell-v5'
 
 const SHELL = [
   './manifest.webmanifest',
