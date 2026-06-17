@@ -1,6 +1,7 @@
 import { isInstalledApp, isNativeCapacitorApp } from './appInstall'
 
 export const BUILD_VERSION_KEY = 'rooville-build-version'
+const RELOAD_KEY = 'rooville-update-reloads'
 const BUILD_ID = import.meta.env.VITE_BUILD_ID as string | undefined
 const UPDATE_CHECK_MS = 5 * 60 * 1000
 const INSTALLED_UPDATE_CHECK_MS = 30 * 1000
@@ -58,14 +59,23 @@ async function clearAppCaches(): Promise<void> {
   }
 }
 
-async function hardReload(version: string, refreshing: { value: boolean }): Promise<void> {
-  if (refreshing.value) return
+async function hardReload(version: string, refreshing: { value: boolean }): Promise<boolean> {
+  if (refreshing.value) return true
+
+  const reloads = Number(sessionStorage.getItem(RELOAD_KEY) || '0')
+  if (reloads >= 2) {
+    sessionStorage.removeItem(RELOAD_KEY)
+    return false
+  }
+
+  sessionStorage.setItem(RELOAD_KEY, String(reloads + 1))
   refreshing.value = true
   await clearAppCaches()
   localStorage.setItem(BUILD_VERSION_KEY, version)
   const next = new URL(location.href)
   next.searchParams.set('_rv', version)
   location.replace(next.toString())
+  return true
 }
 
 function skipWaitingWorker(registration: ServiceWorkerRegistration): void {
@@ -89,9 +99,11 @@ export async function checkRemoteBuildVersion(refreshing: { value: boolean }): P
     const stored = localStorage.getItem(BUILD_VERSION_KEY)
 
     if (isRemoteBuildStale(data, stored)) {
-      await hardReload(data.version, refreshing)
-      return
+      const reloaded = await hardReload(data.version, refreshing)
+      if (reloaded) return
     }
+
+    sessionStorage.removeItem(RELOAD_KEY)
 
     if (!stored) {
       localStorage.setItem(BUILD_VERSION_KEY, data.version)

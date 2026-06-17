@@ -37,6 +37,11 @@
           window.location.port === '5500' ||
           window.location.port === '5501' ||
           /vscode-resource|127\.0\.0\.1:550/.test(window.location.href)
+        var isLocalDev =
+          isFile ||
+          isLiveServer ||
+          location.hostname === 'localhost' ||
+          location.hostname === '127.0.0.1'
         root.innerHTML =
           '<div style="padding:2rem;font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;line-height:1.5;color:#2c3e50">' +
           '<h1 style="color:#20b2aa;margin-top:0">RooVille needs to be started properly</h1>' +
@@ -44,15 +49,20 @@
             ? '<p>You opened <code>index.html</code> directly. That will not work — the game needs a small local server.</p>'
             : isLiveServer
               ? '<p><strong>Live Server</strong> cannot run this app. RooVille uses Vite, not plain HTML.</p>'
-              : '<p>The game did not load. It must be run through Vite.</p>') +
-          '<p><strong>Easiest way (Windows):</strong> double-click <code>Play-RooVille.bat</code> in the RooVille folder.</p>' +
-          '<p><strong>Or in a terminal:</strong></p>' +
-          '<ol><li>Open a terminal in the RooVille folder</li>' +
-          '<li>Run <code style="background:#f0f4f8;padding:2px 6px;border-radius:4px">npm install</code> (first time only)</li>' +
-          '<li>Run <code style="background:#f0f4f8;padding:2px 6px;border-radius:4px">npm start</code></li></ol>' +
-          '<p style="color:#5d6d7e;font-size:0.9rem">Your browser should open automatically. If not, use the URL shown in the terminal (often <code>http://localhost:5173</code>).</p>' +
+              : isLocalDev
+                ? '<p>The game did not load. It must be run through Vite.</p>'
+                : '<p>RooVille could not load the latest game files. This usually clears after a refresh.</p>') +
+          (isLocalDev
+            ? '<p><strong>Easiest way (Windows):</strong> double-click <code>Play-RooVille.bat</code> in the RooVille folder.</p>' +
+              '<p><strong>Or in a terminal:</strong></p>' +
+              '<ol><li>Open a terminal in the RooVille folder</li>' +
+              '<li>Run <code style="background:#f0f4f8;padding:2px 6px;border-radius:4px">npm install</code> (first time only)</li>' +
+              '<li>Run <code style="background:#f0f4f8;padding:2px 6px;border-radius:4px">npm start</code></li></ol>' +
+              '<p style="color:#5d6d7e;font-size:0.9rem">Your browser should open automatically. If not, use the URL shown in the terminal (often <code>http://localhost:5173</code>).</p>'
+            : '<p><button type="button" onclick="location.reload()" style="margin-top:0.75rem;padding:0.6rem 1rem;border-radius:8px;border:none;background:#20b2aa;color:white;font-weight:700;cursor:pointer">Refresh RooVille</button></p>' +
+              '<p style="color:#5d6d7e;font-size:0.9rem">If it still fails, open this site in your browser, refresh once, then reopen the installed app.</p>') +
           '</div>'
-      }, 3500)
+      }, 8000)
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
