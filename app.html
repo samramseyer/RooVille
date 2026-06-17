@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="RooVille — build your dream coastal town. Play free in your browser or install on your phone." />
+    <meta name="theme-color" content="#20B2AA" />
+    <meta property="og:title" content="RooVille — Coastal Town Builder" />
+    <meta property="og:description" content="Build beaches, houses, boats and zoos. Play online or install on your phone." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="./icons/icon-512.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="RooVille" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <title>RooVille — Coastal Town Builder</title>
+  </head>
+  <body>
+    <div id="root">
+      <p style="padding: 2rem; font-family: system-ui, sans-serif; color: #2c3e50">Loading RooVille…</p>
+    </div>
+    <script>
+      window.setTimeout(function () {
+        var root = document.getElementById('root')
+        if (!root || root.dataset.booted === '1') return
+        var text = root.textContent || ''
+        if (text.indexOf('Loading RooVille') === -1) return
+        var isFile = window.location.protocol === 'file:'
+        var isLiveServer =
+          window.location.port === '5500' ||
+          window.location.port === '5501' ||
+          /vscode-resource|127\.0\.0\.1:550/.test(window.location.href)
+        root.innerHTML =
+          '<div style="padding:2rem;font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;line-height:1.5;color:#2c3e50">' +
+          '<h1 style="color:#20b2aa;margin-top:0">RooVille needs to be started properly</h1>' +
+          (isFile
+            ? '<p>You opened <code>index.html</code> directly. That will not work — the game needs a small local server.</p>'
+            : isLiveServer
+              ? '<p><strong>Live Server</strong> cannot run this app. RooVille uses Vite, not plain HTML.</p>'
+              : '<p>The game did not load. It must be run through Vite.</p>') +
+          '<p><strong>Easiest way (Windows):</strong> double-click <code>Play-RooVille.bat</code> in the RooVille folder.</p>' +
+          '<p><strong>Or in a terminal:</strong></p>' +
+          '<ol><li>Open a terminal in the RooVille folder</li>' +
+          '<li>Run <code style="background:#f0f4f8;padding:2px 6px;border-radius:4px">npm install</code> (first time only)</li>' +
+          '<li>Run <code style="background:#f0f4f8;padding:2px 6px;border-radius:4px">npm start</code></li></ol>' +
+          '<p style="color:#5d6d7e;font-size:0.9rem">Your browser should open automatically. If not, use the URL shown in the terminal (often <code>http://localhost:5173</code>).</p>' +
+          '</div>'
+      }, 3500)
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
