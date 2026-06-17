@@ -37,6 +37,8 @@ jobs:
           fi
           test -f dist/.nojekyll
           test -f dist/version.json
+          test -f dist/update-check.js
+          grep -q 'update-check.js' dist/index.html
           grep -q '/RooVille/' dist/index.html
 
       - name: Deploy to gh-pages branch

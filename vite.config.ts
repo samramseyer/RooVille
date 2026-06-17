@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
@@ -8,6 +8,8 @@ const buildId =
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 function appVersionPlugin(version: string): Plugin {
+  const base = process.env.VITE_BASE || "/RooVille/";
+
   return {
     name: "rooville-app-version",
     config() {
@@ -17,11 +19,43 @@ function appVersionPlugin(version: string): Plugin {
         },
       };
     },
+    transformIndexHtml: {
+      order: "post",
+      handler(html, ctx) {
+        if (!ctx.bundle) return html;
+
+        const js = Object.keys(ctx.bundle).find((key) =>
+          /^assets\/main-.*\.js$/.test(key),
+        );
+        if (!js) return html;
+
+        const css = Object.keys(ctx.bundle).find((key) =>
+          /^assets\/main-.*\.css$/.test(key),
+        );
+        const basePrefix = base.endsWith("/") ? base : `${base}/`;
+        const styleAttr = css ? ` data-style="${basePrefix}${css}"` : "";
+
+        let output = html.replace(/<script type="module"[^>]*><\/script>\s*/i, "");
+        output = output.replace(/<link rel="stylesheet"[^>]*>\s*/i, "");
+
+        const bootstrap = `<script src="${basePrefix}update-check.js" data-entry="${basePrefix}${js}"${styleAttr}></script>`;
+        return output.replace("</head>", `    ${bootstrap}\n  </head>`);
+      },
+    },
     closeBundle() {
+      const distDir = resolve(__dirname, "dist");
+
       writeFileSync(
-        resolve(__dirname, "dist/version.json"),
+        resolve(distDir, "version.json"),
         `${JSON.stringify({ version })}\n`,
       );
+
+      const swTemplate = readFileSync(resolve(__dirname, "public/sw.js"), "utf8");
+      const swSource = swTemplate.replace(
+        /const CACHE_NAME = '[^']+'/,
+        `const CACHE_NAME = 'rooville-${version}'`,
+      );
+      writeFileSync(resolve(distDir, "sw.js"), swSource);
     },
   };
 }

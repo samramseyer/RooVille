@@ -1,41 +1,75 @@
 import { isInstalledApp, isNativeCapacitorApp } from './appInstall'
 
-const SW_VERSION = 'rooville-sw-v9'
+export const BUILD_VERSION_KEY = 'rooville-build-version'
 const BUILD_ID = import.meta.env.VITE_BUILD_ID as string | undefined
 const UPDATE_CHECK_MS = 5 * 60 * 1000
-const INSTALLED_UPDATE_CHECK_MS = 60 * 1000
+const INSTALLED_UPDATE_CHECK_MS = 30 * 1000
 
-async function migrateServiceWorkerVersion(): Promise<void> {
-  if (localStorage.getItem('rooville-sw-version') === SW_VERSION) return
+function versionJsonUrl(): URL {
+  const url = new URL('version.json', location.href)
+  url.search = `_=${Date.now()}`
+  return url
+}
 
-  const regs = await navigator.serviceWorker.getRegistrations()
-  await Promise.all(regs.map((r) => r.unregister()))
+async function clearAppCaches(): Promise<void> {
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations()
+    await Promise.all(regs.map((r) => r.unregister()))
+  }
   if ('caches' in window) {
     const keys = await caches.keys()
     await Promise.all(keys.map((k) => caches.delete(k)))
   }
-  localStorage.setItem('rooville-sw-version', SW_VERSION)
+}
+
+async function hardReload(version: string, refreshing: { value: boolean }): Promise<void> {
+  if (refreshing.value) return
+  refreshing.value = true
+  await clearAppCaches()
+  localStorage.setItem(BUILD_VERSION_KEY, version)
+  const next = new URL(location.href)
+  next.searchParams.set('_rv', version)
+  location.replace(next.toString())
 }
 
 function skipWaitingWorker(registration: ServiceWorkerRegistration): void {
   registration.waiting?.postMessage({ type: 'SKIP_WAITING' })
 }
 
-/** Reload when the server has a newer build than this bundle. */
-async function checkRemoteBuildVersion(refreshing: { value: boolean }): Promise<void> {
-  if (!BUILD_ID || refreshing.value) return
+/** Reload when the server has a newer build than this install. */
+export async function checkRemoteBuildVersion(refreshing: { value: boolean }): Promise<void> {
+  if (refreshing.value) return
 
   try {
-    const res = await fetch(`./version.json?_=${Date.now()}`, { cache: 'no-store' })
+    const res = await fetch(versionJsonUrl(), { cache: 'no-store' })
     if (!res.ok) return
+
+    const contentType = res.headers.get('content-type') ?? ''
+    if (!contentType.includes('json')) return
+
     const data = (await res.json()) as { version?: string }
-    if (data.version && data.version !== BUILD_ID) {
-      refreshing.value = true
-      window.location.reload()
+    if (!data.version) return
+
+    const stored = localStorage.getItem(BUILD_VERSION_KEY)
+    const bundleStale = Boolean(BUILD_ID && BUILD_ID !== data.version)
+    const installStale = Boolean(stored && stored !== data.version)
+
+    if (installStale || bundleStale) {
+      await hardReload(data.version, refreshing)
+      return
+    }
+
+    if (!stored) {
+      localStorage.setItem(BUILD_VERSION_KEY, data.version)
     }
   } catch {
     /* offline — keep playing with the current bundle */
   }
+}
+
+function onDocumentReady(run: () => void): void {
+  if (document.readyState === 'complete') run()
+  else window.addEventListener('load', run, { once: true })
 }
 
 /** Keep installed PWAs on the latest deploy without user action. */
@@ -55,6 +89,8 @@ export function registerAppUpdate(): void {
     }
   }
 
+  runUpdateChecks()
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing.value) return
@@ -62,11 +98,9 @@ export function registerAppUpdate(): void {
       window.location.reload()
     })
 
-    void migrateServiceWorkerVersion()
-
-    window.addEventListener('load', () => {
+    onDocumentReady(() => {
       void navigator.serviceWorker
-        .register('./sw.js')
+        .register(new URL('sw.js', location.href))
         .then((registration) => {
           runUpdateChecks(registration)
 
@@ -99,12 +133,14 @@ export function registerAppUpdate(): void {
           /* game works without offline cache */
         })
     })
-  } else if (import.meta.env.PROD) {
-    runUpdateChecks()
+  } else {
     window.setInterval(() => runUpdateChecks(), updateIntervalMs)
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') runUpdateChecks()
     })
     window.addEventListener('focus', () => runUpdateChecks())
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) runUpdateChecks()
+    })
   }
 }

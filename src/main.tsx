@@ -1,11 +1,15 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { registerAppUpdate } from './lib/registerAppUpdate'
 import './index.css'
 import App from './App.tsx'
 
 import { getMobileLayout, isNativeApp } from './hooks/useIsMobile'
 import { isStandaloneApp } from './lib/appInstall'
-import { registerAppUpdate } from './lib/registerAppUpdate'
+
+if (import.meta.env.PROD) {
+  registerAppUpdate()
+}
 
 if (typeof window !== 'undefined') {
   if (isNativeApp()) {
@@ -91,7 +95,3 @@ window.addEventListener('unhandledrejection', (event) => {
     showBootError(reason)
   }
 })
-
-if (import.meta.env.PROD) {
-  registerAppUpdate()
-}
